@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { hamming, simhash } from "../src/fingerprint.js";
+import { htmlToText } from "../src/gmail/parse.js";
 import { OfflineStubGeocoder } from "../src/geo.js";
 import { INBOX_CAP, TOO_LATE, nixleSenderQuery, scanInboxForAlert } from "../src/gmail/inbox.js";
 
@@ -126,6 +128,18 @@ describe("Nixle-only recency window", () => {
     expect(seen.some((url) => url.includes("/github") && url.includes("format=metadata"))).toBe(
       true,
     );
+  });
+});
+
+describe("html and fingerprint", () => {
+  it("decodes an entity once and strips tags", () => {
+    expect(htmlToText("<p>A &amp;lt; B</p>")).toBe("A &lt; B");
+    expect(htmlToText("Route&nbsp;1")).toBe("Route 1");
+  });
+
+  it("hashes identical text to a zero distance", () => {
+    const hash = simhash(["route", "closed", "lane"]);
+    expect(hamming(hash, hash)).toBe(0);
   });
 });
 

@@ -10,9 +10,13 @@ export const DEFAULT_SIMILARITY: SimilarityConfig = {
   simhashMaxDistance: 8,
 };
 
-const FNV_OFFSET = 14695981039346656037n;
-const FNV_PRIME = 1099511628211n;
-const MASK_64 = 0xffffffffffffffffn;
+interface Word64 {
+  hi: number;
+  lo: number;
+}
+
+const FNV_OFFSET: Word64 = { hi: 0xcbf29ce4, lo: 0x84222325 };
+const FNV_PRIME: Word64 = { hi: 0x100, lo: 0x1b3 };
 
 export function shingles(normalized: string, size = 2): string[] {
   const words = wordTokens(normalized);
@@ -37,41 +41,85 @@ export function jaccard(left: readonly string[], right: readonly string[]): numb
   return union === 0 ? 0 : intersection / union;
 }
 
-export function fnv1a64(value: string): bigint {
-  let hash = FNV_OFFSET;
+/** Force a 32-bit unsigned value. Bitwise operators are only applied to this result. */
+function uint32(value: number): number {
+  return value >>> 0;
+}
+
+export function fnv1a64(value: string): Word64 {
+  let hash: Word64 = { hi: FNV_OFFSET.hi, lo: FNV_OFFSET.lo };
   for (let index = 0; index < value.length; index += 1) {
-    hash ^= BigInt(value.charCodeAt(index));
-    hash = (hash * FNV_PRIME) & MASK_64;
+    const code = uint32(value.charCodeAt(index));
+    hash = { hi: hash.hi, lo: uint32(hash.lo ^ code) };
+    hash = mul64(hash, FNV_PRIME);
   }
   return hash;
 }
 
+/**
+ * 32×32 → 64. The cross term can exceed 2^32, so its high half is taken with
+ * division. `>>>` would convert that term to 32 bits first and drop the carry.
+ */
+function mul32(left: number, right: number): Word64 {
+  const a = uint32(left);
+  const b = uint32(right);
+  const aLo = a & 0xffff;
+  const aHi = a >>> 16;
+  const bLo = b & 0xffff;
+  const bHi = b >>> 16;
+  const low = aLo * bLo;
+  const mid = (low >>> 16) + aLo * bHi + aHi * bLo;
+  const midLo = mid % 0x10000;
+  const midHi = Math.floor(mid / 0x10000);
+  return {
+    hi: uint32(aHi * bHi + midHi),
+    lo: uint32((midLo << 16) | (low & 0xffff)),
+  };
+}
+
+function mul64(left: Word64, right: Word64): Word64 {
+  const low = mul32(left.lo, right.lo);
+  const hi = uint32(Math.imul(left.lo, right.hi) + Math.imul(left.hi, right.lo) + low.hi);
+  return { hi, lo: low.lo };
+}
+
 /** 64-bit SimHash over the set of tokens. Order does not matter. */
-export function simhash(tokens: readonly string[]): bigint {
+export function simhash(tokens: readonly string[]): Word64 {
   const unique = [...new Set(tokens)];
-  if (unique.length === 0) return 0n;
   const weights = new Array<number>(64).fill(0);
   for (const token of unique) {
     const hash = fnv1a64(token);
     for (let bit = 0; bit < 64; bit += 1) {
-      const on = ((hash >> BigInt(bit)) & 1n) === 1n;
       const current = weights[bit] ?? 0;
-      weights[bit] = current + (on ? 1 : -1);
+      weights[bit] = current + (bitIsSet(hash, bit) ? 1 : -1);
     }
   }
-  let out = 0n;
+  let hi = 0;
+  let lo = 0;
   for (let bit = 0; bit < 64; bit += 1) {
-    if ((weights[bit] ?? 0) > 0) out |= 1n << BigInt(bit);
+    if ((weights[bit] ?? 0) <= 0) continue;
+    if (bit < 32) lo = uint32(lo | (1 << bit));
+    else hi = uint32(hi | (1 << (bit - 32)));
   }
-  return out;
+  return { hi, lo };
 }
 
-export function hamming(left: bigint, right: bigint): number {
-  let value = (left ^ right) & MASK_64;
+function bitIsSet(word: Word64, bit: number): boolean {
+  const source = bit < 32 ? word.lo : word.hi;
+  const shift = bit < 32 ? bit : bit - 32;
+  return ((source >>> shift) & 1) === 1;
+}
+
+export function hamming(left: Word64, right: Word64): number {
+  return popcount(uint32(left.lo ^ right.lo)) + popcount(uint32(left.hi ^ right.hi));
+}
+
+function popcount(value: number): number {
+  let bits = uint32(value);
   let count = 0;
-  while (value > 0n) {
-    count += Number(value & 1n);
-    value >>= 1n;
+  while (bits !== 0) {
+    count += bits & 1;
+    bits >>>= 1;
   }
   return count;
 }

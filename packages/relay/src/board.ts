@@ -1,8 +1,7 @@
 import { preferCategory } from "./classify.js";
 import { isExpired, type DecayConfig } from "./decay.js";
 import { distanceMeters } from "./geo.js";
-import { jaccard, shingles, simhash, textSimilar, type SimilarityConfig } from "./fingerprint.js";
-import { wordTokens } from "./normalize.js";
+import { jaccard, shingles, textSimilar, type SimilarityConfig } from "./fingerprint.js";
 import { RotatingSalt } from "./privacy.js";
 import { activityScore } from "./decay.js";
 import { pulseFromActivity, type PulseConfig } from "./pulse.js";
@@ -22,7 +21,6 @@ interface Live {
   id: string;
   normalizedText: string;
   shingles: string[];
-  simhash: bigint;
   summary: string;
   category: Category;
   nixleKey: string | null;
@@ -215,7 +213,6 @@ export class SignalBoard {
       id: `sig_${this.#seq}`,
       normalizedText: candidate.normalizedText,
       shingles: shingles(candidate.normalizedText),
-      simhash: simhash(wordTokens(candidate.normalizedText)),
       summary: candidate.summary,
       category: candidate.category,
       nixleKey: candidate.nixleKey,

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { fnv1a64, hamming, simhash } from "../src/fingerprint.js";
+import { htmlToText } from "../src/gmail/parse.js";
 import { OfflineStubGeocoder } from "../src/geo.js";
 import { INBOX_CAP, TOO_LATE, nixleSenderQuery, scanInboxForAlert } from "../src/gmail/inbox.js";
 
@@ -126,6 +128,36 @@ describe("Nixle-only recency window", () => {
     expect(seen.some((url) => url.includes("/github") && url.includes("format=metadata"))).toBe(
       true,
     );
+  });
+});
+
+describe("html and fingerprint", () => {
+  it("decodes an entity once and leaves a second encoding in place", () => {
+    expect(htmlToText("<p>A &amp;lt; B</p>")).toBe("A &lt; B");
+    expect(htmlToText("Route&nbsp;1")).toBe("Route 1");
+    expect(htmlToText("&#65;&#x42;")).toBe("AB");
+    expect(htmlToText("&amp;#60;")).toBe("&#60;");
+    expect(htmlToText("A&#1114112;B")).toBe("A B");
+    expect(htmlToText("3 < 4")).toBe("3 < 4");
+  });
+
+  it("skips markup by scanning, including a greater-than inside an attribute", () => {
+    expect(htmlToText('<span title="a>b">Lane</span>')).toBe("Lane");
+    expect(htmlToText("<script>alert(1)</script >Keep")).toBe("Keep");
+    expect(htmlToText("<STYLE>p{color:red}</style>Road closed")).toBe("Road closed");
+    expect(htmlToText("<!-- a > b -->Road")).toBe("Road");
+    expect(htmlToText("<!-- hidden --!>Road")).toBe("Road");
+    expect(htmlToText("South<br>Brunswick</p>")).toBe("South Brunswick");
+  });
+
+  it("matches the FNV-1a 64-bit vectors and a zero distance", () => {
+    expect(fnv1a64("")).toEqual({ hi: 0xcbf29ce4, lo: 0x84222325 });
+    expect(fnv1a64("a")).toEqual({ hi: 0xaf63dc4c, lo: 0x8601ec8c });
+    expect(fnv1a64("foobar")).toEqual({ hi: 0x85944171, lo: 0xf73967e8 });
+    expect(fnv1a64("\uFFFF\uFFFF\uFFFF\uFFFF")).toEqual({ hi: 0x1d897ee7, lo: 0x56acb351 });
+    const hash = simhash(["route", "closed", "lane"]);
+    expect(hamming(hash, hash)).toBe(0);
+    expect(hamming(fnv1a64("a"), fnv1a64("b"))).toBeGreaterThan(0);
   });
 });
 

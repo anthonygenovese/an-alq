@@ -41,33 +41,45 @@ export function jaccard(left: readonly string[], right: readonly string[]): numb
   return union === 0 ? 0 : intersection / union;
 }
 
+/** Force a 32-bit unsigned value. Bitwise operators are only applied to this result. */
+function uint32(value: number): number {
+  return value >>> 0;
+}
+
 export function fnv1a64(value: string): Word64 {
   let hash: Word64 = { hi: FNV_OFFSET.hi, lo: FNV_OFFSET.lo };
   for (let index = 0; index < value.length; index += 1) {
-    const code = value.charCodeAt(index);
-    if (!Number.isInteger(code)) continue;
-    hash = { hi: hash.hi, lo: (hash.lo ^ code) >>> 0 };
+    const code = uint32(value.charCodeAt(index));
+    hash = { hi: hash.hi, lo: uint32(hash.lo ^ code) };
     hash = mul64(hash, FNV_PRIME);
   }
   return hash;
 }
 
+/**
+ * 32×32 → 64. The cross term can exceed 2^32, so its high half is taken with
+ * division. `>>>` would convert that term to 32 bits first and drop the carry.
+ */
 function mul32(left: number, right: number): Word64 {
-  const leftLo = left & 0xffff;
-  const leftHi = left >>> 16;
-  const rightLo = right & 0xffff;
-  const rightHi = right >>> 16;
-  const low = leftLo * rightLo;
-  const mid = (low >>> 16) + leftLo * rightHi + leftHi * rightLo;
+  const a = uint32(left);
+  const b = uint32(right);
+  const aLo = a & 0xffff;
+  const aHi = a >>> 16;
+  const bLo = b & 0xffff;
+  const bHi = b >>> 16;
+  const low = aLo * bLo;
+  const mid = (low >>> 16) + aLo * bHi + aHi * bLo;
+  const midLo = mid % 0x10000;
+  const midHi = Math.floor(mid / 0x10000);
   return {
-    hi: ((leftHi * rightHi + (mid >>> 16)) >>> 0) >>> 0,
-    lo: (((mid & 0xffff) << 16) | (low & 0xffff)) >>> 0,
+    hi: uint32(aHi * bHi + midHi),
+    lo: uint32((midLo << 16) | (low & 0xffff)),
   };
 }
 
 function mul64(left: Word64, right: Word64): Word64 {
   const low = mul32(left.lo, right.lo);
-  const hi = (Math.imul(left.lo, right.hi) + Math.imul(left.hi, right.lo) + low.hi) >>> 0;
+  const hi = uint32(Math.imul(left.lo, right.hi) + Math.imul(left.hi, right.lo) + low.hi);
   return { hi, lo: low.lo };
 }
 
@@ -86,10 +98,10 @@ export function simhash(tokens: readonly string[]): Word64 {
   let lo = 0;
   for (let bit = 0; bit < 64; bit += 1) {
     if ((weights[bit] ?? 0) <= 0) continue;
-    if (bit < 32) lo |= 1 << bit;
-    else hi |= 1 << (bit - 32);
+    if (bit < 32) lo = uint32(lo | (1 << bit));
+    else hi = uint32(hi | (1 << (bit - 32)));
   }
-  return { hi: hi >>> 0, lo: lo >>> 0 };
+  return { hi, lo };
 }
 
 function bitIsSet(word: Word64, bit: number): boolean {
@@ -99,11 +111,11 @@ function bitIsSet(word: Word64, bit: number): boolean {
 }
 
 export function hamming(left: Word64, right: Word64): number {
-  return popcount((left.lo ^ right.lo) >>> 0) + popcount((left.hi ^ right.hi) >>> 0);
+  return popcount(uint32(left.lo ^ right.lo)) + popcount(uint32(left.hi ^ right.hi));
 }
 
 function popcount(value: number): number {
-  let bits = value >>> 0;
+  let bits = uint32(value);
   let count = 0;
   while (bits !== 0) {
     count += bits & 1;

@@ -37,23 +37,42 @@ const DROPPED_HEADERS = new Set([
 ]);
 
 export function htmlToText(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#(\d+);/g, (_match, digits: string) => {
-      const code = Number(digits);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : " ";
-    })
+  const withBreaks = html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n");
+  const withoutTags = withBreaks.replace(/<[^>]*>/g, " ");
+  return decodeEntitiesOnce(withoutTags)
+    .replace(/[ \t]+\n/g, "\n")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/** One pass. `&amp;lt;` stays `&lt;` and is not turned into `<`. */
+function decodeEntitiesOnce(text: string): string {
+  return text.replace(
+    /&(?:#(\d+)|#x([0-9a-f]+)|nbsp|amp|lt|gt|quot);/gi,
+    (match, decimal: string | undefined, hex: string | undefined) => {
+      if (decimal !== undefined) return codePointOrSpace(Number(decimal));
+      if (hex !== undefined) return codePointOrSpace(Number.parseInt(hex, 16));
+      switch (match.slice(1, -1).toLowerCase()) {
+        case "nbsp":
+          return " ";
+        case "amp":
+          return "&";
+        case "lt":
+          return "<";
+        case "gt":
+          return ">";
+        case "quot":
+          return '"';
+        default:
+          return match;
+      }
+    },
+  );
+}
+
+function codePointOrSpace(code: number): string {
+  if (!Number.isInteger(code) || code < 0 || code > 0x10ffff) return " ";
+  return String.fromCodePoint(code);
 }
 
 export function decodeBase64Url(data: string): string {

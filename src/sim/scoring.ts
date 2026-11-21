@@ -109,7 +109,9 @@ export function emptySession(): SessionStats {
   };
 }
 
-export function meanReactionMs(stats: Pick<SessionStats, "reactionCount" | "reactionSumMs">): number | null {
+export function meanReactionMs(
+  stats: Pick<SessionStats, "reactionCount" | "reactionSumMs">,
+): number | null {
   if (stats.reactionCount === 0) return null;
   return stats.reactionSumMs / stats.reactionCount;
 }
@@ -127,7 +129,8 @@ export function applySession(
     reactionCount: stats.reactionCount + (reacted ? 1 : 0),
     categories: stats.categories.map((track) => {
       if (track.category !== input.category) return track;
-      const recent = track.recent.length >= SPARK_LIMIT ? track.recent.slice(1) : track.recent.slice();
+      const recent =
+        track.recent.length >= SPARK_LIMIT ? track.recent.slice(1) : track.recent.slice();
       recent.push(input.grade.correct ? 1 : 0);
       return {
         ...track,

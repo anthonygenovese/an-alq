@@ -1,0 +1,32 @@
+name: Bug
+description: Something in the MCP server or the range trainer is wrong.
+title: "fix: "
+labels: []
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what you saw. Do not paste secrets, ZIPs, or addresses.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - MCP server
+        - Range trainer
+        - Skill map
+        - CI or docs
+    validations:
+      required: true
+  - type: checkboxes
+    id: bounds
+    attributes:
+      label: Bounds
+      options:
+        - label: Capability figures in this report stay labeled illustrative
+          required: true
+        - label: This is not a request for real RF, jamming, spoofing, or geolocation
+          required: true

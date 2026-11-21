@@ -16,6 +16,8 @@ export function Hud({ trainer }: { trainer: Trainer }) {
   const primary = trainer.round.emitters.find((emitter) => emitter.role === "primary");
   const archetype = emitterById(trainer.round.primaryId);
   const observation = trainer.round.observation;
+  const grade = trainer.grade;
+  const subscribe = trainer.subscribe;
   const clockRef = useRef<HTMLElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
   const labelRef = useRef<HTMLElement>(null);
@@ -30,25 +32,25 @@ export function Hud({ trainer }: { trainer: Trainer }) {
         ringRef.current.style.strokeDashoffset = String(201.06 * (1 - fraction));
       }
     };
-    if (trainer.grade) {
-      const timeout = trainer.grade.reason === "timeout";
+    if (grade) {
+      const timeout = grade.reason === "timeout";
       write(
-        timeout ? "2000" : String(Math.round(trainer.grade.elapsedMs)),
-        trainer.grade.correct ? "ok" : "bad",
-        timeout ? 0 : Math.max(0, (CLASSIFY_WINDOW_MS - trainer.grade.elapsedMs) / CLASSIFY_WINDOW_MS),
+        timeout ? "2000" : String(Math.round(grade.elapsedMs)),
+        grade.correct ? "ok" : "bad",
+        timeout ? 0 : Math.max(0, (CLASSIFY_WINDOW_MS - grade.elapsedMs) / CLASSIFY_WINDOW_MS),
       );
       if (labelRef.current) labelRef.current.textContent = timeout ? "TIME" : "RT";
       return;
     }
     if (labelRef.current) labelRef.current.textContent = "LEFT";
-    return trainer.subscribe((sample) => {
+    return subscribe((sample) => {
       write(
         sample.acquire ? "LOCK" : String(Math.ceil(sample.remainingMs)),
         sample.acquire ? "lock" : sample.remainingMs < 500 ? "hot" : "live",
         sample.acquire ? 1 : sample.remainingMs / CLASSIFY_WINDOW_MS,
       );
     });
-  }, [trainer.grade, trainer.subscribe]);
+  }, [grade, subscribe]);
 
   return (
     <aside className="hud">
@@ -60,8 +62,12 @@ export function Hud({ trainer }: { trainer: Trainer }) {
           <circle ref={ringRef} cx="40" cy="40" r="32" className="ring-value" />
         </svg>
         <div>
-          <span ref={labelRef} className="clock-kicker">LEFT</span>
-          <strong ref={clockRef} className="clock-value">2000</strong>
+          <span ref={labelRef} className="clock-kicker">
+            LEFT
+          </span>
+          <strong ref={clockRef} className="clock-value">
+            2000
+          </strong>
           <span>ms</span>
         </div>
       </div>
@@ -152,4 +158,3 @@ export function Hud({ trainer }: { trainer: Trainer }) {
     </aside>
   );
 }
-

@@ -43,7 +43,9 @@ export function visualTiming(
 
 export function drawsFromRound(round: TrainingRound): SignatureDraw[] {
   const span = round.display.stopMhz - round.display.startMhz;
-  return round.emitters.map((emitter) => toDraw(emitter, round.display.startMhz, span, round.display.bins));
+  return round.emitters.map((emitter) =>
+    toDraw(emitter, round.display.startMhz, span, round.display.bins),
+  );
 }
 
 export function sampleRow(input: SampleRowInput, out?: Float32Array): Float32Array {
@@ -60,11 +62,22 @@ export function sampleRow(input: SampleRowInput, out?: Float32Array): Float32Arr
   return row;
 }
 
-function toDraw(emitter: RoundEmitter, startMhz: number, spanMhz: number, bins: number): SignatureDraw {
+function toDraw(
+  emitter: RoundEmitter,
+  startMhz: number,
+  spanMhz: number,
+  bins: number,
+): SignatureDraw {
   const centerBin = ((emitter.centerMhz - startMhz) / spanMhz) * (bins - 1);
-  const occupiedMhz = emitter.signature === "fhss" ? (emitter.hopSpanMhz ?? emitter.bandwidthMhz) : emitter.bandwidthMhz;
+  const occupiedMhz =
+    emitter.signature === "fhss"
+      ? (emitter.hopSpanMhz ?? emitter.bandwidthMhz)
+      : emitter.bandwidthMhz;
   const trueBins = (occupiedMhz / spanMhz) * (bins - 1);
-  const minBins = emitter.signature === "wideband" || emitter.signature === "fmcw" || emitter.signature === "fhss" ? 10 : 3;
+  const minBins =
+    emitter.signature === "wideband" || emitter.signature === "fmcw" || emitter.signature === "fhss"
+      ? 10
+      : 3;
   return {
     kind: emitter.signature,
     centerBin,
@@ -142,7 +155,12 @@ function sweepCenter(draw: SignatureDraw, rowIndex: number): number {
 }
 
 function gateValue(draw: SignatureDraw, rowIndex: number): number {
-  if (draw.kind === "cw" || draw.kind === "wideband" || draw.kind === "fhss" || draw.kind === "fmcw") {
+  if (
+    draw.kind === "cw" ||
+    draw.kind === "wideband" ||
+    draw.kind === "fhss" ||
+    draw.kind === "fmcw"
+  ) {
     return 1;
   }
   const period = Math.max(1, draw.periodRows);

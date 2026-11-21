@@ -1,0 +1,35 @@
+name: Change
+description: A change to the MCP server, the trainer, or the repository.
+title: "feat: "
+labels: []
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What should change
+      description: Which surface, and what a caller or a player can do afterward.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - MCP server
+        - Range trainer
+        - Skill map
+        - Relay design
+        - CI or docs
+    validations:
+      required: true
+  - type: checkboxes
+    id: bounds
+    attributes:
+      label: Bounds
+      options:
+        - label: Quantitative figures stay labeled illustrative
+          required: true
+        - label: This does not add real RF, jamming, spoofing, or a personal-data field
+          required: true
+        - label: Skill-map items are nodes. A mastered node is a lit node
+          required: true

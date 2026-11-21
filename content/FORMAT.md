@@ -8,15 +8,15 @@ Do not put personal data in these files. ZIPs arrive only as a request argument 
 
 ## Shared rules
 
-| Field | Rule |
-| --- | --- |
-| `format` | Exact literal for that file. |
-| `updated` | `YYYY-MM-DD` the job wrote the file. |
-| `sample` | `true` while the file is fixture data. `false` only for reviewed editorial content. |
-| `label` | `example` when `sample` is `true`. `editorial` when `sample` is `false`. |
-| `disclaimer` | Human-readable sentence. Keep it. |
-| Strings | Plain text. No HTML. |
-| `href` | Optional absolute `https://` URL. Sample rows point at `an-alq.com`. |
+| Field        | Rule                                                                                |
+| ------------ | ----------------------------------------------------------------------------------- |
+| `format`     | Exact literal for that file.                                                        |
+| `updated`    | `YYYY-MM-DD` the job wrote the file.                                                |
+| `sample`     | `true` while the file is fixture data. `false` only for reviewed editorial content. |
+| `label`      | `example` when `sample` is `true`. `editorial` when `sample` is `false`.            |
+| `disclaimer` | Human-readable sentence. Keep it.                                                   |
+| Strings      | Plain text. No HTML.                                                                |
+| `href`       | Optional absolute `https://` URL. Sample rows point at `an-alq.com`.                |
 
 `sample: true` must travel with `label: "example"`. `sample: false` must travel with `label: "editorial"`. The loader rejects mismatches.
 
@@ -36,9 +36,7 @@ Do not put personal data in these files. ZIPs arrive only as a request argument 
       "edition": "national",
       "headline": "Short headline",
       "summary": "One paragraph.",
-      "items": [
-        { "title": "Item", "dek": "One or two sentences.", "tag": "example" }
-      ],
+      "items": [{ "title": "Item", "dek": "One or two sentences.", "tag": "example" }],
       "sample": true,
       "label": "example"
     }

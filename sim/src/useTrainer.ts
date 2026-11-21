@@ -87,7 +87,9 @@ export function useTrainer(options: TrainerOptions = {}): Trainer {
 
   const publish = useCallback((elapsed: number) => {
     const acquire = elapsed < ACQUIRE_MS;
-    const remainingMs = acquire ? CLASSIFY_WINDOW_MS : Math.max(0, CLASSIFY_WINDOW_MS - (elapsed - ACQUIRE_MS));
+    const remainingMs = acquire
+      ? CLASSIFY_WINDOW_MS
+      : Math.max(0, CLASSIFY_WINDOW_MS - (elapsed - ACQUIRE_MS));
     const sample = { acquire, remainingMs };
     for (const listener of listeners.current) listener(sample);
   }, []);
@@ -109,7 +111,9 @@ export function useTrainer(options: TrainerOptions = {}): Trainer {
       });
       const archetype = emitterById(current.primaryId);
       if (archetype) {
-        setStats((currentStats) => applySession(currentStats, { category: archetype.category, grade: nextGrade }));
+        setStats((currentStats) =>
+          applySession(currentStats, { category: archetype.category, grade: nextGrade }),
+        );
         const names =
           onGraded.current?.({
             category: archetype.category,

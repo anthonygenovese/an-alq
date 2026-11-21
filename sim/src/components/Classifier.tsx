@@ -20,7 +20,15 @@ interface ClassifierProps {
   litNodes?: readonly string[];
 }
 
-export function Classifier({ round, phase, answerId, feedback, onAnswer, onNext, litNodes = [] }: ClassifierProps) {
+export function Classifier({
+  round,
+  phase,
+  answerId,
+  feedback,
+  onAnswer,
+  onNext,
+  litNodes = [],
+}: ClassifierProps) {
   const [query, setQuery] = useState("");
   useEffect(() => {
     setQuery("");
@@ -103,7 +111,9 @@ export function Classifier({ round, phase, answerId, feedback, onAnswer, onNext,
               role="option"
               aria-selected={picked}
               disabled={phase === "feedback"}
-              className={["card", correct ? "is-correct" : "", wrong ? "is-wrong" : ""].filter(Boolean).join(" ")}
+              className={["card", correct ? "is-correct" : "", wrong ? "is-wrong" : ""]
+                .filter(Boolean)
+                .join(" ")}
               onClick={() => onAnswer(emitter.id)}
             >
               <span className="card-key">{index < 8 ? index + 1 : ""}</span>
@@ -132,13 +142,18 @@ export function Classifier({ round, phase, answerId, feedback, onAnswer, onNext,
               </p>
             ))}
             <p className="gloss">{feedback.responseNote}</p>
-            {litNodes.length > 0 ? <p className="lit-note">Node lit · {litNodes.join(" · ")}</p> : null}
+            {litNodes.length > 0 ? (
+              <p className="lit-note">Node lit · {litNodes.join(" · ")}</p>
+            ) : null}
             <button type="button" className="next" onClick={onNext}>
               Next trace
             </button>
           </>
         ) : (
-          <p className="hint">Keys 1–{Math.min(8, Math.max(4, visible.length))} answer. Latency prints in ms. N next. Space pause.</p>
+          <p className="hint">
+            Keys 1–{Math.min(8, Math.max(4, visible.length))} answer. Latency prints in ms. N next.
+            Space pause.
+          </p>
         )}
       </div>
     </section>

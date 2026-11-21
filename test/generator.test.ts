@@ -128,8 +128,12 @@ describe("signature sampler", () => {
       periodRows: 18,
       onRows: 8,
     };
-    const early = argmax(sampleRow({ bins: 64, noiseFloor: 0, seed: 2, rowIndex: 0, draws: [chirp] }));
-    const later = argmax(sampleRow({ bins: 64, noiseFloor: 0, seed: 2, rowIndex: 8, draws: [chirp] }));
+    const early = argmax(
+      sampleRow({ bins: 64, noiseFloor: 0, seed: 2, rowIndex: 0, draws: [chirp] }),
+    );
+    const later = argmax(
+      sampleRow({ bins: 64, noiseFloor: 0, seed: 2, rowIndex: 8, draws: [chirp] }),
+    );
     expect(later).toBeGreaterThan(early);
 
     const hop: SignatureDraw = {
@@ -141,8 +145,12 @@ describe("signature sampler", () => {
       periodRows: 2,
       onRows: 2,
     };
-    const firstHop = argmax(sampleRow({ bins: 64, noiseFloor: 0, seed: 3, rowIndex: 0, draws: [hop] }));
-    const laterHop = argmax(sampleRow({ bins: 64, noiseFloor: 0, seed: 3, rowIndex: 6, draws: [hop] }));
+    const firstHop = argmax(
+      sampleRow({ bins: 64, noiseFloor: 0, seed: 3, rowIndex: 0, draws: [hop] }),
+    );
+    const laterHop = argmax(
+      sampleRow({ bins: 64, noiseFloor: 0, seed: 3, rowIndex: 6, draws: [hop] }),
+    );
     expect(laterHop).toBeGreaterThan(firstHop);
   });
 });

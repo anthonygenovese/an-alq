@@ -1,0 +1,11 @@
+title = "an-alq"
+
+[extend]
+useDefault = true
+
+# The skill-evidence localStorage key is a schema id. It matches the
+# generic-api-key rule because of its shape. It is not a credential.
+[[allowlists]]
+description = "localStorage schema id"
+regexTarget = "match"
+regexes = ['''an-alq\.skill-evidence\.v1''']

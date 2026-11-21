@@ -19,7 +19,11 @@ export interface RoundFeedback {
   responseNote: string;
 }
 
-export function explainRound(round: TrainingRound, grade: Grade, answerId: string | null): RoundFeedback {
+export function explainRound(
+  round: TrainingRound,
+  grade: Grade,
+  answerId: string | null,
+): RoundFeedback {
   const primary = emitterById(round.primaryId);
   if (!primary) throw new Error("round primary is not in the library");
   const picked = answerId ? emitterById(answerId) : undefined;

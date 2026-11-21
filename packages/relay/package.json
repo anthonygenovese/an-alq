@@ -1,0 +1,16 @@
+{
+  "name": "@an-alq/relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only Nixle signal relay. Public posts are low sensitivity. Gmail is opt-in and high sensitivity. Never posts or sends mail.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  }
+}

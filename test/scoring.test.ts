@@ -75,9 +75,18 @@ describe("scoring", () => {
 
     let stats: Stats = EMPTY_STATS;
     const before = { ...stats };
-    stats = applyGrade(stats, gradeAnswer({ primaryId: "a", answerId: "a", elapsedMs: 0, streak: 0 }));
-    stats = applyGrade(stats, gradeAnswer({ primaryId: "a", answerId: "b", elapsedMs: 10, streak: stats.streak }));
-    stats = applyGrade(stats, gradeAnswer({ primaryId: "a", answerId: null, elapsedMs: 2000, streak: stats.streak }));
+    stats = applyGrade(
+      stats,
+      gradeAnswer({ primaryId: "a", answerId: "a", elapsedMs: 0, streak: 0 }),
+    );
+    stats = applyGrade(
+      stats,
+      gradeAnswer({ primaryId: "a", answerId: "b", elapsedMs: 10, streak: stats.streak }),
+    );
+    stats = applyGrade(
+      stats,
+      gradeAnswer({ primaryId: "a", answerId: null, elapsedMs: 2000, streak: stats.streak }),
+    );
     expect(before).toEqual(EMPTY_STATS);
     expect(stats.attempted).toBe(3);
     expect(stats.correct).toBe(1);
@@ -93,7 +102,12 @@ describe("scoring", () => {
 describe("session stats", () => {
   it("tracks mean reaction time and a fixed per-category sparkline", () => {
     const fast = gradeAnswer({ primaryId: "a", answerId: "a", elapsedMs: 420, streak: 0 });
-    const miss = gradeAnswer({ primaryId: "a", answerId: "b", elapsedMs: 800, streak: fast.streak });
+    const miss = gradeAnswer({
+      primaryId: "a",
+      answerId: "b",
+      elapsedMs: 800,
+      streak: fast.streak,
+    });
     const timeout = gradeAnswer({ primaryId: "a", answerId: null, elapsedMs: 2400, streak: 0 });
     let session = emptySession();
     const before = session.categories.length;
@@ -114,7 +128,12 @@ describe("session stats", () => {
     for (let i = 0; i < 20; i += 1) {
       filled = applySession(filled, {
         category: "gnss",
-        grade: gradeAnswer({ primaryId: "a", answerId: i % 2 === 0 ? "a" : "b", elapsedMs: 100, streak: 0 }),
+        grade: gradeAnswer({
+          primaryId: "a",
+          answerId: i % 2 === 0 ? "a" : "b",
+          elapsedMs: 100,
+          streak: 0,
+        }),
       });
     }
     expect(filled.categories.find((track) => track.category === "gnss")?.recent).toHaveLength(16);
@@ -148,6 +167,8 @@ describe("round feedback", () => {
 describe("tier roadmap", () => {
   it("keeps five tiers and only T1 playable", () => {
     expect(TRAINER_TIERS.map((tier) => tier.id)).toEqual(["T1", "T2", "T3", "T4", "T5"]);
-    expect(TRAINER_TIERS.filter((tier) => tier.status === "playable").map((tier) => tier.id)).toEqual(["T1"]);
+    expect(
+      TRAINER_TIERS.filter((tier) => tier.status === "playable").map((tier) => tier.id),
+    ).toEqual(["T1"]);
   });
 });

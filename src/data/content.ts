@@ -35,9 +35,7 @@ export function newsDropForSlot(
   return newsDrops.drops.find((drop) => drop.slot === slot);
 }
 
-export function frontierMonth(
-  month: string,
-): FrontierFile["months"][number] | undefined {
+export function frontierMonth(month: string): FrontierFile["months"][number] | undefined {
   return frontierPicks.months.find((entry) => entry.month === month);
 }
 

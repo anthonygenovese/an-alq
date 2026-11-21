@@ -60,16 +60,18 @@ describe("skill map schema", () => {
       "deception",
       "multi-threat",
     ]);
-    expect(skillMap.domains.filter((domain) => domain.status === "playable").map((domain) => domain.id)).toEqual([
-      "sigint",
-    ]);
+    expect(
+      skillMap.domains.filter((domain) => domain.status === "playable").map((domain) => domain.id),
+    ).toEqual(["sigint"]);
     expect(skillMap.participation.slot).toBe("participation-glow-ring");
     expect(skillMap.participation.shows).toBe("how-you-participate");
     expect(skillMap.participation.mapShows).toBe("what-you-learned");
     expect(skillMap.operational).toBe(false);
     for (const node of skillMap.nodes) {
       expect(skillNodeById.get(node.id)?.label).toBe(node.label);
-      for (const category of node.criterion.source === "category" ? node.criterion.categories : []) {
+      for (const category of node.criterion.source === "category"
+        ? node.criterion.categories
+        : []) {
         expect(EMITTER_CATEGORIES).toContain(category);
       }
     }
@@ -134,7 +136,13 @@ describe("mastery", () => {
     evidence = play(evidence, attempt({ category: "gnss", difficulty: "lead", elapsedMs: 500 }), 4);
     const snapshot = evaluateMap(evidence);
     expect(snapshot.litIds).toEqual(
-      expect.arrayContaining(["open-ear", "classify-pulsed", "classify-fhss", "classify-wideband", "low-snr"]),
+      expect.arrayContaining([
+        "open-ear",
+        "classify-pulsed",
+        "classify-fhss",
+        "classify-wideband",
+        "low-snr",
+      ]),
     );
     expect(snapshot.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("locked");
     expect(snapshot.nodes.find((node) => node.id === "gnss-term")?.state).toBe("locked");
@@ -156,7 +164,10 @@ describe("mastery", () => {
     expect(JSON.stringify(start)).toBe(before);
     expect(result.newlyLit).toEqual(["open-ear"]);
     expect(result.evidence).not.toBe(start);
-    const next = applyAttempt(result.evidence, attempt({ category: "search_radar", elapsedMs: 250 }));
+    const next = applyAttempt(
+      result.evidence,
+      attempt({ category: "search_radar", elapsedMs: 250 }),
+    );
     expect(next.newlyLit).toEqual(["classify-pulsed"]);
   });
 });

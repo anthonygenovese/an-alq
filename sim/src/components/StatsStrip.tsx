@@ -31,7 +31,8 @@ export function StatsStrip({ stats, accuracy }: { stats: SessionStats; accuracy:
       </div>
       <div className="cats">
         {stats.categories.map((track) => {
-          const rate = track.attempts === 0 ? "—" : `${Math.round((track.correct / track.attempts) * 100)}%`;
+          const rate =
+            track.attempts === 0 ? "—" : `${Math.round((track.correct / track.attempts) * 100)}%`;
           return (
             <div key={track.category} className="cat">
               <span>{CODE[track.category]}</span>
@@ -63,8 +64,18 @@ function Spark({ recent }: { recent: readonly (0 | 1)[] }) {
       {Array.from({ length: 16 }, (_, index) => {
         const bit = recent[index];
         const x = index * 4;
-        if (bit === undefined) return <rect key={index} x={x} y={12} width={2} height={1} className="spark-empty" />;
-        return <rect key={index} x={x} y={bit ? 1 : 7} width={2} height={bit ? 12 : 6} className={bit ? "spark-hit" : "spark-miss"} />;
+        if (bit === undefined)
+          return <rect key={index} x={x} y={12} width={2} height={1} className="spark-empty" />;
+        return (
+          <rect
+            key={index}
+            x={x}
+            y={bit ? 1 : 7}
+            width={2}
+            height={bit ? 12 : 6}
+            className={bit ? "spark-hit" : "spark-miss"}
+          />
+        );
       })}
     </svg>
   );

@@ -1,9 +1,4 @@
-import {
-  CAPABILITIES_URL,
-  ILLUSTRATIVE,
-  ILLUSTRATIVE_DISCLAIMER,
-  PUBLIC_SITE,
-} from "../config.js";
+import { CAPABILITIES_URL, ILLUSTRATIVE, ILLUSTRATIVE_DISCLAIMER, PUBLIC_SITE } from "../config.js";
 
 export interface IllustrativeMetric {
   name: string;
@@ -43,11 +38,7 @@ export interface CapabilitiesDocument {
 
 const band = (name: string): SpectrumBand => ({ name, label: ILLUSTRATIVE });
 
-const metric = (
-  name: string,
-  value: string,
-  source: string,
-): IllustrativeMetric => ({
+const metric = (name: string, value: string, source: string): IllustrativeMetric => ({
   name,
   value,
   label: ILLUSTRATIVE,
@@ -79,13 +70,7 @@ export const capabilities: CapabilitiesDocument = {
         "angle deception",
       ],
       bands: ["L-band", "S-band", "C-band", "X-band", "Ku-band"].map(band),
-      metrics: [
-        metric(
-          "autonomous_threat_response_latency",
-          "<12 ms",
-          PUBLIC_SITE,
-        ),
-      ],
+      metrics: [metric("autonomous_threat_response_latency", "<12 ms", PUBLIC_SITE)],
       notes: [
         "Bands on the capabilities page are each marked illustrative.",
         "The homepage describes autonomous threat-response latency as under 12 ms and marks that figure illustrative.",
@@ -140,16 +125,9 @@ export const capabilities: CapabilitiesDocument = {
       source: CAPABILITIES_URL,
       summary:
         "The public site describes synthetic radar returns, false AIS tracks, and spoofed navigation signals, including false-target generation, terrain bounce, cross-eye, and GPS/GNSS spoofing. This catalog names those modes. It does not synthesize a return or a navigation signal.",
-      techniques: [
-        "false target generation",
-        "terrain bounce",
-        "cross-eye",
-        "GPS/GNSS spoofing",
-      ],
+      techniques: ["false target generation", "terrain bounce", "cross-eye", "GPS/GNSS spoofing"],
       bands: ["L1/L2", "X-band", "Ku-band", "EO/IR"].map(band),
-      metrics: [
-        metric("simultaneous_false_tracks", "up to 64", CAPABILITIES_URL),
-      ],
+      metrics: [metric("simultaneous_false_tracks", "up to 64", CAPABILITIES_URL)],
       notes: [
         "The public page marks the maximum of 64 simultaneous false tracks as illustrative.",
         "The public page describes those tracks as carrying independent kinematics, RCS profiles, and Doppler signatures. This server does not produce them.",

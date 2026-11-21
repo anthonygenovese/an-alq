@@ -166,4 +166,123 @@ describe("streamable HTTP", () => {
     expect(captured.text()).not.toContain(PLANTED);
     expect(captured.text()).not.toMatch(/\d{1,3}(?:\.\d{1,3}){3}/);
   });
+
+  it("serves /healthz with security headers and a strict CORS policy", async () => {
+    const captured = captureConsole();
+    consoles.push(captured);
+    const { server, url } = await listen(createApp());
+    servers.push(server);
+
+    const healthz = await fetch(`${url}/healthz`);
+    expect(healthz.status).toBe(200);
+    expect(await healthz.json()).toMatchObject({ ok: true, name: "an-alq" });
+    expect(healthz.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(healthz.headers.get("x-frame-options")).toBe("DENY");
+    expect(healthz.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(healthz.headers.get("cache-control")).toBe("no-store");
+    expect(healthz.headers.get("content-security-policy")).toContain("default-src 'none'");
+    expect(healthz.headers.get("access-control-allow-origin")).toBeNull();
+
+    const loopback = await fetch(`${url}/healthz`, {
+      headers: { origin: "http://127.0.0.1:6274" },
+    });
+    expect(loopback.status).toBe(200);
+    expect(loopback.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:6274");
+    expect(loopback.headers.get("access-control-allow-credentials")).toBeNull();
+
+    const preflight = await fetch(`${url}/mcp`, {
+      method: "OPTIONS",
+      headers: { origin: "http://localhost:6274", "access-control-request-method": "POST" },
+    });
+    expect(preflight.status).toBe(204);
+
+    const denied = await fetch(`${url}/mcp`, {
+      method: "POST",
+      headers: {
+        origin: "https://evil.example",
+        "content-type": "application/json",
+        accept: ACCEPT,
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "get_news_drop", arguments: { slot: "morning", zip: PLANTED } },
+      }),
+    });
+    expect(denied.status).toBe(403);
+    const deniedText = await denied.text();
+    expect(deniedText).not.toContain("evil.example");
+    expect(deniedText).not.toContain(PLANTED);
+    expect(denied.headers.get("access-control-allow-origin")).toBeNull();
+    expect(captured.text()).not.toContain("evil.example");
+    expect(captured.text()).not.toContain(PLANTED);
+  });
+
+  it("rejects an oversized body without logging it", async () => {
+    const captured = captureConsole();
+    consoles.push(captured);
+    const { server, url } = await listen(createApp());
+    servers.push(server);
+    const planted = `PII${PLANTED}`;
+    const body = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: { name: "get_capabilities", arguments: { note: planted.repeat(8000) } },
+    });
+    expect(Buffer.byteLength(body)).toBeGreaterThan(32 * 1024);
+    const response = await fetch(`${url}/mcp`, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: ACCEPT },
+      body,
+    });
+    expect(response.status).toBe(413);
+    expect(await response.text()).not.toContain(planted);
+    expect(captured.text()).not.toContain(planted);
+  });
+
+  it("does not let a forged x-forwarded-for hop the Vercel rate-limit bucket", async () => {
+    const limiter = new SlidingWindowRateLimiter(1, 60_000);
+    const { server, url } = await listen(createApp({ mode: "vercel", rateLimiter: limiter }));
+    servers.push(server);
+    const post = (forwardedFor: string) =>
+      fetch(`${url}/mcp`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: ACCEPT,
+          "x-forwarded-for": forwardedFor,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_capabilities", arguments: {} },
+        }),
+      });
+    expect((await post("203.0.113.10")).status).toBe(200);
+    expect((await post("203.0.113.11")).status).toBe(429);
+  });
+
+  it("denies loopback origins in Vercel mode unless they are listed", async () => {
+    const { server, url } = await listen(createApp({ mode: "vercel" }));
+    servers.push(server);
+    const denied = await fetch(`${url}/healthz`, {
+      headers: { origin: "http://127.0.0.1:6274" },
+    });
+    expect(denied.status).toBe(403);
+
+    const allowedApp = createApp({
+      mode: "vercel",
+      allowedOrigins: ["https://mcp.an-alq.com"],
+    });
+    const allowed = await listen(allowedApp);
+    servers.push(allowed.server);
+    const ok = await fetch(`${allowed.url}/healthz`, {
+      headers: { origin: "https://mcp.an-alq.com" },
+    });
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get("access-control-allow-origin")).toBe("https://mcp.an-alq.com");
+  });
 });

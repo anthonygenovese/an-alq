@@ -1,7 +1,18 @@
 import { CAPABILITIES_RESOURCE_URI, ILLUSTRATIVE_DISCLAIMER, SAMPLE_DISCLAIMER } from "./config.js";
-import { capabilities, capabilitiesSummary, type CapabilitiesDocument, type CapabilitiesSummary } from "./data/capabilities.js";
+import {
+  capabilities,
+  capabilitiesSummary,
+  type CapabilitiesDocument,
+  type CapabilitiesSummary,
+} from "./data/capabilities.js";
 import { emitterLibrary, type EmitterLibraryDocument } from "./data/emitter-library.js";
-import { frontierMonth, frontierMonths, frontierPicks, newsDropForSlot, newsDrops } from "./data/content.js";
+import {
+  frontierMonth,
+  frontierMonths,
+  frontierPicks,
+  newsDropForSlot,
+  newsDrops,
+} from "./data/content.js";
 import { GLOSSARY_IDS, resolveGlossaryEntry, type GlossaryEntry } from "./data/glossary.js";
 import { postalRegionFromZip } from "./data/postal.js";
 import type { FrontierArgs, NewsDropArgs } from "./schemas.js";
@@ -94,9 +105,7 @@ export interface GlossaryHit {
   entry: GlossaryEntry;
 }
 
-export type ExplainTermResult =
-  | { ok: true; body: GlossaryHit }
-  | { ok: false; message: string };
+export type ExplainTermResult = { ok: true; body: GlossaryHit } | { ok: false; message: string };
 
 export function explainTerm(term: string): ExplainTermResult {
   const entry = resolveGlossaryEntry(term);

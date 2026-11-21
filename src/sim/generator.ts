@@ -1,9 +1,6 @@
 import { z } from "zod/v3";
 import { TRAINING_DISCLAIMER } from "../config.js";
-import {
-  emitterLibrary,
-  type EmitterArchetype,
-} from "../data/emitter-library.js";
+import { emitterLibrary, type EmitterArchetype } from "../data/emitter-library.js";
 import { between, hashSeed, mulberry32, pick, shuffle } from "./prng.js";
 import { visualTiming } from "./signature.js";
 import {
@@ -207,7 +204,11 @@ export function generateRound(options: GenerateRoundOptions): TrainingRound {
     instantiate(entry.archetype, {
       role: "distractor",
       centerMhz: entry.centerMhz,
-      bandwidthMhz: between(rng, entry.archetype.bandwidthMhz.min, entry.archetype.bandwidthMhz.max),
+      bandwidthMhz: between(
+        rng,
+        entry.archetype.bandwidthMhz.min,
+        entry.archetype.bandwidthMhz.max,
+      ),
       snrDb: Math.max(4, snr - between(rng, 1, 4)),
       overlap: entry.overlap,
       rng,
@@ -254,7 +255,10 @@ export function generateRound(options: GenerateRoundOptions): TrainingRound {
   for (const emitter of parsed.data.emitters) {
     const archetype = catalog.find((item) => item.id === emitter.libraryId);
     if (!archetype) throw new Error("round referenced an unknown archetype");
-    if (emitter.centerMhz < archetype.frequency.minMhz || emitter.centerMhz > archetype.frequency.maxMhz) {
+    if (
+      emitter.centerMhz < archetype.frequency.minMhz ||
+      emitter.centerMhz > archetype.frequency.maxMhz
+    ) {
       throw new Error("round placed an emitter outside its catalog range");
     }
   }
@@ -276,7 +280,9 @@ function instantiate(
     rng: () => number;
   },
 ): RoundEmitter {
-  const priUs = archetype.priUs ? between(input.rng, archetype.priUs.min, archetype.priUs.max) : null;
+  const priUs = archetype.priUs
+    ? between(input.rng, archetype.priUs.min, archetype.priUs.max)
+    : null;
   const pulseWidthUs = archetype.pulseWidthUs
     ? between(input.rng, archetype.pulseWidthUs.min, archetype.pulseWidthUs.max)
     : null;
@@ -325,7 +331,10 @@ function observe(
       centerMhz: Math.round(emitter.centerMhz / step) * step,
       modulation: archetype.modulation,
       priUs: emitter.priUs === null ? null : Math.round(emitter.priUs / 50) * 50,
-      bandwidthMhz: emitter.bandwidthMhz >= 1 ? Math.round(emitter.bandwidthMhz) : roundTo(emitter.bandwidthMhz, 0.01),
+      bandwidthMhz:
+        emitter.bandwidthMhz >= 1
+          ? Math.round(emitter.bandwidthMhz)
+          : roundTo(emitter.bandwidthMhz, 0.01),
       scan: archetype.scanType,
       confidence: "medium",
       notes: overlapped
@@ -391,7 +400,11 @@ function placeCenter(
   return between(rng, lo, hi);
 }
 
-function coverSpan(centers: readonly number[], paddingMhz: number, minSpanMhz: number): { start: number; stop: number } {
+function coverSpan(
+  centers: readonly number[],
+  paddingMhz: number,
+  minSpanMhz: number,
+): { start: number; stop: number } {
   let lo = Math.min(...centers) - paddingMhz;
   let hi = Math.max(...centers) + paddingMhz;
   if (hi - lo < minSpanMhz) {
@@ -407,7 +420,8 @@ function coverSpan(centers: readonly number[], paddingMhz: number, minSpanMhz: n
 }
 
 function rangeGap(a: EmitterArchetype, b: EmitterArchetype): number {
-  if (a.frequency.maxMhz >= b.frequency.minMhz && b.frequency.maxMhz >= a.frequency.minMhz) return 0;
+  if (a.frequency.maxMhz >= b.frequency.minMhz && b.frequency.maxMhz >= a.frequency.minMhz)
+    return 0;
   return Math.min(
     Math.abs(a.frequency.minMhz - b.frequency.maxMhz),
     Math.abs(b.frequency.minMhz - a.frequency.maxMhz),

@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { capabilities } from "../src/data/capabilities.js";
 import { GLOSSARY_IDS } from "../src/data/glossary.js";
-import { explainTerm, getCapabilities, getEmitterLibrary, getFrontierPicks, getNewsDrop } from "../src/services.js";
+import {
+  explainTerm,
+  getCapabilities,
+  getEmitterLibrary,
+  getFrontierPicks,
+  getNewsDrop,
+} from "../src/services.js";
 
 function metricsOf(document: typeof capabilities) {
   return document.divisions.flatMap((division) => division.metrics);
@@ -29,7 +35,9 @@ describe("getCapabilities", () => {
   });
 
   it("keeps advanced research closed and unnamed", () => {
-    const research = getCapabilities().divisions.find((division) => division.id === "advanced_research");
+    const research = getCapabilities().divisions.find(
+      (division) => division.id === "advanced_research",
+    );
     expect(research?.briefing).toBe("not_open");
     expect(research?.metrics).toEqual([]);
     expect(research?.summary.toLowerCase()).toContain("not yet available for general briefing");
@@ -44,11 +52,21 @@ describe("getCapabilities", () => {
     expect(radar?.techniques?.join(" ")).toMatch(/RGPO/);
     expect(radar?.techniques?.join(" ")).toMatch(/VGPO/);
     expect(radar?.techniques?.join(" ")).toMatch(/angle deception/);
-    const comms = getCapabilities().divisions.find((division) => division.id === "communications_disruption");
-    expect(comms?.bands?.map((band) => band.name)).toEqual(["HF", "VHF", "UHF", "L-band", "S-band"]);
+    const comms = getCapabilities().divisions.find(
+      (division) => division.id === "communications_disruption",
+    );
+    expect(comms?.bands?.map((band) => band.name)).toEqual([
+      "HF",
+      "VHF",
+      "UHF",
+      "L-band",
+      "S-band",
+    ]);
     expect(comms?.techniques?.join(" ")).toMatch(/FHSS/);
     expect(comms?.techniques?.join(" ")).toMatch(/DSSS/);
-    const deception = getCapabilities().divisions.find((division) => division.id === "electronic_deception");
+    const deception = getCapabilities().divisions.find(
+      (division) => division.id === "electronic_deception",
+    );
     expect(deception?.techniques?.join(" ")).toMatch(/GNSS spoofing/);
     expect(deception?.techniques?.join(" ")).toMatch(/false target/i);
   });

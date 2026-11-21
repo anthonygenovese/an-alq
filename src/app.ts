@@ -1,29 +1,26 @@
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
-import { hostHeaderValidation, localhostHostValidation } from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
+import {
+  hostHeaderValidation,
+  localhostHostValidation,
+} from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
 import { JSON_BODY_LIMIT, RATE_LIMIT, SERVER_NAME, SERVER_VERSION } from "./config.js";
+import { clientAddress, type AppMode } from "./client-address.js";
 import { handleMcpRequest } from "./mcp-http.js";
 import { logEvent } from "./log.js";
 import { SlidingWindowRateLimiter, bucketKeyFromAddress } from "./rate-limit.js";
+import { httpGuards } from "./security.js";
 
-export type AppMode = "local" | "vercel";
+export type { AppMode };
 
 export interface CreateAppOptions {
   mode?: AppMode;
   rateLimiter?: SlidingWindowRateLimiter;
   allowedHosts?: readonly string[];
+  allowedOrigins?: readonly string[];
 }
 
 const MCP_PATHS = ["/mcp", "/api/mcp"];
-
-function clientAddress(req: Request, mode: AppMode): string {
-  if (mode === "vercel") {
-    const header = req.headers["x-forwarded-for"];
-    const raw = Array.isArray(header) ? header[0] : header;
-    const first = raw?.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  return req.socket.remoteAddress ?? "local";
-}
+const HEALTH_PATHS = ["/health", "/healthz", "/api/health", "/api/healthz"];
 
 function statusOf(error: unknown): number | undefined {
   if (typeof error === "object" && error !== null && "status" in error) {
@@ -36,10 +33,17 @@ function statusOf(error: unknown): number | undefined {
 export function createApp(options: CreateAppOptions = {}): Express {
   const mode = options.mode ?? "local";
   const rateLimiter =
-    options.rateLimiter ??
-    new SlidingWindowRateLimiter(RATE_LIMIT.limit, RATE_LIMIT.windowMs);
+    options.rateLimiter ?? new SlidingWindowRateLimiter(RATE_LIMIT.limit, RATE_LIMIT.windowMs);
   const app = express();
   app.disable("x-powered-by");
+  app.set("etag", false);
+  app.set("query parser", "simple");
+  app.use(
+    httpGuards({
+      mode,
+      allowedOrigins: options.allowedOrigins ?? [],
+    }),
+  );
 
   if (mode === "local") {
     const allowed = options.allowedHosts?.filter((host) => host.length > 0);
@@ -52,13 +56,11 @@ export function createApp(options: CreateAppOptions = {}): Express {
 
   app.use(express.json({ limit: JSON_BODY_LIMIT, strict: true }));
 
-  app.get(["/health", "/api/health"], (_req, res) => {
-    res.setHeader("Cache-Control", "no-store");
+  app.get(HEALTH_PATHS, (_req, res) => {
     res.json({ ok: true, name: SERVER_NAME, version: SERVER_VERSION });
   });
 
   const mcp = (req: Request, res: Response): Promise<void> => {
-    // Hash before the handler so the handler never sees the address.
     const bucketKey = bucketKeyFromAddress(clientAddress(req, mode));
     return handleMcpRequest(req, res, req.body, { rateLimiter, bucketKey });
   };

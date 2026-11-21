@@ -208,7 +208,17 @@ export class Spectrogram {
     const gl = this.gl;
     if (gl && this.texture) {
       gl.bindTexture(gl.TEXTURE_2D, this.texture);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, this.head, this.bins, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.rgba);
+      gl.texSubImage2D(
+        gl.TEXTURE_2D,
+        0,
+        0,
+        this.head,
+        this.bins,
+        1,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        this.rgba,
+      );
     } else if (this.image) {
       const pixels = this.image.data;
       const stride = this.bins * 4;

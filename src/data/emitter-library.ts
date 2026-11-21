@@ -268,7 +268,10 @@ export const emitterLibrarySchema = z
           path: ["emitters", emitter.id],
         });
       }
-      if (emitter.hooks.collateral === "protected" && emitter.hooks.recommendedResponse.id !== "observe_only") {
+      if (
+        emitter.hooks.collateral === "protected" &&
+        emitter.hooks.recommendedResponse.id !== "observe_only"
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "protected archetypes are observe-only",
@@ -367,7 +370,8 @@ const SEEDS: readonly Seed[] = [
     id: "lantern-search",
     name: "Lantern Circular Search",
     category: "search_radar",
-    summary: "Fictional medium-PRF search cartoon in S-band. A textbook circular scan with a short unmodulated pulse.",
+    summary:
+      "Fictional medium-PRF search cartoon in S-band. A textbook circular scan with a short unmodulated pulse.",
     band: "S-band",
     mhz: [2700, 3100],
     modulation: "unmodulated_pulse",
@@ -388,7 +392,8 @@ const SEEDS: readonly Seed[] = [
     id: "harbor-watch",
     name: "Harbor Watch",
     category: "navigation_radar",
-    summary: "Fictional civil navigation radar. Short X-band pulses on a circular scan. Protected training traffic.",
+    summary:
+      "Fictional civil navigation radar. Short X-band pulses on a circular scan. Protected training traffic.",
     band: "X-band",
     mhz: [9300, 9500],
     modulation: "unmodulated_pulse",
@@ -409,7 +414,8 @@ const SEEDS: readonly Seed[] = [
     id: "horizon-fan",
     name: "Horizon Fan",
     category: "early_warning_radar",
-    summary: "Fictional long-range early-warning cartoon. Slow L-band chirps and a wide circular scan.",
+    summary:
+      "Fictional long-range early-warning cartoon. Slow L-band chirps and a wide circular scan.",
     band: "L-band",
     mhz: [1200, 1400],
     modulation: "linear_fm_pulse",
@@ -537,7 +543,8 @@ const SEEDS: readonly Seed[] = [
     id: "penlight",
     name: "Penlight Monopulse",
     category: "tracking_radar",
-    summary: "Fictional X-band monopulse tracker. Chirped pulses on an electronic scan. Monopulse here is the textbook word, not a product.",
+    summary:
+      "Fictional X-band monopulse tracker. Chirped pulses on an electronic scan. Monopulse here is the textbook word, not a product.",
     band: "X-band",
     mhz: [9000, 9300],
     modulation: "linear_fm_pulse",
@@ -623,7 +630,8 @@ const SEEDS: readonly Seed[] = [
     id: "courtyard-fhss",
     name: "Courtyard FHSS",
     category: "comms_fhss",
-    summary: "Fictional frequency-hopping handset in the 2.4 GHz textbook hop cartoon. Not a fielded radio.",
+    summary:
+      "Fictional frequency-hopping handset in the 2.4 GHz textbook hop cartoon. Not a fielded radio.",
     band: "S-band",
     mhz: [2400, 2480],
     modulation: "fhss",
@@ -683,7 +691,8 @@ const SEEDS: readonly Seed[] = [
     id: "ledger-dsss",
     name: "Ledger DSSS",
     category: "comms_dsss",
-    summary: "Fictional direct-sequence link. A raised wide block in L-band, well clear of the GNSS cartoons.",
+    summary:
+      "Fictional direct-sequence link. A raised wide block in L-band, well clear of the GNSS cartoons.",
     band: "L-band",
     mhz: [1750, 1850],
     modulation: "dsss",
@@ -702,7 +711,8 @@ const SEEDS: readonly Seed[] = [
     id: "campus-dsss",
     name: "Campus DSSS",
     category: "comms_dsss",
-    summary: "Fictional campus direct-sequence radio in an S-band textbook spread. Protected civil cartoon.",
+    summary:
+      "Fictional campus direct-sequence radio in an S-band textbook spread. Protected civil cartoon.",
     band: "S-band",
     mhz: [2410, 2470],
     modulation: "dsss",
@@ -721,7 +731,8 @@ const SEEDS: readonly Seed[] = [
     id: "metro-lte",
     name: "Metro LTE Block",
     category: "comms_lte",
-    summary: "Fictional LTE-like OFDM block in UHF. A flat wide rectangle. Protected civil traffic.",
+    summary:
+      "Fictional LTE-like OFDM block in UHF. A flat wide rectangle. Protected civil traffic.",
     band: "UHF",
     mhz: [730, 760],
     modulation: "ofdm",
@@ -740,7 +751,8 @@ const SEEDS: readonly Seed[] = [
     id: "tower-lte",
     name: "Tower LTE",
     category: "comms_lte",
-    summary: "Fictional LTE-like OFDM block in L-band. Wider than a radar line and continuous. Protected.",
+    summary:
+      "Fictional LTE-like OFDM block in L-band. Wider than a radar line and continuous. Protected.",
     band: "L-band",
     mhz: [1800, 1880],
     modulation: "ofdm",
@@ -875,7 +887,8 @@ const SEEDS: readonly Seed[] = [
     id: "packet-ribbon",
     name: "Packet Ribbon",
     category: "data_link",
-    summary: "Fictional L-band data link with a QPSK block. Distinct from the GNSS beacons below it.",
+    summary:
+      "Fictional L-band data link with a QPSK block. Distinct from the GNSS beacons below it.",
     band: "L-band",
     mhz: [1450, 1520],
     modulation: "qpsk",
@@ -894,7 +907,8 @@ const SEEDS: readonly Seed[] = [
     id: "cumulus-weather",
     name: "Cumulus Weather",
     category: "weather_radar",
-    summary: "Fictional weather-surveillance cartoon. Slow S-band chirps on a circular scan. Protected.",
+    summary:
+      "Fictional weather-surveillance cartoon. Slow S-band chirps on a circular scan. Protected.",
     band: "S-band",
     mhz: [2700, 2900],
     modulation: "linear_fm_pulse",
@@ -916,7 +930,8 @@ const SEEDS: readonly Seed[] = [
     id: "deck-altimeter",
     name: "Deck Altimeter",
     category: "radar_altimeter",
-    summary: "Fictional C-band FMCW altimeter cartoon. A repeating sawtooth, not a pulse train. Protected.",
+    summary:
+      "Fictional C-band FMCW altimeter cartoon. A repeating sawtooth, not a pulse train. Protected.",
     band: "C-band",
     mhz: [4200, 4400],
     modulation: "fmcw",
@@ -936,7 +951,8 @@ const SEEDS: readonly Seed[] = [
     id: "corridor-beacon",
     name: "Corridor Beacon",
     category: "navigation_radar",
-    summary: "Fictional pulse beacon in L-band. Deliberately not placed on a real SSR channel. Protected.",
+    summary:
+      "Fictional pulse beacon in L-band. Deliberately not placed on a real SSR channel. Protected.",
     band: "L-band",
     mhz: [1120, 1180],
     modulation: "unmodulated_pulse",
@@ -995,7 +1011,8 @@ const SEEDS: readonly Seed[] = [
     id: "dune-fmcw",
     name: "Dune FMCW",
     category: "tracking_radar",
-    summary: "Fictional short-range FMCW tracker. A wide X-band sawtooth, continuous rather than pulsed.",
+    summary:
+      "Fictional short-range FMCW tracker. A wide X-band sawtooth, continuous rather than pulsed.",
     band: "X-band",
     mhz: [10500, 10800],
     modulation: "fmcw",
@@ -1066,7 +1083,18 @@ const rawDocument = {
   source: CAPABILITIES_URL,
   tiers: ["T1", "T2", "T3", "T4", "T5"] as const,
   consumers: {
-    T1: ["category", "frequency", "modulation", "signature", "priUs", "prfHz", "pulseWidthUs", "scanType", "bandwidthMhz", "hop"],
+    T1: [
+      "category",
+      "frequency",
+      "modulation",
+      "signature",
+      "priUs",
+      "prfHz",
+      "pulseWidthUs",
+      "scanType",
+      "bandwidthMhz",
+      "hop",
+    ],
     T2: ["hooks.geolocation"],
     T3: ["hooks.recommendedResponse"],
     T4: ["hooks.deceptionSusceptibility"],

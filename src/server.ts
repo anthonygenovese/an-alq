@@ -8,7 +8,15 @@ import {
   SERVER_VERSION,
   ZIP_CHECK_IN_PROMPT,
 } from "./config.js";
-import { explainTerm, getCapabilities, getCapabilitiesSummary, getEmitterLibrary, getFrontierPicks, getNewsDrop, zipCheckInMessages } from "./services.js";
+import {
+  explainTerm,
+  getCapabilities,
+  getCapabilitiesSummary,
+  getEmitterLibrary,
+  getFrontierPicks,
+  getNewsDrop,
+  zipCheckInMessages,
+} from "./services.js";
 import {
   emptyArgsSchema,
   explainTermArgsSchema,

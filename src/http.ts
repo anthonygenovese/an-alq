@@ -1,6 +1,7 @@
 import { DEFAULT_PORT } from "./config.js";
 import { createApp } from "./app.js";
 import { logEvent } from "./log.js";
+import { allowedOriginsFromEnv } from "./security.js";
 
 function readPort(): number {
   const raw = process.env.PORT ?? String(DEFAULT_PORT);
@@ -15,10 +16,12 @@ const port = readPort();
 const allowedHosts = process.env.ALLOWED_HOSTS?.split(",")
   .map((item) => item.trim())
   .filter((item) => item.length > 0);
+const allowedOrigins = allowedOriginsFromEnv();
 
 const app = createApp({
   mode: "local",
   ...(allowedHosts && allowedHosts.length > 0 ? { allowedHosts } : {}),
+  ...(allowedOrigins.length > 0 ? { allowedOrigins } : {}),
 });
 
 const server = app.listen(port, host, () => {

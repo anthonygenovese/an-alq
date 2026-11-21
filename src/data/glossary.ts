@@ -290,7 +290,10 @@ for (const [alias] of aliasPairs) {
 const ALIAS_INDEX: Readonly<Record<string, string>> = Object.fromEntries(aliasPairs);
 
 export function normalizeTermId(input: string): string | undefined {
-  const normalized = input.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  const normalized = input
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
   if (!/^[a-z0-9_]{1,64}$/.test(normalized)) return undefined;
   return normalized;
 }

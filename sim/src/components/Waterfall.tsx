@@ -47,7 +47,8 @@ export const Waterfall = memo(function Waterfall({ round, paused }: WaterfallPro
         onMouseMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
           const ratio = (event.clientX - rect.left) / rect.width;
-          const mhz = round.display.startMhz + ratio * (round.display.stopMhz - round.display.startMhz);
+          const mhz =
+            round.display.startMhz + ratio * (round.display.stopMhz - round.display.startMhz);
           setHover(formatMhz(mhz));
         }}
         onMouseLeave={() => setHover(null)}
@@ -72,7 +73,11 @@ export const Waterfall = memo(function Waterfall({ round, paused }: WaterfallPro
   );
 });
 
-function bracketBox(centerBin: number, widthBins: number, bins: number): { left: number; width: number } {
+function bracketBox(
+  centerBin: number,
+  widthBins: number,
+  bins: number,
+): { left: number; width: number } {
   const rawLeft = ((centerBin - widthBins / 2) / bins) * 100;
   const rawRight = ((centerBin + widthBins / 2) / bins) * 100;
   const left = Math.max(0, Math.min(98, rawLeft));

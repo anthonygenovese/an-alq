@@ -17,6 +17,7 @@ export function App() {
   });
   const [surface, setSurface] = useState<Surface>("map");
   const snapshot = evaluateMap(skills.evidence);
+  const togglePaused = trainer.togglePaused;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -24,12 +25,12 @@ export function App() {
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       if (event.key === " " && surface === "range") {
         event.preventDefault();
-        trainer.togglePaused();
+        togglePaused();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [surface, trainer.togglePaused]);
+  }, [surface, togglePaused]);
 
   return (
     <div className="app">
@@ -40,10 +41,22 @@ export function App() {
         </div>
         <div className="top-actions">
           <div className="view-switch" role="tablist" aria-label="Surface">
-            <button type="button" role="tab" aria-selected={surface === "map"} className={surface === "map" ? "is-on" : ""} onClick={() => setSurface("map")}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={surface === "map"}
+              className={surface === "map" ? "is-on" : ""}
+              onClick={() => setSurface("map")}
+            >
               Skill map
             </button>
-            <button type="button" role="tab" aria-selected={surface === "range"} className={surface === "range" ? "is-on" : ""} onClick={() => setSurface("range")}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={surface === "range"}
+              className={surface === "range" ? "is-on" : ""}
+              onClick={() => setSurface("range")}
+            >
               T1 range
             </button>
           </div>
@@ -56,41 +69,42 @@ export function App() {
         {TRAINING_DISCLAIMER}
       </div>
       <main>
-      {surface === "map" ? (
-        <SkillMap
-          snapshot={snapshot}
-          onEnterRange={(nodeId) => {
-            const difficulty = suggestedDifficulty(nodeId);
-            if (difficulty) trainer.setDifficulty(difficulty);
-            setSurface("range");
-          }}
-        />
-      ) : (
-        <div className="stage">
-          <section className="scope-column" aria-label="Spectral waterfall">
-            <div className="scope-title">
-              <h2>T1 · Spectral classify</h2>
-              <p>Time-compressed synthetic waterfall. The bracket is the unknown.</p>
+        {surface === "map" ? (
+          <SkillMap
+            snapshot={snapshot}
+            onEnterRange={(nodeId) => {
+              const difficulty = suggestedDifficulty(nodeId);
+              if (difficulty) trainer.setDifficulty(difficulty);
+              setSurface("range");
+            }}
+          />
+        ) : (
+          <div className="stage">
+            <section className="scope-column" aria-label="Spectral waterfall">
+              <div className="scope-title">
+                <h2>T1 · Spectral classify</h2>
+                <p>Time-compressed synthetic waterfall. The bracket is the unknown.</p>
+              </div>
+              <Waterfall round={trainer.round} paused={trainer.paused} />
+              <p className="caption">
+                Dashes and hops are slowed so the shape can be seen. Frequencies, PRI, and SNR are
+                illustrative.
+              </p>
+            </section>
+            <div className="side">
+              <Hud trainer={trainer} />
+              <Classifier
+                round={trainer.round}
+                phase={trainer.phase}
+                answerId={trainer.answerId}
+                feedback={trainer.feedback}
+                litNodes={trainer.litNodes}
+                onAnswer={trainer.answer}
+                onNext={trainer.next}
+              />
             </div>
-            <Waterfall round={trainer.round} paused={trainer.paused} />
-            <p className="caption">
-              Dashes and hops are slowed so the shape can be seen. Frequencies, PRI, and SNR are illustrative.
-            </p>
-          </section>
-          <div className="side">
-            <Hud trainer={trainer} />
-            <Classifier
-              round={trainer.round}
-              phase={trainer.phase}
-              answerId={trainer.answerId}
-              feedback={trainer.feedback}
-              litNodes={trainer.litNodes}
-              onAnswer={trainer.answer}
-              onNext={trainer.next}
-            />
           </div>
-        </div>
-      )}
+        )}
       </main>
     </div>
   );

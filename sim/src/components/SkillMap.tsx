@@ -85,7 +85,13 @@ export function SkillMap({ snapshot, onEnterRange, participation = EMPTY_GLOW }:
             {skillMap.domains.map((domain) => {
               const position = nodePosition(sectorCenter(domain.startDeg, domain.endDeg), 256);
               return (
-                <text key={domain.id} x={position.x} y={position.y} textAnchor="middle" dominantBaseline="middle">
+                <text
+                  key={domain.id}
+                  x={position.x}
+                  y={position.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
                   {DOMAIN_MARK[domain.id] ?? domain.name}
                 </text>
               );
@@ -164,7 +170,9 @@ export function SkillMap({ snapshot, onEnterRange, participation = EMPTY_GLOW }:
         >
           {status.state === "locked" ? "Locked preview" : "Enter T1 range"}
         </button>
-        <p className="hint">A lit node is a skill you have mastered. The ring around the profile mark is reserved.</p>
+        <p className="hint">
+          A lit node is a skill you have mastered. The ring around the profile mark is reserved.
+        </p>
       </aside>
     </div>
   );
@@ -174,7 +182,11 @@ function Diamond({ state, fraction }: { state: NodeState; fraction: number }) {
   return (
     <g aria-hidden="true">
       {fraction > 0 && state !== "locked" ? (
-        <path d="M 0 -4.2 L 4.2 0 L 0 4.2 L -4.2 0 Z" className="fill" transform={`scale(${Math.max(0.2, fraction)})`} />
+        <path
+          d="M 0 -4.2 L 4.2 0 L 0 4.2 L -4.2 0 Z"
+          className="fill"
+          transform={`scale(${Math.max(0.2, fraction)})`}
+        />
       ) : null}
       <path d="M 0 -4.2 L 4.2 0 L 0 4.2 L -4.2 0 Z" className="mark" />
     </g>
@@ -184,7 +196,9 @@ function Diamond({ state, fraction }: { state: NodeState; fraction: number }) {
 function Dot({ state, fraction }: { state: NodeState; fraction: number }) {
   return (
     <g aria-hidden="true">
-      {fraction > 0 && state !== "locked" ? <circle r={2.6 * Math.max(0.25, fraction)} className="fill" /> : null}
+      {fraction > 0 && state !== "locked" ? (
+        <circle r={2.6 * Math.max(0.25, fraction)} className="fill" />
+      ) : null}
       <circle r="2.7" className="mark" />
     </g>
   );
@@ -192,9 +206,17 @@ function Dot({ state, fraction }: { state: NodeState; fraction: number }) {
 
 function NodeLabel({ angle, label, state }: { angle: number; label: string; state: NodeState }) {
   const place = nodePosition(angle, 15);
-  const anchor = angle > 40 && angle < 140 ? "start" : angle > 220 && angle < 320 ? "end" : "middle";
+  const anchor =
+    angle > 40 && angle < 140 ? "start" : angle > 220 && angle < 320 ? "end" : "middle";
   return (
-    <text className="node-label" x={place.x} y={place.y} textAnchor={anchor} dominantBaseline="middle" data-state={state}>
+    <text
+      className="node-label"
+      x={place.x}
+      y={place.y}
+      textAnchor={anchor}
+      dominantBaseline="middle"
+      data-state={state}
+    >
       {label}
     </text>
   );
@@ -231,7 +253,9 @@ function progressCopy(
   if (criterion.source === "unavailable") return "No drill writes this constellation yet.";
   if (status.state === "lit") return "Mastered from range performance.";
   const speed =
-    criterion.maxMeanCorrectMs === null ? "no speed gate" : `mean under ${criterion.maxMeanCorrectMs} ms`;
+    criterion.maxMeanCorrectMs === null
+      ? "no speed gate"
+      : `mean under ${criterion.maxMeanCorrectMs} ms`;
   const accuracy = `${Math.round(criterion.minAccuracy * 100)}%`;
   return `${status.attempts}/${criterion.minAttempts} attempts · ${Math.round(status.accuracy * 100)}% accuracy · gate ${accuracy}, ${speed}`;
 }

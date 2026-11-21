@@ -1,84 +1,139 @@
-# AN-ALQ MCP
+# AN-ALQ
 
 ```
-+------------------------------------------------------+
-|  AN-ALQ                                              |
-|  Model Context Protocol                 v0.1         |
-|  an-alq.com          future  mcp.an-alq.com          |
-|  illustrative figures   ·   sample content store     |
-+------------------------------------------------------+
+AN-ALQ
+MCP endpoint  ·  T1 range trainer  ·  skill-map nodes
+illustrative figures  ·  synthetic spectrum  ·  no PII retained on the server
+an-alq.com                         future  mcp.an-alq.com
 ```
 
 [![CI](https://github.com/anthonygenovese/an-alq/actions/workflows/ci.yml/badge.svg)](https://github.com/anthonygenovese/an-alq/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/anthonygenovese/an-alq/badge)](https://scorecard.dev/viewer/?uri=github.com/anthonygenovese/an-alq)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-339933)](package.json)
+[![Node](https://img.shields.io/badge/node-22.23.4-339933)](.nvmrc)
 [![MCP](https://img.shields.io/badge/MCP-streamable%20HTTP%20%2B%20stdio-111111)](https://modelcontextprotocol.io)
+[![coverage](https://img.shields.io/badge/coverage-%E2%89%A585%25%20lines-brightgreen)](https://github.com/anthonygenovese/an-alq/actions/workflows/ci.yml)
 
-A read-only [Model Context Protocol](https://modelcontextprotocol.io) server for [AN-ALQ](https://an-alq.com). It serves the public capability catalog, a sample news drop, sample frontier picks, and a short EW glossary. v0.1 is the seed for `mcp.an-alq.com`.
+Read-only [Model Context Protocol](https://modelcontextprotocol.io) server and a Tier 1 training range for [AN-ALQ](https://an-alq.com). The server answers from a static catalog. The trainer draws a synthetic waterfall and lights skill-map nodes from on-device scores. Both are educational. Neither senses, jams, spoofs, locates, or engages anything.
 
-**Capability figures are illustrative**, the same way they are marked on [an-alq.com](https://an-alq.com) and [an-alq.com/capabilities](https://an-alq.com/capabilities). News drops and frontier picks in this repo are **sample data**. This process does not sense, jam, spoof, locate, or engage anything.
+**Every quantitative figure is illustrative.** Emitter names are fictional. News drops and frontier picks in this repo are sample data.
+
+## Surfaces
+
+| Surface          | Path                   | State                                                 |
+| ---------------- | ---------------------- | ----------------------------------------------------- |
+| MCP server       | `src/`, `api/`         | Shipped. Stateless HTTP and stdio.                    |
+| Content store    | `content/`             | Sample JSON. Schema rejects unknown keys.             |
+| T1 range trainer | `sim/`                 | Shipped. Vite UI. Synthetic waterfall.                |
+| Skill map        | `src/sim/skill-map.ts` | Shipped. T1 nodes can light. T2–T5 nodes stay locked. |
+| Trainer engine   | `src/sim/`             | Shared by the UI. Not a network service.              |
+| Nixle-to-X relay | —                      | Not in this tree. Design only. See the threat model.  |
+| `mcp.an-alq.com` | —                      | Not deployed. Same stateless endpoint, later.         |
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-  client["MCP client<br/>Claude Desktop · Cursor · inspector"]
-  endpoint["AN-ALQ MCP<br/>/mcp streamable HTTP<br/>or stdio"]
-  store["Content store<br/>content/*.json + glossary"]
-  job["Scheduled intel job<br/>not in v0.1"]
-  site["an-alq.com<br/>future consumer"]
+flowchart TB
+  mcpClient[MCP client]
+  browser[Browser]
+  futureHost["mcp.an-alq.com\nnot deployed"]
+  vercel["Vercel function\n/mcp · /healthz"]
+  mcp["MCP server\nread-only tools"]
+  store["Content store\ncontent/*.json"]
+  library["Fictional emitter library\nillustrative figures"]
+  ui["Range trainer UI\nsim/"]
+  engine["Trainer engine\nsrc/sim"]
+  map["Skill map\nnodes light locally"]
+  relay["Nixle-to-X relay\nnot in this tree"]
 
-  client --> endpoint
-  endpoint --> store
-  job --> store
-  site -.-> endpoint
+  mcpClient --> futureHost
+  futureHost -.-> vercel
+  vercel --> mcp
+  mcp --> store
+  mcp --> library
+  browser --> ui
+  ui --> engine
+  ui --> map
+  engine --> library
+  relay -.-> mcp
 ```
 
-The HTTP server is stateless. Each request builds a server, answers, and drops it. Nothing about the caller is written down.
+The trainer does not call `/mcp` at runtime. Vite bundles the same TypeScript modules the server imports. A later move to `apps/sim`, `packages/mcp-server`, and `packages/relay` is documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and is not done here: the trainer landed at `sim/` and the server stays at the repository root.
 
-## Tools
+## Privacy by design
 
-| Tool | Input | Returns |
-| --- | --- | --- |
-| `get_capabilities` | none | Structured catalog drawn from the public site. Every figure is `label: "illustrative"`. |
-| `get_news_drop` | `slot`: `morning` \| `midday` \| `afternoon`. Optional `zip`: exactly 5 digits. | One sample drop from `content/news-drops.json`. A ZIP adds a first-digit USPS note and is not stored. |
-| `get_frontier_picks` | `month`: `YYYY-MM` | Sample picks from `content/frontier-picks.json`, or `found: false` plus the months that exist. |
-| `explain_ew_term` | `term`: glossary id, case-insensitive | A short EW 101 definition (RGPO, VGPO, DRFM, ESM, ELINT, TDOA, AOA, FHSS, DSSS, and neighbors). |
+Three rules, enforced in code rather than in a policy paragraph.
 
-Unknown fields are rejected. There is no name, email, phone, or free-text personal field.
+**Anonymity.** No accounts, cookies, or session store. The MCP transport sets `sessionIdGenerator: undefined`. The rate-limit key is a SHA-256 of the observed address, held in memory for the window, then dropped. The address itself is not logged.
 
-Also exposed:
+**No PII.** Tool schemas are Zod objects with `.strict()`. The only personal-shaped field is an optional 5-digit ZIP on `get_news_drop`, and it is not stored. Error text is built from schema messages, which do not echo the submitted value. Logs are a JSON allowlist: `ts`, `event`, `status`, `code`, `rid`, `method`.
 
-| Kind | Name | What it is |
-| --- | --- | --- |
-| Resource | `an-alq://capabilities/summary` | Shorter catalog. Same illustrative figures. Research division closed. |
-| Prompt | `zip_check_in` | A check-in whose only argument is a 5-digit ZIP. |
+**Decay as retention.** The server writes nothing to disk. Rate-limit buckets expire with the window and the map is capped. A cold start on Vercel drops them. There is no profile to delete because no profile is kept. The trainer is the exception that stays on the player's machine: `localStorage` key `an-alq.skill-evidence.v1` holds aggregate attempt counts by fictional category and difficulty. It is not sent to the server. Clearing site data drops it.
 
-The advanced research division is **not open for briefing**. The tool says that and stops.
+Details, including STRIDE for the endpoint and the relay design, are in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+
+## MCP
+
+| Tool                  | Input                                                                    | Returns                                                                   |
+| --------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `get_capabilities`    | none                                                                     | Public catalog. Every figure is `label: "illustrative"`.                  |
+| `get_emitter_library` | none                                                                     | Fictional training catalog. Names are invented. Figures are illustrative. |
+| `get_news_drop`       | `slot`: `morning` \| `midday` \| `afternoon`. Optional `zip`: `^\d{5}$`. | One sample drop. A ZIP adds a first-digit USPS note and is not stored.    |
+| `get_frontier_picks`  | `month`: `YYYY-MM`                                                       | Sample picks, or `found: false` plus the months that exist.               |
+| `explain_ew_term`     | `term`: glossary id, case-insensitive, max 64                            | A short definition. Nothing is simulated or applied.                      |
+
+| Kind     | Name                                | What it is                                       |
+| -------- | ----------------------------------- | ------------------------------------------------ |
+| Resource | `an-alq://capabilities/summary`     | Shorter catalog. Research division closed.       |
+| Resource | `an-alq://training/emitter-library` | Same fictional library the trainer uses.         |
+| Prompt   | `zip_check_in`                      | A check-in whose only argument is a 5-digit ZIP. |
+
+Unknown fields are rejected. There is no name, email, phone, or free-text personal field. The advanced research division is not open for briefing.
+
+`GET /health` and `GET /healthz` return `{ ok, name, version }`. They are not rate limited. MCP routes are: 60 requests per minute per hashed address, 32 KB JSON body, `Cache-Control: no-store`.
+
+## Range trainer
+
+```bash
+npm run sim
+```
+
+Opens `http://127.0.0.1:5173`. Two surfaces:
+
+| Surface   | What the player does                                                                  |
+| --------- | ------------------------------------------------------------------------------------- |
+| Skill map | Six sectors. Items are nodes. A node the player has mastered is a lit node.           |
+| T1 range  | A time-compressed synthetic waterfall. Name the fictional emitter inside two seconds. |
+
+| Tier | Name                | State                                            |
+| ---- | ------------------- | ------------------------------------------------ |
+| T1   | Spectral classify   | Playable. The only sector whose nodes can light. |
+| T2   | Geolocation fix     | Locked. No coordinates and no fix.               |
+| T3   | Response technique  | Locked. Glossary labels only. No transmitter.    |
+| T4   | Deception decisions | Locked. No signal is produced.                   |
+| T5   | Multi-threat        | Locked.                                          |
+
+The participation ring around the profile mark is a reserved slot. This build does not compute it. T2–T5 nodes use an unavailable criterion and stay unlit.
+
+`npm run build:sim` writes `dist/sim`. That bundle is not what `vercel.json` deploys.
 
 ## Quickstart
 
 ```bash
-npm install
+npm ci
 npm test
 npm start
 ```
 
-`npm start` listens on `http://127.0.0.1:8787/mcp` (override with `PORT` and `HOST`). Logs go to stderr. `GET /health` returns the name and version.
-
-List the surface without a desktop client:
+`npm start` listens on `http://127.0.0.1:8787/mcp` (`PORT`, `HOST`). Logs go to stderr.
 
 ```bash
-npm run smoke
+npm run smoke          # SDK client lists the surface
+npm run inspector      # MCP Inspector CLI, pinned in package.json
+npm run sim            # trainer
 ```
 
-Stdio, for a local process spawn:
-
-```bash
-npm run start:stdio
-```
-
-Stdout is the protocol. Do not pipe `npm run` in front of a desktop config if the runner prints to stdout. Point the client at `node` itself:
+Stdio, for a desktop client that spawns a process. Point it at `node`, not at `npm run`, so the runner's banner stays off stdout:
 
 ```json
 {
@@ -92,12 +147,6 @@ Stdout is the protocol. Do not pipe `npm run` in front of a desktop config if th
 }
 ```
 
-### Claude Desktop
-
-Use the stdio block above in `claude_desktop_config.json`. Claude Desktop spawns the process. It does not need the HTTP port.
-
-### Cursor
-
 HTTP, after `npm start`:
 
 ```json
@@ -110,55 +159,63 @@ HTTP, after `npm start`:
 }
 ```
 
-Or the same stdio block as Claude. The inspector (`npx @modelcontextprotocol/inspector`) can attach to `http://127.0.0.1:8787/mcp`.
+## Deploy
 
-### Vercel
+`api/mcp.ts` is the Vercel Node function. `vercel.json` rewrites `/mcp` to it and `/health` and `/healthz` to `api/health.ts`. The function is capped at 10 seconds. Security headers are set on the function and again at the edge. Content-Security-Policy is limited to the API paths so a later static host for the trainer is not forced into `default-src 'none'`.
 
-`api/mcp.ts` is a Node function speaking stateless streamable HTTP with JSON responses. `vercel.json` rewrites `/mcp` to `/api/mcp`. `GET /api/health` is the health check.
+This repository does not deploy and does not store secrets. Variables are in [`.env.example`](.env.example):
 
-```bash
-npx vercel
-```
+| Variable          | Where            | Default        | Meaning                                |
+| ----------------- | ---------------- | -------------- | -------------------------------------- |
+| `HOST`            | local process    | `127.0.0.1`    | Bind address.                          |
+| `PORT`            | local process    | `8787`         | Bind port. Vercel sets its own.        |
+| `ALLOWED_HOSTS`   | local process    | loopback names | `Host` allowlist. Ignored on Vercel.   |
+| `ALLOWED_ORIGINS` | local and Vercel | empty          | Exact browser origins. `*` is ignored. |
 
-The public hostname is a later step. See the roadmap.
+Empty `ALLOWED_ORIGINS` denies every cross-origin browser call. Local mode also allows `http://localhost` and `http://127.0.0.1` with a port, for the Inspector UI. There is no API key to set.
 
-Local HTTP binds to loopback and checks the `Host` header (`ALLOWED_HOSTS` overrides the list). That check is off in the Vercel function because preview hostnames move.
+## Supply chain
 
-## Content store
+| Control                                          | Where                      |
+| ------------------------------------------------ | -------------------------- |
+| Pinned actions, `contents: read` by default      | `.github/workflows/`       |
+| CodeQL `security-and-quality`                    | `codeql.yml`               |
+| npm audit, registry signatures, osv-scanner      | `ci.yml`                   |
+| gitleaks 8.30.1, checksum-pinned, full history   | `ci.yml`                   |
+| OpenSSF Scorecard, results published             | `scorecard.yml`            |
+| Dependabot, npm and GitHub Actions               | `dependabot.yml`           |
+| release-please, CycloneDX SBOM, build provenance | `release.yml`              |
+| Disclosure                                       | [SECURITY.md](SECURITY.md) |
 
-`content/FORMAT.md` is the contract a scheduled job will write. v0.1 ships example JSON only. The loader rejects unknown keys, so the job cannot add a ZIP column without a code change.
-
-| File | Format |
-| --- | --- |
-| `content/news-drops.json` | `an-alq.news-drop.v1` |
-| `content/frontier-picks.json` | `an-alq.frontier-picks.v1` |
-
-`sample: true` travels with `label: "example"`. Reviewed copy uses `sample: false` and `label: "editorial"`.
-
-## Guardrails
-
-- Inputs are Zod objects with `.strict()`. Extra keys fail. ZIP means `^\d{5}$` and nothing else.
-- Error text does not repeat the submitted value.
-- Stderr logs are an allowlist: event name and a status code. ZIPs and addresses are not logged. The rate-limit key is a hash held in memory for the window, then dropped.
-- 60 requests per minute per hashed address, in process. A Vercel cold start resets it. `Cache-Control: no-store` is set on MCP responses.
-- No accounts, no sessions, no disk writes.
+Signed tags are an owner control. The private key does not live in CI. See [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Roadmap
 
-1. **mcp.an-alq.com** — this same stateless endpoint, on the public hostname.
-2. **OAuth 2.1, if a ZIP is ever stored.** v0.1 does not store one. Persistence is a product decision with authorization in front of it, not a log line added later.
-3. **Live content pipeline** — a scheduled job replaces the two JSON files using `content/FORMAT.md`. The server keeps reading.
-4. **an-alq.com as a client** — the site reads the same informational endpoint. The endpoint stays informational.
+| Item                                       | State                                                                        |
+| ------------------------------------------ | ---------------------------------------------------------------------------- |
+| MCP server v0.1 and T1 trainer             | On `main`.                                                                   |
+| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR. |
+| `mcp.an-alq.com`                           | DNS and a Vercel project. Not done here.                                     |
+| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                       |
+| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                   |
+| T2–T5 playable tiers                       | Locked nodes. No engine for them.                                            |
+| Nixle-to-X relay                           | Separate work. Public alerts only. No subscriber data.                       |
+| Move to `apps/` and `packages/`            | After that relay lands. Not in this PR.                                      |
 
 ## Development
 
+Node `22.23.4` (`.nvmrc`). npm. Dev container: `.devcontainer/`.
+
 ```bash
+npm run format:check
 npm run lint
 npm run typecheck
+npm run typecheck:sim
 npm test
+npm run build:sim
 ```
 
-CI on GitHub Actions runs lint, typecheck, test, and `npm run smoke`.
+Coverage fails under 85% lines, 80% statements, 80% functions, or 75% branches on `src/` and `api/`. Conventional commits are required on the pull request title. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

@@ -55,22 +55,24 @@ The UI is a local page. It imports the engine. It does not open a socket to the 
 | Denial of service      | A seed hangs the generator.                 | Rounds are pure functions of a seed and a difficulty. The classify window is two seconds of animation, not a solver.                                                                    | A hostile seed cannot reach another player's machine.                                                                                                                                                                                                           |
 | Elevation              | The trainer becomes a transmitter.          | T2–T5 nodes are locked and their criterion is `unavailable`. The generator draws a spectrogram texture. It does not open a radio, a socket to hardware, or a file of IQ samples.        | Adding a playable T3 that emits a waveform would leave this model. Don't, without a new review that still forbids real RF.                                                                                                                                      |
 
-## STRIDE — Nixle-to-X relay (not implemented)
+## STRIDE — Nixle signal relay
 
-This section is a constraint on a future module. It is not a design you can build from line by line, and it is not an invitation to collect alerts beyond what a public feed already shows.
+The relay reads public alert text. It does not post to X, send mail, or hold a Gmail token. Code lives in `packages/relay`. A receipt vote is separate from a relay pulse.
 
-The relay, if it is written, reads public alert text and posts it to X. It does not subscribe anyone, store a phone number, or geolocate a person.
+A verified receipt looks at the five newest **Nixle** messages in the inbox, not the five newest messages of any kind. The browser calls `users.messages.list` with `labelIds=INBOX`, `q=from:(nixle.com OR nixle.us)`, and `maxResults=5`. Gmail applies that sender filter. Promotions, mailing lists, and other mail are not returned and are not fetched. The sender list is the same domains that publish Nixle DKIM keys (`nixle.com`, and `nixle.us` if a message uses it). If that query is rejected, the client may walk inbox ids and read only the `From` line, discarding it immediately, and still count only Nixle senders toward the five. It does not fetch a non-Nixle body.
 
-| Threat                 | Constraint before any code is merged                                                                                                                                                                                 |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Spoofing               | Verify the source of each alert. Do not accept a body posted by an anonymous caller as if it were the feed.                                                                                                          |
-| Tampering              | Treat the feed as untrusted input. Escape it for the destination API. Do not let alert text become a shell argument or a log of someone else's contact data.                                                         |
-| Repudiation            | Keep an idempotency key so a retry does not double-post. The key is the alert id, not a subscriber id.                                                                                                               |
-| Information disclosure | Public alert text only. No subscriber list, no phone, no email, no precise location of a person. Logs follow the same allowlist as the MCP server. The posting credential is a platform secret, never a file in git. |
-| Denial of service      | Bound the poll, bound the post rate, and drop duplicates. A burst in the feed must not become a burst of posts.                                                                                                      |
-| Elevation              | The credential can post and nothing else. Scope it. Rotate it by replacing the secret, not by committing a new one.                                                                                                  |
+`gmail.readonly` still permits a full mailbox read. The five-Nixle cap is self-enforced by this client. It is not a restriction Google applies to the scope. The server cannot prove the message was inside those five. What the server can enforce is the DKIM-signed `Date` header: it must fall within the freshness window (default 60 minutes) of submission. In the non-ZK fallback, the server instead requires the alert's own first-seen time to sit inside that window. An old alert read later does not vote.
 
-Decay: posting state is the set of alert ids already sent. It expires. It is not a archive of who received an alert, because the relay does not know that.
+| Threat                 | What the code does                                                                                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spoofing               | A vote needs a ZK receipt (verifier interface; the circuit is not linked yet) or a fallback against an alert the process already holds. The scaffold verifier does not accept a proof. |
+| Tampering              | Ingest and vote bodies are strict. Address headers, tokens, and message ids are rejected.                                                                                              |
+| Repudiation            | A nullifier stops a second vote on the same signal. It is not a person id, and it is deleted when the signal decays.                                                                   |
+| Information disclosure | No sender, recipient, mailbox address, or Gmail token is stored. The token stays in the tab and is revoked on close, expiry, or disarm.                                                |
+| Denial of service      | Fallback votes are rate limited. The inbox read is five Nixle ids.                                                                                                                     |
+| Elevation              | Gmail scope is `gmail.readonly`. There is no send, modify, label, or delete call. X is a public read.                                                                                  |
+
+Decay is the retention policy. A signal, its relay times, and its vote nullifiers stay in memory until the activity score falls or the inactivity TTL hits. Nothing is written to disk. There is no archive of who received an alert.
 
 ## Privacy summary
 

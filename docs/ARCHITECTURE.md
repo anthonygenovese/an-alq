@@ -2,11 +2,11 @@
 
 AN-ALQ in this repository is two processes that share a TypeScript catalog, plus a relay that is specified and not built.
 
-| Piece            | Runs as                                                | Talks to                                                         |
-| ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------- |
-| MCP server       | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch. |
-| Range trainer    | Vite dev server, or a static build in `dist/sim`       | The same modules, bundled. No call to `/mcp`.                    |
-| Nixle-to-X relay | Not present                                            | Would read public alerts and post them. See the threat model.    |
+| Piece              | Runs as                                                | Talks to                                                                       |
+| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.               |
+| Range trainer      | Vite dev server, or a static build in `dist/sim`       | The same modules, bundled. No call to `/mcp`.                                  |
+| Nixle signal relay | `packages/relay`                                       | Reads public alerts. Does not post. Receipts use the five newest Nixle emails. |
 
 Capability figures and emitter-library numbers are illustrative. The trainer's waterfall is synthetic. Nothing in this tree is a receiver, recorder, jammer, spoofer, or geolocation system.
 

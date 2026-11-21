@@ -20,15 +20,17 @@ Read-only [Model Context Protocol](https://modelcontextprotocol.io) server and a
 
 ## Surfaces
 
-| Surface          | Path                   | State                                                 |
-| ---------------- | ---------------------- | ----------------------------------------------------- |
-| MCP server       | `src/`, `api/`         | Shipped. Stateless HTTP and stdio.                    |
-| Content store    | `content/`             | Sample JSON. Schema rejects unknown keys.             |
-| T1 range trainer | `sim/`                 | Shipped. Vite UI. Synthetic waterfall.                |
-| Skill map        | `src/sim/skill-map.ts` | Shipped. T1 nodes can light. T2–T5 nodes stay locked. |
-| Trainer engine   | `src/sim/`             | Shared by the UI. Not a network service.              |
-| Nixle-to-X relay | —                      | Not in this tree. Design only. See the threat model.  |
-| `mcp.an-alq.com` | —                      | Not deployed. Same stateless endpoint, later.         |
+| Surface            | Path                   | State                                                                  |
+| ------------------ | ---------------------- | ---------------------------------------------------------------------- |
+| MCP server         | `src/`, `api/`         | Shipped. Stateless HTTP and stdio.                                     |
+| Content store      | `content/`             | Sample JSON. Schema rejects unknown keys.                              |
+| T1 range trainer   | `sim/`                 | Shipped. Vite UI. Synthetic waterfall.                                 |
+| Skill map          | `src/sim/skill-map.ts` | Shipped. T1 nodes can light. T2–T5 nodes stay locked.                  |
+| Trainer engine     | `src/sim/`             | Shared by the UI. Not a network service.                               |
+| Nixle signal relay | `packages/relay/`      | In progress. Reads public alerts. Does not post. See the threat model. |
+| `mcp.an-alq.com`   | —                      | Not deployed. Same stateless endpoint, later.                          |
+
+A verified receipt counts the five newest Nixle emails, not the five newest messages in the inbox. The browser lists `INBOX` with `q=from:(nixle.com OR nixle.us)` and `maxResults=5`, so other mail is not fetched and does not use a slot. The copy when the alert is older than that is "no longer in your latest 5 Nixle alerts". The server still requires the DKIM-signed `Date` to fall inside the freshness window (default 60 minutes). `gmail.readonly` can read the whole mailbox; the cap is this client's list call, not Google's scope.
 
 ## Architecture
 

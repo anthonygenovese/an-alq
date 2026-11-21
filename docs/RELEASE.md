@@ -5,7 +5,7 @@ Versions follow semver. Commits follow [Conventional Commits](https://www.conven
 [release-please](https://github.com/googleapis/release-please) watches `main`. The manifest is [`.release-please-manifest.json`](../.release-please-manifest.json). A release PR updates the root `package.json`, `apps/mcp/package.json`, and `CHANGELOG.md`. Merging it tags `vX.Y.Z` and the Release workflow then:
 
 1. Packs `@an-alq/mcp` with `pnpm pack --ignore-scripts`.
-2. Writes a CycloneDX SBOM of that package's required dependencies with `cdxgen`.
+2. Deploys `@an-alq/mcp` with production dependencies only and writes a CycloneDX SBOM of that tree with `cdxgen`.
 3. Attests build provenance for the tarball.
 4. Attests the SBOM against that tarball.
 5. Uploads `sbom.cdx.json` to the GitHub release.

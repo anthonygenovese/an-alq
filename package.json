@@ -31,7 +31,7 @@
     "audit": "pnpm audit --audit-level=high && pnpm audit signatures",
     "smoke": "pnpm --filter @an-alq/mcp smoke",
     "inspector": "pnpm --filter @an-alq/mcp inspector",
-    "sbom": "cdxgen -t pnpm -o sbom.cdx.json --required-only --no-install-deps --no-recurse apps/mcp"
+    "sbom": "dir=$(mktemp -d) && pnpm --filter @an-alq/mcp deploy \"$dir\" --prod --ignore-scripts && cdxgen -t pnpm --technique manifest-analysis -o sbom.cdx.json --no-install-deps --no-recurse \"$dir\" && rm -rf \"$dir\""
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",

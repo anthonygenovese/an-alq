@@ -46,7 +46,9 @@ jobs:
       - name: Pack the MCP server
         run: pnpm --filter @an-alq/mcp pack --ignore-scripts --pack-destination "$RUNNER_TEMP/pack"
       - name: CycloneDX SBOM
-        run: pnpm exec cdxgen -t pnpm -o "$RUNNER_TEMP/pack/sbom.cdx.json" --required-only --no-install-deps --no-recurse apps/mcp
+        run: |
+          pnpm --filter @an-alq/mcp deploy "$RUNNER_TEMP/mcp-prod" --prod --ignore-scripts
+          pnpm exec cdxgen -t pnpm --technique manifest-analysis -o "$RUNNER_TEMP/pack/sbom.cdx.json" --no-install-deps --no-recurse "$RUNNER_TEMP/mcp-prod"
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ runner.temp }}/pack/*.tgz

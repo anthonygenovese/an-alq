@@ -11,4 +11,5 @@ coverage/
 .DS_Store
 *.tsbuildinfo
 sbom.cdx.json
+sbom-staging/
 *.tgz

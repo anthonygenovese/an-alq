@@ -1,0 +1,43 @@
+{
+  "name": "an-alq-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AN-ALQ MCP server. Illustrative electronic-warfare information over the Model Context Protocol.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Anthony Genovese",
+  "homepage": "https://an-alq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonygenovese/an-alq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anthonygenovese/an-alq/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "tsx src/http.ts",
+    "start:stdio": "tsx src/stdio.ts",
+    "dev": "tsx watch src/http.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "smoke": "tsx scripts/list-tools.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "express": "^5.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.19.0",
+    "eslint": "^9.39.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^5.1.1"
+  }
+}

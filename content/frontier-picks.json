@@ -1,0 +1,89 @@
+{
+  "format": "an-alq.frontier-picks.v1",
+  "updated": "2026-11-21",
+  "sample": true,
+  "label": "example",
+  "disclaimer": "Sample frontier picks for the AN-ALQ MCP content store. Titles below are fictional placeholders, not citations. A scheduled job may replace this file later. See content/FORMAT.md.",
+  "months": [
+    {
+      "month": "2026-10",
+      "sample": true,
+      "label": "example",
+      "intro": "Sample picks filed under October 2026 so the month argument has a neighbor to return. Not a real reading list.",
+      "picks": [
+        {
+          "id": "sample-2026-10-labels",
+          "title": "Example pick: put the word illustrative on the same line as the number",
+          "why": "Placeholder. A future editorial pass can swap this for a reviewed essay. v0.1 only proves the file shape.",
+          "href": "https://an-alq.com/capabilities",
+          "sample": true,
+          "label": "example"
+        },
+        {
+          "id": "sample-2026-10-closed",
+          "title": "Example pick: a closed research division is a product fact, not an invitation",
+          "why": "Placeholder. The public page says advanced research is not available for general briefing. The sample pick stops there.",
+          "href": "https://an-alq.com/capabilities",
+          "sample": true,
+          "label": "example"
+        }
+      ]
+    },
+    {
+      "month": "2026-11",
+      "sample": true,
+      "label": "example",
+      "intro": "Sample picks for November 2026, the month this v0.1 store was seeded. Replace the file when a real pipeline exists.",
+      "picks": [
+        {
+          "id": "sample-2026-11-brochure",
+          "title": "Example pick: what a capabilities page is allowed to claim",
+          "why": "Placeholder essay. It would walk a reader from the public AN-ALQ page to the labeled figures this server returns, and no further.",
+          "href": "https://an-alq.com",
+          "sample": true,
+          "label": "example"
+        },
+        {
+          "id": "sample-2026-11-glossary",
+          "title": "Example pick: ESM, then ELINT, then stop",
+          "why": "Placeholder. A public-term path through the local glossary. Definitions, not procedures.",
+          "href": "https://an-alq.com/capabilities",
+          "sample": true,
+          "label": "example"
+        },
+        {
+          "id": "sample-2026-11-oauth",
+          "title": "Example pick: mcp.an-alq.com does not get to remember a ZIP yet",
+          "why": "Placeholder. v0.1 keeps ZIPs out of logs and out of disk. Storing one later means OAuth 2.1 and an explicit product decision, which this file does not make.",
+          "href": "https://an-alq.com",
+          "sample": true,
+          "label": "example"
+        }
+      ]
+    },
+    {
+      "month": "2026-12",
+      "sample": true,
+      "label": "example",
+      "intro": "Sample picks filed under December 2026. Still examples.",
+      "picks": [
+        {
+          "id": "sample-2026-12-pipeline",
+          "title": "Example pick: the job that will overwrite this JSON",
+          "why": "Placeholder. content/FORMAT.md is the contract. The job writes files. It does not receive ZIPs from this server, because this server does not keep them.",
+          "href": "https://an-alq.com",
+          "sample": true,
+          "label": "example"
+        },
+        {
+          "id": "sample-2026-12-site",
+          "title": "Example pick: an-alq.com as a future client, not a sensor",
+          "why": "Placeholder. The site can one day read the same informational endpoint. That does not turn the endpoint into a countermeasure.",
+          "href": "https://an-alq.com/capabilities",
+          "sample": true,
+          "label": "example"
+        }
+      ]
+    }
+  ]
+}

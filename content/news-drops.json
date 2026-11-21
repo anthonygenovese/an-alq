@@ -1,0 +1,87 @@
+{
+  "format": "an-alq.news-drop.v1",
+  "updated": "2026-11-21",
+  "sample": true,
+  "label": "example",
+  "disclaimer": "Sample content for the AN-ALQ MCP content store. These items are fictional examples, not live news, intelligence, or tasking. A scheduled job may replace this file later. See content/FORMAT.md. Do not put ZIPs, names, or other personal data in this file.",
+  "drops": [
+    {
+      "id": "sample-morning",
+      "slot": "morning",
+      "edition": "national",
+      "headline": "Dawn edition (sample): the spectrum, before the building wakes up",
+      "summary": "A fictional morning brief used to prove the content-store contract. Nothing here is a report, a tasking order, or a sensor product.",
+      "items": [
+        {
+          "title": "Illustrative figures stay labeled",
+          "dek": "Example item. The public AN-ALQ pages mark latency, library size, and accuracy as illustrative. This server repeats that label on every figure.",
+          "tag": "example"
+        },
+        {
+          "title": "The only optional caller input is a ZIP",
+          "dek": "Example item. get_news_drop accepts a time slot and, if offered, a 5-digit ZIP. v0.1 does not log or store it.",
+          "tag": "example"
+        },
+        {
+          "title": "Research division remains closed",
+          "dek": "Example item. Advanced research is not open for briefing. This drop does not speculate about it.",
+          "tag": "example"
+        }
+      ],
+      "sample": true,
+      "label": "example"
+    },
+    {
+      "id": "sample-midday",
+      "slot": "midday",
+      "edition": "national",
+      "headline": "Midday edition (sample): floor notes from a conference that does not exist",
+      "summary": "A fictional midday brief. The booth, the badge, and the quotes are placeholders for a future editorial pipeline.",
+      "items": [
+        {
+          "title": "Placeholder booth conversation",
+          "dek": "Example item. Someone asks what '<12 ms' means. The right answer on this server is: an illustrative figure from an-alq.com, not a measured result.",
+          "tag": "example"
+        },
+        {
+          "title": "FHSS and DSSS, named and not implemented",
+          "dek": "Example item. The communications page says those waveforms are handled natively. The glossary defines the acronyms. Neither one transmits.",
+          "tag": "example"
+        },
+        {
+          "title": "Sixty-four is a brochure number",
+          "dek": "Example item. 'Up to 64 simultaneous false tracks' is published as illustrative. The tool returns the label with the number.",
+          "tag": "example"
+        }
+      ],
+      "sample": true,
+      "label": "example"
+    },
+    {
+      "id": "sample-afternoon",
+      "slot": "afternoon",
+      "edition": "national",
+      "headline": "Afternoon edition (sample): three tabs left open",
+      "summary": "A fictional afternoon brief that points at the other read-only tools. Still sample data.",
+      "items": [
+        {
+          "title": "Tab one: the capabilities page",
+          "dek": "Example item. https://an-alq.com/capabilities is the source for get_capabilities. Bands on that page are marked illustrative.",
+          "tag": "example"
+        },
+        {
+          "title": "Tab two: the glossary",
+          "dek": "Example item. explain_ew_term answers RGPO, VGPO, DRFM, ESM, ELINT, TDOA, AOA, FHSS, DSSS, and a short list of neighbors. Definitions only.",
+          "tag": "example"
+        },
+        {
+          "title": "Tab three: frontier picks",
+          "dek": "Example item. get_frontier_picks reads content/frontier-picks.json. November 2026 in this repo is an example month, not a publication.",
+          "tag": "example"
+        }
+      ],
+      "sample": true,
+      "label": "example"
+    }
+  ]
+}

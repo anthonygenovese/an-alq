@@ -2,12 +2,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ErrorCode, GetPromptRequestSchema, McpError } from "@modelcontextprotocol/sdk/types.js";
 import {
   CAPABILITIES_RESOURCE_URI,
+  EMITTER_LIBRARY_RESOURCE_URI,
   SERVER_INSTRUCTIONS,
   SERVER_NAME,
   SERVER_VERSION,
   ZIP_CHECK_IN_PROMPT,
 } from "./config.js";
-import { explainTerm, getCapabilities, getCapabilitiesSummary, getFrontierPicks, getNewsDrop, zipCheckInMessages } from "./services.js";
+import { explainTerm, getCapabilities, getCapabilitiesSummary, getEmitterLibrary, getFrontierPicks, getNewsDrop, zipCheckInMessages } from "./services.js";
 import {
   emptyArgsSchema,
   explainTermArgsSchema,
@@ -65,6 +66,18 @@ export function createAnAlqServer(): McpServer {
   );
 
   server.registerTool(
+    "get_emitter_library",
+    {
+      title: "Fictional emitter library",
+      description:
+        "Return the fictional emitter-archetype catalog used by the AN-ALQ Range Trainer. Names are invented. Frequencies, PRI, PRF, pulse widths, bandwidths, and hop figures are illustrative textbook-style values, not measurements of real systems. Read-only. No sensing, jamming, spoofing, or geolocation is performed.",
+      inputSchema: emptyArgsSchema,
+      annotations: READ_ONLY,
+    },
+    async () => jsonText(getEmitterLibrary()),
+  );
+
+  server.registerTool(
     "get_news_drop",
     {
       title: "Sample news drop",
@@ -102,6 +115,26 @@ export function createAnAlqServer(): McpServer {
       if (!result.ok) return errorText(result.message);
       return jsonText(result.body);
     },
+  );
+
+  server.registerResource(
+    "emitter-library",
+    EMITTER_LIBRARY_RESOURCE_URI,
+    {
+      title: "Fictional emitter library",
+      description:
+        "Fictional training archetypes for the Range Trainer. Figures are illustrative. Not a library of real systems.",
+      mimeType: "application/json",
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.toString(),
+          mimeType: "application/json",
+          text: JSON.stringify(getEmitterLibrary(), null, 2),
+        },
+      ],
+    }),
   );
 
   server.registerResource(

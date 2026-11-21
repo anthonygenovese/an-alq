@@ -81,6 +81,7 @@ describe("streamable HTTP", () => {
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual([
       "explain_ew_term",
       "get_capabilities",
+      "get_emitter_library",
       "get_frontier_picks",
       "get_news_drop",
     ]);

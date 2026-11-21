@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { afterEach, describe, expect, it } from "vitest";
-import { CAPABILITIES_RESOURCE_URI, ZIP_CHECK_IN_PROMPT } from "../src/config.js";
+import { CAPABILITIES_RESOURCE_URI, EMITTER_LIBRARY_RESOURCE_URI, ZIP_CHECK_IN_PROMPT } from "../src/config.js";
 import { createAnAlqServer } from "../src/server.js";
 import { captureConsole } from "./console.js";
 
@@ -22,12 +22,13 @@ describe("MCP server", () => {
     for (const captured of consoles.splice(0)) captured.restore();
   });
 
-  it("lists the four read-only tools, the summary resource, and the check-in prompt", async () => {
+  it("lists the read-only tools, the summary resource, and the check-in prompt", async () => {
     const { client, server } = await connect();
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name).sort()).toEqual([
       "explain_ew_term",
       "get_capabilities",
+      "get_emitter_library",
       "get_frontier_picks",
       "get_news_drop",
     ]);
@@ -35,7 +36,9 @@ describe("MCP server", () => {
     expect(news?.inputSchema).toMatchObject({ additionalProperties: false });
     expect(news?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false });
     const resources = await client.listResources();
-    expect(resources.resources.map((resource) => resource.uri)).toContain(CAPABILITIES_RESOURCE_URI);
+    expect(resources.resources.map((resource) => resource.uri)).toEqual(
+      expect.arrayContaining([CAPABILITIES_RESOURCE_URI, EMITTER_LIBRARY_RESOURCE_URI]),
+    );
     const prompts = await client.listPrompts();
     expect(prompts.prompts.map((prompt) => prompt.name)).toContain(ZIP_CHECK_IN_PROMPT);
     await client.close();
@@ -61,6 +64,14 @@ describe("MCP server", () => {
       arguments: { term: "DRFM" },
     });
     expect(JSON.stringify(term)).toContain("Digital radio frequency memory");
+    const library = await client.callTool({ name: "get_emitter_library", arguments: {} });
+    const libraryText = JSON.stringify(library);
+    expect(libraryText).toContain("an-alq.emitter-library.v1");
+    expect(libraryText).toContain("illustrative");
+    expect(libraryText).toContain("fictional");
+    const libraryResource = await client.readResource({ uri: EMITTER_LIBRARY_RESOURCE_URI });
+    const libraryBody = libraryResource.contents[0];
+    expect(libraryBody && "text" in libraryBody ? libraryBody.text : "").toContain("operational");
     const resource = await client.readResource({ uri: CAPABILITIES_RESOURCE_URI });
     const body = resource.contents[0];
     expect(body && "text" in body ? body.text : "").toContain(

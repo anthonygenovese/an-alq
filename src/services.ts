@@ -1,5 +1,6 @@
 import { CAPABILITIES_RESOURCE_URI, ILLUSTRATIVE_DISCLAIMER, SAMPLE_DISCLAIMER } from "./config.js";
 import { capabilities, capabilitiesSummary, type CapabilitiesDocument, type CapabilitiesSummary } from "./data/capabilities.js";
+import { emitterLibrary, type EmitterLibraryDocument } from "./data/emitter-library.js";
 import { frontierMonth, frontierMonths, frontierPicks, newsDropForSlot, newsDrops } from "./data/content.js";
 import { GLOSSARY_IDS, resolveGlossaryEntry, type GlossaryEntry } from "./data/glossary.js";
 import { postalRegionFromZip } from "./data/postal.js";
@@ -17,6 +18,10 @@ export function getCapabilities(): CapabilitiesDocument {
 
 export function getCapabilitiesSummary(): CapabilitiesSummary {
   return capabilitiesSummary();
+}
+
+export function getEmitterLibrary(): EmitterLibraryDocument {
+  return emitterLibrary;
 }
 
 export function getNewsDrop(args: NewsDropArgs) {

@@ -209,4 +209,5 @@ export const TOOL_INPUT_SCHEMAS = {
   get_news_drop: newsDropArgsSchema,
   get_frontier_picks: frontierArgsSchema,
   explain_ew_term: explainTermArgsSchema,
+  get_emitter_library: emptyArgsSchema,
 } as const;

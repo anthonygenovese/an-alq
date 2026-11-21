@@ -26,8 +26,8 @@ try {
   console.log(`tools: ${names}`);
   console.log(`resources: ${resourceUris}`);
   console.log(`prompts: ${promptNames}`);
-  if (tools.tools.length < 4) {
-    throw new Error("expected four tools");
+  if (tools.tools.length < 5 || !tools.tools.some((tool) => tool.name === "get_emitter_library")) {
+    throw new Error("expected the fictional emitter library tool");
   }
 } finally {
   await client.close().catch(() => undefined);

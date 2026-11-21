@@ -215,6 +215,60 @@ const ENTRIES: readonly GlossaryEntry[] = [
     see_also: ["deceptive_jamming", "false_target"],
     aliases: ["terrain_bounce_jamming"],
   },
+  {
+    id: "pri",
+    term: "PRI",
+    expansion: "Pulse repetition interval",
+    definition:
+      "The time from the start of one radar pulse to the start of the next, usually quoted in microseconds in textbooks. Definition only. This entry does not describe a pulse to transmit.",
+    see_also: ["prf", "elint"],
+    aliases: ["pulse_repetition_interval"],
+  },
+  {
+    id: "prf",
+    term: "PRF",
+    expansion: "Pulse repetition frequency",
+    definition:
+      "How often a pulsed radar emits, in pulses per second. It is the reciprocal of the pulse repetition interval. Definition only.",
+    see_also: ["pri", "elint"],
+    aliases: ["pulse_repetition_frequency"],
+  },
+  {
+    id: "chirp",
+    term: "Chirp",
+    expansion: "Linear FM pulse",
+    definition:
+      "A pulse whose frequency sweeps during the pulse, drawn as a diagonal on a spectrogram. Textbooks also call this linear frequency modulation. Definition only. No sweep schedule is given here.",
+    see_also: ["prf", "fmcw"],
+    aliases: ["linear_fm", "linear_chirp", "lfm"],
+  },
+  {
+    id: "fmcw",
+    term: "FMCW",
+    expansion: "Frequency-modulated continuous wave",
+    definition:
+      "A continuous-wave radar concept that sweeps frequency over time, often drawn as a repeating sawtooth on a waterfall. Definition only.",
+    see_also: ["chirp"],
+    aliases: ["frequency_modulated_continuous_wave", "fm_cw"],
+  },
+  {
+    id: "ofdm",
+    term: "OFDM",
+    expansion: "Orthogonal frequency-division multiplexing",
+    definition:
+      "A modulation that packs many narrow subcarriers into one wider block. LTE uses a form of it. On a waterfall the cartoon is a solid wide band rather than a thin line. Definition only.",
+    see_also: ["dsss", "comint"],
+    aliases: ["orthogonal_frequency_division_multiplexing"],
+  },
+  {
+    id: "snr",
+    term: "SNR",
+    expansion: "Signal-to-noise ratio",
+    definition:
+      "How far a signal stands above the noise floor, in decibels. A training waterfall uses an illustrative SNR to set difficulty. This entry does not describe a measurement receiver.",
+    see_also: ["esm"],
+    aliases: ["signal_to_noise", "signal_to_noise_ratio"],
+  },
 ];
 
 export const GLOSSARY: Readonly<Record<string, GlossaryEntry>> = Object.fromEntries(

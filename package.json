@@ -24,7 +24,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "smoke": "tsx scripts/list-tools.ts"
+    "smoke": "tsx scripts/list-tools.ts",
+    "sim": "vite --config sim/vite.config.ts --host 127.0.0.1",
+    "build:sim": "vite build --config sim/vite.config.ts",
+    "typecheck:sim": "tsc -p sim/tsconfig.json --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
@@ -32,12 +35,19 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
     "@types/express": "^5.0.3",
     "@types/node": "^22.19.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "eslint": "^9.39.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "tsx": "^4.20.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.46.2",
+    "vite": "^8.3.8",
     "vitest": "^5.1.1"
   }
 }

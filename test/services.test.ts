@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { capabilities } from "../src/data/capabilities.js";
 import { GLOSSARY_IDS } from "../src/data/glossary.js";
-import { explainTerm, getCapabilities, getFrontierPicks, getNewsDrop } from "../src/services.js";
+import { explainTerm, getCapabilities, getEmitterLibrary, getFrontierPicks, getNewsDrop } from "../src/services.js";
 
 function metricsOf(document: typeof capabilities) {
   return document.divisions.flatMap((division) => division.metrics);
@@ -51,6 +51,16 @@ describe("getCapabilities", () => {
     const deception = getCapabilities().divisions.find((division) => division.id === "electronic_deception");
     expect(deception?.techniques?.join(" ")).toMatch(/GNSS spoofing/);
     expect(deception?.techniques?.join(" ")).toMatch(/false target/i);
+  });
+});
+
+describe("getEmitterLibrary", () => {
+  it("returns the fictional training catalog", () => {
+    const library = getEmitterLibrary();
+    expect(library.schema).toBe("an-alq.emitter-library.v1");
+    expect(library.role).toBe("training");
+    expect(library.operational).toBe(false);
+    expect(library.emitters.length).toBeGreaterThanOrEqual(25);
   });
 });
 

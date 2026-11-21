@@ -17,6 +17,7 @@ export const SERVER_INSTRUCTIONS = [
   "News drops and frontier picks are sample data until a record's sample field is false.",
   "Accept a 5-digit ZIP only when the caller offers one. Never ask for a name, email, phone, street address, or free-text personal note.",
   "The advanced research division is not open for briefing.",
+  "The emitter library is a fictional training catalog for the Range Trainer. It is not a list of real systems.",
 ].join(" ");
 
 export const RATE_LIMIT = {
@@ -29,4 +30,8 @@ export const DEFAULT_PORT = 8787;
 export const MAX_ARGUMENT_KEYS = 8;
 
 export const CAPABILITIES_RESOURCE_URI = "an-alq://capabilities/summary";
+export const EMITTER_LIBRARY_RESOURCE_URI = "an-alq://training/emitter-library";
 export const ZIP_CHECK_IN_PROMPT = "zip_check_in";
+
+export const TRAINING_DISCLAIMER =
+  "Training simulation. Synthetic data only. Names are fictional and every quantitative figure is illustrative. This is not a receiver, recorder, jammer, spoofer, or geolocation system, and it does not use live spectrum.";

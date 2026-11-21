@@ -56,7 +56,7 @@ export class SignalBoard {
 
   constructor(
     private readonly config: BoardConfig,
-    random?: () => Buffer,
+    random?: () => Uint8Array,
   ) {
     this.#salt = new RotatingSalt(config.saltRotationMs, random, 0);
     this.#generation = this.#salt.generation;

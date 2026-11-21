@@ -1,8 +1,8 @@
 {
-  "name": "an-alq-mcp",
+  "name": "an-alq",
   "version": "0.1.0",
   "private": true,
-  "description": "AN-ALQ MCP server and Tier 1 range trainer. Illustrative figures. Synthetic spectrum only.",
+  "description": "AN-ALQ workspace. Web shell, read-only MCP server, range trainer, and relay.",
   "type": "module",
   "license": "MIT",
   "author": "Anthony Genovese",
@@ -14,55 +14,35 @@
   "bugs": {
     "url": "https://github.com/anthonygenovese/an-alq/issues"
   },
+  "packageManager": "pnpm@12.21.0",
   "engines": {
     "node": ">=22.23.4"
   },
   "scripts": {
-    "start": "tsx src/http.ts",
-    "start:stdio": "tsx src/stdio.ts",
-    "dev": "tsx watch src/http.ts",
+    "dev": "pnpm --filter @an-alq/web dev",
+    "dev:mcp": "pnpm --filter @an-alq/mcp dev",
+    "dev:sim": "pnpm --filter @an-alq/sim dev",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "typecheck:sim": "tsc -p sim/tsconfig.json --noEmit",
-    "test": "vitest run --coverage && vitest run --config packages/relay/vitest.config.ts",
-    "test:watch": "vitest",
-    "audit": "npm audit --audit-level=high && npm audit signatures",
-    "smoke": "tsx scripts/list-tools.ts",
-    "inspector": "tsx scripts/inspector-smoke.ts",
-    "sbom": "cyclonedx-npm --output-file sbom.cdx.json --omit dev --package-lock-only --output-reproducible",
-    "sim": "vite --config sim/vite.config.ts --host 127.0.0.1",
-    "build:sim": "vite build --config sim/vite.config.ts"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.2",
-    "express": "^5.1.0",
-    "zod": "^4.6.7"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "audit": "pnpm audit --audit-level=high && pnpm audit signatures",
+    "smoke": "pnpm --filter @an-alq/mcp smoke",
+    "inspector": "pnpm --filter @an-alq/mcp inspector",
+    "sbom": "cdxgen -t pnpm -o sbom.cdx.json --required-only --no-install-deps --no-recurse apps/mcp"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
-    "@cyclonedx/cyclonedx-npm": "^7.0.1",
-    "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@modelcontextprotocol/inspector": "^2.16.0",
-    "@types/express": "^5.0.3",
-    "@types/node": "^22.19.0",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.3.0",
-    "@vitest/coverage-v8": "^5.1.1",
+    "@cyclonedx/cdxgen": "^12.7.1",
+    "@eslint/js": "^9.39.5",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "fast-check": "^4.10.3",
     "prettier": "^3.10.1",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "tsx": "^4.20.5",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.46.2",
-    "vite": "^8.3.8",
-    "vitest": "^5.1.1"
+    "typescript-eslint": "^8.46.2"
   }
 }

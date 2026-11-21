@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes, sha256Hex, utf8 } from "./sha256.js";
 
 export const BANNED_PUBLIC_KEYS: readonly string[] = [
   "handle",
@@ -65,13 +65,13 @@ export function findBannedKey(value: unknown, path = "$"): string | null {
  * discarded by the caller. Nothing here is written to disk.
  */
 export class RotatingSalt {
-  #salt: Buffer;
+  #salt: Uint8Array;
   #generation = 1;
   #rotatedAt: number;
 
   constructor(
     private readonly intervalMs: number,
-    private readonly random: () => Buffer = () => randomBytes(32),
+    private readonly random: () => Uint8Array = () => randomBytes(32),
     rotatedAt = 0,
   ) {
     if (intervalMs < 1) throw new Error("salt interval must be positive");
@@ -85,11 +85,7 @@ export class RotatingSalt {
 
   hash(material: string, now: number): string {
     this.rotateIfDue(now);
-    return createHash("sha256")
-      .update(this.#salt)
-      .update(Buffer.from([0]))
-      .update(material)
-      .digest("hex");
+    return sha256Hex([this.#salt, new Uint8Array([0]), utf8(material)]);
   }
 
   rotate(now: number): void {

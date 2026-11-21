@@ -1,0 +1,28 @@
+{
+  "name": "@an-alq/emitters",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fictional emitter library and glossary shared by the MCP server and the range trainer. Illustrative figures only.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

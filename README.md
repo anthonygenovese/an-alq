@@ -20,15 +20,17 @@ Read-only [Model Context Protocol](https://modelcontextprotocol.io) server and a
 
 ## Surfaces
 
-| Surface            | Path                   | State                                                                  |
-| ------------------ | ---------------------- | ---------------------------------------------------------------------- |
-| MCP server         | `src/`, `api/`         | Shipped. Stateless HTTP and stdio.                                     |
-| Content store      | `content/`             | Sample JSON. Schema rejects unknown keys.                              |
-| T1 range trainer   | `sim/`                 | Shipped. Vite UI. Synthetic waterfall.                                 |
-| Skill map          | `src/sim/skill-map.ts` | Shipped. T1 nodes can light. T2–T5 nodes stay locked.                  |
-| Trainer engine     | `src/sim/`             | Shared by the UI. Not a network service.                               |
-| Nixle signal relay | `packages/relay/`      | In progress. Reads public alerts. Does not post. See the threat model. |
-| `mcp.an-alq.com`   | —                      | Not deployed. Same stateless endpoint, later.                          |
+| Surface            | Path                                         | State                                                                  |
+| ------------------ | -------------------------------------------- | ---------------------------------------------------------------------- |
+| Web shell          | `apps/web`                                   | Next.js. `/`, `/range`, `/map`, `/relay`. Progress stays on device.    |
+| MCP server         | `apps/mcp`                                   | Shipped. Stateless HTTP and stdio.                                     |
+| Content store      | `apps/mcp/content`                           | Sample JSON. Schema rejects unknown keys.                              |
+| Emitter library    | `packages/emitters`                          | Shared fictional catalog and glossary.                                 |
+| T1 range trainer   | `packages/sim`                               | Shipped. Waterfall and skill map.                                      |
+| Skill map          | `packages/sim/src/engine/skill-map.ts`       | Shipped. T1 nodes can light. T2–T5 nodes stay locked.                  |
+| Trainer engine     | `packages/sim/src/engine`                    | Shared by the UI. Not a network service.                               |
+| Nixle signal relay | `packages/relay`                             | In progress. Reads public alerts. Does not post. See the threat model. |
+| `mcp.an-alq.com`   | Vercel project `an-alq-mcp`, root `apps/mcp` | Not deployed by CI. Same stateless endpoint.                           |
 
 A verified receipt counts the five newest Nixle emails, not the five newest messages in the inbox. The browser lists `INBOX` with `q=from:(nixle.com OR nixle.us)` and `maxResults=5`, so other mail is not fetched and does not use a slot. The copy when the alert is older than that is "no longer in your latest 5 Nixle alerts". The server still requires the DKIM-signed `Date` to fall inside the freshness window (default 60 minutes). `gmail.readonly` can read the whole mailbox; the cap is this client's list call, not Google's scope.
 
@@ -39,28 +41,31 @@ flowchart TB
   mcpClient[MCP client]
   browser[Browser]
   futureHost["mcp.an-alq.com\nnot deployed"]
-  vercel["Vercel function\n/mcp · /healthz"]
-  mcp["MCP server\nread-only tools"]
-  store["Content store\ncontent/*.json"]
-  library["Fictional emitter library\nillustrative figures"]
-  ui["Range trainer UI\nsim/"]
-  engine["Trainer engine\nsrc/sim"]
+  vercel["an-alq-mcp\n/mcp · /healthz"]
+  mcp["MCP server\napps/mcp"]
+  store["Content store\napps/mcp/content"]
+  library["Emitter library\npackages/emitters"]
+  web["Web shell\napps/web"]
+  ui["Range and map\npackages/sim"]
+  engine["Trainer engine\npackages/sim"]
   map["Skill map\nnodes light locally"]
-  relay["Nixle-to-X relay\nnot in this tree"]
+  relay["Relay demo\npackages/relay"]
 
   mcpClient --> futureHost
   futureHost -.-> vercel
   vercel --> mcp
   mcp --> store
   mcp --> library
-  browser --> ui
+  browser --> web
+  web --> ui
+  web --> relay
   ui --> engine
   ui --> map
   engine --> library
   relay -.-> mcp
 ```
 
-The trainer does not call `/mcp` at runtime. Vite bundles the same TypeScript modules the server imports. A later move to `apps/sim`, `packages/mcp-server`, and `packages/relay` is documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and is not done here: the trainer landed at `sim/` and the server stays at the repository root.
+The trainer does not call `/mcp` at runtime. The web shell and the Vite trainer both bundle `packages/sim` and `packages/emitters`. The relay page runs the demo clock in the browser. It does not read a mailbox and it does not post.
 
 ## Privacy by design
 
@@ -97,10 +102,10 @@ Unknown fields are rejected. There is no name, email, phone, or free-text person
 ## Range trainer
 
 ```bash
-npm run sim
+pnpm dev
 ```
 
-Opens `http://127.0.0.1:5173`. Two surfaces:
+Opens the web shell at `http://127.0.0.1:3000`. `/range` is the waterfall. `/map` is the skill map. The standalone Vite trainer is still `pnpm --filter @an-alq/sim dev` at `http://127.0.0.1:5173`.
 
 | Surface   | What the player does                                                                  |
 | --------- | ------------------------------------------------------------------------------------- |
@@ -117,39 +122,39 @@ Opens `http://127.0.0.1:5173`. Two surfaces:
 
 The participation ring around the profile mark is a reserved slot. This build does not compute it. T2–T5 nodes use an unavailable criterion and stay unlit.
 
-`npm run build:sim` writes `dist/sim`. That bundle is not what `vercel.json` deploys.
+`pnpm --filter @an-alq/sim build` writes the library into `packages/sim/dist` and the standalone trainer into `packages/sim/dist/trainer`. Neither directory is what the MCP project deploys.
 
 ## Quickstart
 
 ```bash
-npm ci
-npm test
-npm start
+pnpm install --frozen-lockfile
+pnpm test
+pnpm --filter @an-alq/mcp start
 ```
 
-`npm start` listens on `http://127.0.0.1:8787/mcp` (`PORT`, `HOST`). Logs go to stderr.
+`pnpm --filter @an-alq/mcp start` listens on `http://127.0.0.1:8787/mcp` (`PORT`, `HOST`). Logs go to stderr.
 
 ```bash
-npm run smoke          # SDK client lists the surface
-npm run inspector      # MCP Inspector CLI, pinned in package.json
-npm run sim            # trainer
+pnpm smoke       # SDK client lists the surface
+pnpm inspector   # MCP Inspector CLI, pinned in apps/mcp
+pnpm dev         # web shell
 ```
 
-Stdio, for a desktop client that spawns a process. Point it at `node`, not at `npm run`, so the runner's banner stays off stdout:
+Stdio, for a desktop client that spawns a process. Point it at `node`, not at `pnpm`, so the runner's banner stays off stdout:
 
 ```json
 {
   "mcpServers": {
     "an-alq": {
       "command": "node",
-      "args": ["--import", "tsx", "src/stdio.ts"],
-      "cwd": "/absolute/path/to/an-alq"
+      "args": ["--conditions=development", "--import", "tsx", "src/stdio.ts"],
+      "cwd": "/absolute/path/to/an-alq/apps/mcp"
     }
   }
 }
 ```
 
-HTTP, after `npm start`:
+HTTP, after `pnpm --filter @an-alq/mcp start`:
 
 ```json
 {
@@ -163,9 +168,40 @@ HTTP, after `npm start`:
 
 ## Deploy
 
-`api/mcp.ts` is the Vercel Node function. `vercel.json` rewrites `/mcp` to it and `/health` and `/healthz` to `api/health.ts`. The function is capped at 10 seconds. Security headers are set on the function and again at the edge. Content-Security-Policy is limited to the API paths so a later static host for the trainer is not forced into `default-src 'none'`.
+Two Vercel projects, one repository. This repository does not deploy itself and does not store secrets.
 
-This repository does not deploy and does not store secrets. Variables are in [`.env.example`](.env.example):
+| Project      | Root directory | Domain                                  | What it serves                                  |
+| ------------ | -------------- | --------------------------------------- | ----------------------------------------------- |
+| `an-alq-web` | `apps/web`     | `an-alq.com` when that host is attached | The Next.js shell                               |
+| `an-alq-mcp` | `apps/mcp`     | `mcp.an-alq.com`                        | Streamable HTTP at `/mcp`, health at `/healthz` |
+
+`an-alq-web` settings:
+
+| Setting          | Value                                                                                                                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework preset | Next.js                                                                                                                                                                                                         |
+| Root directory   | `apps/web`                                                                                                                                                                                                      |
+| Install command  | `pnpm install --frozen-lockfile` from the repository root. Vercel does this when the root directory sits inside the pnpm workspace. Include source files outside the root directory so `packages/*` is present. |
+| Build command    | `pnpm build` (runs in `apps/web`; that script builds `@an-alq/emitters`, `@an-alq/relay`, and `@an-alq/sim`, then `next build`)                                                                                 |
+| Output directory | Leave empty. Next.js default. Do not set a static export directory.                                                                                                                                             |
+| Node.js          | 22.x                                                                                                                                                                                                            |
+
+`output: 'export'` is not turned on. Set `NEXT_STATIC_EXPORT=1` for the later Capacitor build. That flag switches `output: 'export'` and drops the `headers()` function, which a static export cannot emit. The same headers stay in `apps/web/vercel.json` for the Vercel project. The shell has no route handlers, no middleware, and no server-only request APIs. Skill evidence stays in `localStorage`.
+
+`an-alq-mcp` settings:
+
+| Setting          | Value                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| Framework preset | Other                                                                                                      |
+| Root directory   | `apps/mcp`                                                                                                 |
+| Install command  | `pnpm install --frozen-lockfile` from the repository root, with files outside the root directory included. |
+| Build command    | `pnpm build` (builds `@an-alq/emitters`, then typechecks the server)                                       |
+| Output directory | Leave empty. There is no static bundle. `api/mcp.ts` and `api/health.ts` are Vercel Functions.             |
+| Node.js          | 22.x                                                                                                       |
+
+`apps/mcp/vercel.json` rewrites `/mcp` to `/api/mcp` and `/health` and `/healthz` to `/api/health`. The MCP function is capped at 10 seconds. Security headers are set on the function and again at the edge. Content-Security-Policy on the API paths is `default-src 'none'`. Point `mcp.an-alq.com` at the `an-alq-mcp` project.
+
+Variables are in [`apps/mcp/.env.example`](apps/mcp/.env.example):
 
 | Variable          | Where            | Default        | Meaning                                |
 | ----------------- | ---------------- | -------------- | -------------------------------------- |
@@ -182,10 +218,10 @@ Empty `ALLOWED_ORIGINS` denies every cross-origin browser call. Local mode also 
 | ------------------------------------------------ | -------------------------- |
 | Pinned actions, `contents: read` by default      | `.github/workflows/`       |
 | CodeQL `security-and-quality`                    | `codeql.yml`               |
-| npm audit, registry signatures, osv-scanner      | `ci.yml`                   |
+| pnpm audit, registry signatures, osv-scanner     | `ci.yml`                   |
 | gitleaks 8.30.1, checksum-pinned, full history   | `ci.yml`                   |
 | OpenSSF Scorecard, results published             | `scorecard.yml`            |
-| Dependabot, npm and GitHub Actions               | `dependabot.yml`           |
+| Dependabot, pnpm lockfile and GitHub Actions     | `dependabot.yml`           |
 | release-please, CycloneDX SBOM, build provenance | `release.yml`              |
 | Disclosure                                       | [SECURITY.md](SECURITY.md) |
 
@@ -197,27 +233,26 @@ Signed tags are an owner control. The private key does not live in CI. See [docs
 | ------------------------------------------ | ---------------------------------------------------------------------------- |
 | MCP server v0.1 and T1 trainer             | On `main`.                                                                   |
 | Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR. |
-| `mcp.an-alq.com`                           | DNS and a Vercel project. Not done here.                                     |
+| `mcp.an-alq.com`                           | Attach the domain to the `an-alq-mcp` project. Not done by CI.               |
 | OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                       |
 | Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                   |
 | T2–T5 playable tiers                       | Locked nodes. No engine for them.                                            |
 | Nixle-to-X relay                           | Separate work. Public alerts only. No subscriber data.                       |
-| Move to `apps/` and `packages/`            | After that relay lands. Not in this PR.                                      |
+| Move to `apps/` and `packages/`            | Done. pnpm workspace.                                                        |
 
 ## Development
 
-Node `22.23.4` (`.nvmrc`). npm. Dev container: `.devcontainer/`.
+Node `22.23.4` (`.nvmrc`). pnpm `12.21.0`, from the `packageManager` field. Dev container: `.devcontainer/`.
 
 ```bash
-npm run format:check
-npm run lint
-npm run typecheck
-npm run typecheck:sim
-npm test
-npm run build:sim
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm -r build
 ```
 
-Coverage fails under 85% lines, 80% statements, 80% functions, or 75% branches on `src/` and `api/`. Conventional commits are required on the pull request title. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Coverage fails under 85% lines, 80% statements, 80% functions, or 75% branches on `apps/mcp/src` and `apps/mcp/api`. Conventional commits are required on the pull request title. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

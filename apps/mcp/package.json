@@ -1,0 +1,47 @@
+{
+  "name": "@an-alq/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AN-ALQ MCP server. Illustrative figures. Read-only.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Anthony Genovese",
+  "homepage": "https://an-alq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonygenovese/an-alq.git",
+    "directory": "apps/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/anthonygenovese/an-alq/issues"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "start": "node --conditions=development --import tsx src/http.ts",
+    "start:stdio": "node --conditions=development --import tsx src/stdio.ts",
+    "dev": "node --conditions=development --import tsx --watch src/http.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "build": "pnpm --filter @an-alq/emitters build && tsc --noEmit",
+    "smoke": "node --conditions=development --import tsx scripts/list-tools.ts",
+    "inspector": "node --conditions=development --import tsx scripts/inspector-smoke.ts"
+  },
+  "dependencies": {
+    "@an-alq/emitters": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "express": "^5.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^2.16.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "fast-check": "^4.10.3",
+    "tsx": "^4.20.5",
+    "typescript": "^5.8.3",
+    "vitest": "^5.1.1"
+  }
+}

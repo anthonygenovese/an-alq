@@ -6,19 +6,18 @@ The project is educational. Capability figures stay labeled illustrative. Do not
 
 ## Setup
 
-Node `22.23.4`, from `.nvmrc`. npm comes with it.
+Node `22.23.4`, from `.nvmrc`. pnpm `12.21.0`, from `packageManager`.
 
 ```bash
-npm ci
-npm run format:check
-npm run lint
-npm run typecheck
-npm run typecheck:sim
-npm test
-npm run build:sim
+pnpm install --frozen-lockfile
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm -r build
 ```
 
-`npm start` is the MCP server on `127.0.0.1:8787`. `npm run sim` is the trainer on `127.0.0.1:5173`. A dev container is in `.devcontainer/` and forwards both ports. It does not provision secrets. There are none.
+`pnpm --filter @an-alq/mcp start` is the MCP server on `127.0.0.1:8787`. `pnpm dev` is the web shell on `127.0.0.1:3000`. `pnpm --filter @an-alq/sim dev` is the standalone trainer on `127.0.0.1:5173`. A dev container is in `.devcontainer/` and forwards those ports. It does not provision secrets. There are none.
 
 ## Commits
 
@@ -35,15 +34,16 @@ docs: correct the health path
 
 ## What belongs where
 
-| Change                               | Where                                                                                  |
-| ------------------------------------ | -------------------------------------------------------------------------------------- |
-| Tool, schema, log, HTTP guard        | `src/`, `api/`, `test/`                                                                |
-| Trainer UI                           | `sim/`                                                                                 |
-| Shared generator, scoring, skill map | `src/sim/`                                                                             |
-| Sample content                       | `content/`, and only if it matches `content/FORMAT.md`                                 |
-| Relay                                | Not this tree yet. Read the relay section of `docs/THREAT_MODEL.md` before adding one. |
+| Change                        | Where                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| Tool, schema, log, HTTP guard | `apps/mcp/src`, `apps/mcp/api`, `apps/mcp/test`                                         |
+| Web shell                     | `apps/web`. No server-only features. Progress stays in `localStorage`.                  |
+| Trainer UI and engine         | `packages/sim`                                                                          |
+| Emitter library and glossary  | `packages/emitters`                                                                     |
+| Sample content                | `apps/mcp/content`, and only if it matches `content/FORMAT.md`                          |
+| Relay                         | `packages/relay`. Read the relay section of `docs/THREAT_MODEL.md` before extending it. |
 
-Do not move the server into `packages/mcp-server` or the trainer into `apps/sim` as a drive-by. That rename is a pull request of its own, after the relay layout is real. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records the target.
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records the layout.
 
 ## Privacy invariants
 

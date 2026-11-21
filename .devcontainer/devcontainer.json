@@ -6,8 +6,8 @@
       "version": "22.23.4"
     }
   },
-  "postCreateCommand": "npm ci",
-  "forwardPorts": [8787, 5173],
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@12.21.0 --activate && pnpm install --frozen-lockfile",
+  "forwardPorts": [8787, 5173, 3000],
   "portsAttributes": {
     "8787": {
       "label": "MCP",
@@ -15,6 +15,10 @@
     },
     "5173": {
       "label": "Range trainer",
+      "onAutoForward": "silent"
+    },
+    "3000": {
+      "label": "Web shell",
       "onAutoForward": "silent"
     }
   },

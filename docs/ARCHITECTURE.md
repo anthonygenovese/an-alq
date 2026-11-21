@@ -1,40 +1,28 @@
 # Architecture
 
-AN-ALQ in this repository is two processes that share a TypeScript catalog, plus a relay that is specified and not built.
+AN-ALQ in this repository is a pnpm workspace. The web shell, the MCP server, and the relay demo share the emitter catalog. The relay reads public alerts and does not post.
 
 | Piece              | Runs as                                                | Talks to                                                                       |
 | ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Web shell          | Next.js in `apps/web`. Vercel project `an-alq-web`.    | The trainer, the skill map, and the relay demo. No call to `/mcp`.             |
 | MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.               |
-| Range trainer      | Vite dev server, or a static build in `dist/sim`       | The same modules, bundled. No call to `/mcp`.                                  |
+| Range trainer      | `packages/sim`, mounted by the web shell and by Vite   | The emitter package, bundled. No call to `/mcp`.                               |
 | Nixle signal relay | `packages/relay`                                       | Reads public alerts. Does not post. Receipts use the five newest Nixle emails. |
 
 Capability figures and emitter-library numbers are illustrative. The trainer's waterfall is synthetic. Nothing in this tree is a receiver, recorder, jammer, spoofer, or geolocation system.
 
-## Layout today
+## Layout
 
 ```
-api/            Vercel handlers for /api/mcp and /api/health
-src/            MCP server, catalog, and the trainer engine
-src/sim/        Generator, scoring, skill map. Imported by the UI and tested by vitest
-sim/            Vite UI. Skill map and the T1 range
-content/        Sample news drops and frontier picks
-test/           vitest, including fast-check properties on the validators
+apps/web/                 Next.js shell. /, /range, /map, /relay
+apps/mcp/                 MCP server, api/, content/, tests
+packages/emitters/        Fictional emitter library and glossary
+packages/sim/             T1 waterfall, skill map, and the trainer engine
+packages/relay/           Nixle signal relay. The web shell runs it in demo mode
+pnpm-workspace.yaml       Workspace root
 ```
 
-The server stays at the repository root. The trainer stays in `sim/`. Both arrived as merged pull requests. Moving them in the same change as the supply-chain work would collide with a relay branch that expects this tree.
-
-## Target layout
-
-When the relay exists and a rename is the only thing in the pull request:
-
-```
-apps/sim/                 current sim/
-packages/mcp-server/      current root server, api/, content/, src/ except src/sim
-packages/relay/           Nixle-to-X relay
-packages/trainer-engine/  current src/sim, if the UI and the server should both depend on it
-```
-
-Until that pull request, do not add a root `workspaces` field. An empty workspace glob fails `npm ci`, and a half-moved tree is worse than a documented one.
+`packages/emitters` is the shared catalog. The server and the trainer both depend on it. The web shell depends on the trainer and the relay, and it does not depend on the server.
 
 ## MCP request path
 
@@ -57,7 +45,7 @@ Stdio is a second entry, `src/stdio.ts`. stdout is the protocol. Logs stay on st
 
 ## Skill map
 
-The map is `an-alq.skill-map.v1` in `src/sim/skill-map.ts`. Items are nodes. A node whose criterion is met, and whose required nodes are already lit, becomes a lit node.
+The map is `an-alq.skill-map.v1` in `packages/sim/src/engine/skill-map.ts`. Items are nodes. A node whose criterion is met, and whose required nodes are already lit, becomes a lit node.
 
 | Domain                | Tier | Status   | What a lit node would mean                                      |
 | --------------------- | ---- | -------- | --------------------------------------------------------------- |
@@ -76,7 +64,7 @@ A participation ring is reserved (`participation-glow-ring`, `computedBy: "later
 
 ## Trainer tiers
 
-Defined in `src/sim/tiers.ts`.
+Defined in `packages/sim/src/engine/tiers.ts`.
 
 | Id  | Name                | Status                                                                          |
 | --- | ------------------- | ------------------------------------------------------------------------------- |
@@ -86,7 +74,7 @@ Defined in `src/sim/tiers.ts`.
 | T4  | Deception decisions | Planned. No spoofing.                                                           |
 | T5  | Multi-threat        | Planned.                                                                        |
 
-`npm run sim` serves the UI at `127.0.0.1:5173`. `npm run build:sim` emits `dist/sim`. CI typechecks `sim/tsconfig.json` and builds that bundle. The bundle is not the Vercel function.
+`pnpm dev` serves the shell at `127.0.0.1:3000`. `pnpm --filter @an-alq/sim dev` still serves the Vite trainer at `127.0.0.1:5173`. CI typechecks each package and runs `pnpm -r build`. The trainer bundle is not the MCP function.
 
 ## Content store
 
@@ -94,12 +82,11 @@ Defined in `src/sim/tiers.ts`.
 
 ## Configuration
 
-[`.env.example`](../.env.example) is the full list. No secret is required to boot. `vercel.json` rewrites `/mcp`, `/health`, and `/healthz`, sets edge headers, and caps the MCP function at 10 seconds. CSP on the edge is scoped to the API paths.
+[`apps/mcp/.env.example`](../apps/mcp/.env.example) is the full list. No secret is required to boot. `apps/mcp/vercel.json` rewrites `/mcp`, `/health`, and `/healthz`, sets edge headers, and caps the MCP function at 10 seconds. CSP on the edge is scoped to the API paths. `apps/web/next.config.ts` sets the shell's headers, and `apps/web/vercel.json` repeats them.
 
 ## What is intentionally absent
 
-- A workspace move.
-- A deployed hostname.
+- A deployed hostname. `mcp.an-alq.com` is the `an-alq-mcp` project. CI does not attach it.
 - OAuth. It shows up only if a ZIP is stored.
 - Playable T2–T5.
 - Any code path that transmits, records live spectrum, or computes a real fix.

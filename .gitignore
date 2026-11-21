@@ -1,5 +1,7 @@
 node_modules/
 dist/
+.next/
+out/
 coverage/
 .vercel/
 .env
@@ -9,4 +11,5 @@ coverage/
 .DS_Store
 *.tsbuildinfo
 sbom.cdx.json
+sbom-staging/
 *.tgz

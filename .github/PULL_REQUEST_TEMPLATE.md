@@ -4,7 +4,7 @@
 
 ## Checks
 
-- [ ] `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run typecheck:sim`, and `npm test` pass
+- [ ] `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm -r build` pass
 - [ ] Capability figures stay labeled illustrative. This change does not add real RF, jamming, spoofing, or geolocation
 - [ ] No new personal data field, log line, or stored identifier
 - [ ] Skill-map changes talk about nodes and lit nodes

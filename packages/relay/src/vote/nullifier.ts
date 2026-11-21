@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { sha256Hex, utf8 } from "../sha256.js";
 
 const DOMAIN = "an-alq.relay.nullifier.v1";
 
@@ -8,13 +8,7 @@ const DOMAIN = "an-alq.relay.nullifier.v1";
  * not recoverable from the hex.
  */
 export function makeNullifier(alertKey: string, secret: string): string {
-  return createHash("sha256")
-    .update(DOMAIN)
-    .update("|")
-    .update(alertKey)
-    .update("|")
-    .update(secret)
-    .digest("hex");
+  return sha256Hex([utf8(DOMAIN), utf8("|"), utf8(alertKey), utf8("|"), utf8(secret)]);
 }
 
 export function isNullifier(value: string): boolean {

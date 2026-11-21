@@ -2,17 +2,17 @@
 
 Versions follow semver. Commits follow [Conventional Commits](https://www.conventionalcommits.org/). `feat` opens a minor bump while the version is 0.x (`bump-minor-pre-major`). `fix` opens a patch. `chore` and `docs` do not bump.
 
-[release-please](https://github.com/googleapis/release-please) watches `main`. The manifest is [`.release-please-manifest.json`](../.release-please-manifest.json). A release PR updates `package.json` and `CHANGELOG.md`. Merging it tags `vX.Y.Z` and the Release workflow then:
+[release-please](https://github.com/googleapis/release-please) watches `main`. The manifest is [`.release-please-manifest.json`](../.release-please-manifest.json). A release PR updates the root `package.json`, `apps/mcp/package.json`, and `CHANGELOG.md`. Merging it tags `vX.Y.Z` and the Release workflow then:
 
-1. Packs the tree with `npm pack --ignore-scripts`.
-2. Writes a CycloneDX SBOM of the runtime dependencies (`--omit dev`).
+1. Packs `@an-alq/mcp` with `pnpm pack --ignore-scripts`.
+2. Deploys `@an-alq/mcp` with production dependencies only and writes a CycloneDX SBOM of that tree with `cdxgen`.
 3. Attests build provenance for the tarball.
 4. Attests the SBOM against that tarball.
 5. Uploads `sbom.cdx.json` to the GitHub release.
 
-The package is `"private": true`. Nothing is published to npm.
+The packages are `"private": true`. Nothing is published to npm.
 
-Dev dependencies, including the trainer toolchain, are covered by `npm audit`, `npm audit signatures`, and osv-scanner on every pull request. They are omitted from the release SBOM because they are not what the function runs.
+Dev dependencies, including the trainer toolchain, are covered by `pnpm audit --audit-level=high`, `pnpm audit signatures`, and osv-scanner on `pnpm-lock.yaml` on every pull request. They are omitted from the release SBOM because they are not what the function runs.
 
 ## Signed tags
 
@@ -32,4 +32,4 @@ To require signatures, add a repository ruleset on `v*` with "Require signed com
 
 ## What a release is not
 
-A release does not deploy `mcp.an-alq.com` and does not deploy the trainer. Deployment is a separate owner action with the variables in `.env.example` and no new secrets.
+A release does not deploy `mcp.an-alq.com` and does not deploy the web shell. Deployment is a separate owner action with the variables in `apps/mcp/.env.example` and no new secrets.

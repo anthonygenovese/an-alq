@@ -5,12 +5,19 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "coverage/**", "sbom.cdx.json"],
+    ignores: [
+      "dist/**",
+      "**/dist/**",
+      "node_modules/**",
+      "coverage/**",
+      "sbom.cdx.json",
+      "**/.next/**",
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["sim/**/*.{ts,tsx}"],
+    files: ["packages/sim/**/*.{ts,tsx}", "apps/web/**/*.{ts,tsx}"],
     plugins: reactHooks.configs.flat.recommended.plugins,
     rules: {
       ...reactHooks.configs.flat.recommended.rules,
@@ -34,7 +41,12 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/**/*.ts", "api/**/*.ts", "sim/**/*.{ts,tsx}"],
+    files: [
+      "apps/mcp/src/**/*.ts",
+      "apps/mcp/api/**/*.ts",
+      "packages/sim/**/*.{ts,tsx}",
+      "apps/web/**/*.{ts,tsx}",
+    ],
     rules: {
       "no-console": ["error", { allow: ["error"] }],
     },

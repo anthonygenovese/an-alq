@@ -47,8 +47,8 @@ This tree has no API keys. `.env.example` lists bind addresses and allowlists on
 
 - Enable GitHub secret scanning and push protection in the repository settings. A workflow file cannot turn those on.
 - CI runs gitleaks 8.30.1 over the full git history, using [`.gitleaks.toml`](.gitleaks.toml). The binary is the MIT-licensed CLI, checksum-pinned. The commercial gitleaks Action is not used. The only allowlist entry is the localStorage schema id `an-alq.skill-evidence.v1`, which the generic-api-key rule misreads.
-- Dependabot covers npm and GitHub Actions. Actions are pinned to commit SHAs.
-- `npm audit --audit-level=high`, `npm audit signatures`, and osv-scanner run on every pull request.
+- Dependabot covers the pnpm lockfile and GitHub Actions. Actions are pinned to commit SHAs.
+- `pnpm audit --audit-level=high`, `pnpm audit signatures`, and osv-scanner run on every pull request.
 - If a secret reaches git, rotate it first, then purge the history. A force-push does not un-leak a credential that was fetched.
 
 ## Supply chain

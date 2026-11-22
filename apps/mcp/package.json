@@ -1,6 +1,6 @@
 {
   "name": "@an-alq/mcp",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "AN-ALQ MCP server. Illustrative figures. Read-only.",
   "type": "module",

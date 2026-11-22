@@ -1,12 +1,12 @@
-import { readFileSync } from "node:fs";
 import { ILLUSTRATIVE } from "@an-alq/emitters";
 import { z } from "zod/v3";
 import { generateRound, trainingRoundSchema } from "./generator.js";
 import { DIFFICULTIES, type TrainingRound } from "./types.js";
 
 /**
- * Synthetic T1 scenario. The file stores a seed, a difficulty, and scripted
- * answers. The loader rebuilds the round with generateRound.
+ * Synthetic T1 scenario. A scenario stores a seed, a difficulty, and scripted
+ * answers. loadScenario rebuilds the round with generateRound. Disk reads live
+ * in src/node so this module stays free of Node APIs.
  */
 
 export const SCENARIO_SCHEMA_ID = "an-alq.scenario.v1" as const;
@@ -46,15 +46,8 @@ export function parseScenario(value: unknown): Scenario {
   return parsed.data;
 }
 
-/** Read a scenario file and rebuild its round from the seed. */
-export function loadScenarioFile(filePath: string): LoadedScenario {
-  let value: unknown;
-  try {
-    value = JSON.parse(readFileSync(filePath, "utf8")) as unknown;
-  } catch (error) {
-    if (error instanceof SyntaxError) throw new Error("Scenario file is not JSON");
-    throw error;
-  }
+/** Rebuild a round from a parsed scenario value. */
+export function loadScenario(value: unknown): LoadedScenario {
   const scenario = parseScenario(value);
   const round = generateRound({ seed: scenario.seed, difficulty: scenario.difficulty });
   const rebuilt = trainingRoundSchema.safeParse(round);

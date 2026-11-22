@@ -1,0 +1,14 @@
+{
+  "schema": "an-alq.scenario.v1",
+  "tier": "T1",
+  "figures_are": "illustrative",
+  "fictional": true,
+  "operational": false,
+  "seed": 7,
+  "difficulty": "recruit",
+  "answers": [
+    { "elapsedMs": 400, "answerId": "lantern-search" },
+    { "elapsedMs": 200, "answerId": "lantern-search" },
+    { "elapsedMs": 800, "answerId": "harbor-watch" }
+  ]
+}

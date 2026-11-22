@@ -1,21 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { EMITTER_CATEGORIES } from "@an-alq/emitters";
+import { EMITTER_CATEGORIES, emitterLibrary, resolveGlossaryEntry } from "@an-alq/emitters";
 import {
+  SKILL_ACK_KEY,
+  SKILL_EVIDENCE_KEY,
   applyAttempt,
+  barrageDefinitionQuestion,
   emptyEvidence,
+  emptyGates,
   evaluateMap,
   loadEvidence,
+  loadGates,
   participationRingOpacity,
   recordAttempt,
   saveEvidence,
+  saveGates,
   scoreCriterion,
   sectorCenter,
   skillMap,
   skillMapSchema,
   skillNodeById,
+  withBarrageAcknowledgment,
+  withBarrageDefinition,
   type AttemptEvent,
   type KeyValueStore,
   type SkillEvidence,
+  type SkillGates,
 } from "../src/engine/skill-map.js";
 
 function memoryStore(initial = ""): KeyValueStore & { raw: string } {
@@ -147,7 +156,11 @@ describe("mastery", () => {
     expect(snapshot.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("locked");
     expect(snapshot.nodes.find((node) => node.id === "gnss-term")?.state).toBe("locked");
     expect(snapshot.nodes.find((node) => node.id === "spot-label")?.state).toBe("locked");
+    expect(snapshot.nodes.find((node) => node.id === "rgpo-label")?.state).toBe("locked");
+    expect(snapshot.nodes.find((node) => node.id === "vgpo-label")?.state).toBe("locked");
     expect(snapshot.nodes.find((node) => node.id === "vgpo-label")?.fraction).toBe(0);
+    expect(snapshot.nodes.find((node) => node.id === "barrage-label")?.state).toBe("sealed");
+    expect(snapshot.litIds).not.toContain("barrage-label");
 
     const leadOnly = play(
       emptyEvidence(),
@@ -187,6 +200,177 @@ describe("evidence storage", () => {
     expect(loadEvidence(null).byDifficulty.lead.attempts).toBe(0);
   });
 });
+
+describe("barrage definition node", () => {
+  it("keeps a strict glossary criterion on barrage-label only", () => {
+    const barrage = skillNodeById.get("barrage-label");
+    expect(barrage?.criterion).toEqual({
+      source: "glossary",
+      term: "barrage_jamming",
+      ask: "definition",
+    });
+    expect(barrage?.requires).toEqual(["low-snr", "classify-chirp", "classify-continuous"]);
+    expect(skillMap.domains.find((domain) => domain.id === "radar-response")?.status).toBe(
+      "locked",
+    );
+    for (const id of ["spot-label", "rgpo-label", "vgpo-label"]) {
+      expect(skillNodeById.get(id)?.criterion).toEqual({ source: "unavailable" });
+    }
+
+    const withNumber = cloneMap();
+    const numbered = withNumber.nodes.find((node) => node.id === "barrage-label");
+    if (!numbered) throw new Error("missing barrage-label");
+    numbered.criterion = {
+      source: "glossary",
+      term: "barrage_jamming",
+      ask: "definition",
+      minAttempts: 1,
+    };
+    expect(skillMapSchema.safeParse(withNumber).success).toBe(false);
+
+    for (const id of ["spot-label", "rgpo-label", "vgpo-label"]) {
+      const moved = cloneMap();
+      const node = moved.nodes.find((item) => item.id === id);
+      if (!node) throw new Error(`missing ${id}`);
+      node.criterion = { source: "glossary", term: "barrage_jamming", ask: "definition" };
+      const parsed = skillMapSchema.safeParse(moved);
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        const messages = parsed.error.issues.map((issue) => issue.message).join(" ");
+        expect(messages).toContain("unavailable");
+      }
+    }
+  });
+
+  it("asks for the barrage definition and does not name an archetype", () => {
+    const question = barrageDefinitionQuestion();
+    expect(question.answerId).toBe("barrage_jamming");
+    expect(question.prompt.toLowerCase()).toContain("definition");
+    expect(question.choices.map((choice) => choice.id)).toEqual([
+      "spot_jamming",
+      "barrage_jamming",
+      "rgpo",
+      "vgpo",
+    ]);
+    for (const choice of question.choices) {
+      expect(choice.definition).toBe(resolveGlossaryEntry(choice.id)?.definition);
+      expect(Object.keys(choice).sort()).toEqual(["definition", "id"]);
+    }
+    const blob = JSON.stringify(question).toLowerCase();
+    expect(blob).not.toContain("ribbon-4");
+    expect(blob).not.toContain("ribbon");
+    for (const emitter of emitterLibrary.emitters) {
+      expect(blob).not.toContain(emitter.id);
+      expect(blob).not.toContain(emitter.name.toLowerCase());
+    }
+  });
+
+  it("lights barrage only after T1 mastery and acknowledgment", () => {
+    const mastered = masterT1(emptyEvidence());
+    const ready = evaluateMap(mastered, emptyGates());
+    for (const id of [
+      "open-ear",
+      "classify-pulsed",
+      "classify-fhss",
+      "classify-wideband",
+      "classify-chirp",
+      "classify-continuous",
+      "low-snr",
+    ]) {
+      expect(ready.litIds).toContain(id);
+    }
+    expect(ready.nodes.find((node) => node.id === "barrage-label")?.state).toBe("open");
+    expect(nodeLocked(ready, "spot-label")).toBe(true);
+    expect(nodeLocked(ready, "rgpo-label")).toBe(true);
+    expect(nodeLocked(ready, "vgpo-label")).toBe(true);
+
+    const acknowledged = withBarrageAcknowledgment(emptyGates(), true);
+    expect(evaluateMap(mastered, acknowledged).litIds).not.toContain("barrage-label");
+
+    const matchedEarly = withBarrageDefinition(emptyGates(), "barrage_jamming");
+    expect(matchedEarly.barrageDefinition).toBe(false);
+    const definitionWithoutAck = { ...emptyGates(), barrageDefinition: true };
+    expect(
+      evaluateMap(emptyEvidence(), definitionWithoutAck).nodes.find(
+        (node) => node.id === "barrage-label",
+      )?.state,
+    ).toBe("sealed");
+    expect(evaluateMap(mastered, definitionWithoutAck).litIds).not.toContain("barrage-label");
+
+    const matched = withBarrageDefinition(acknowledged, "spot_jamming");
+    expect(matched.barrageDefinition).toBe(false);
+    const correct = withBarrageDefinition(acknowledged, "barrage_jamming");
+    expect(correct).toEqual({
+      schema: "an-alq.skill-acknowledgment.v1",
+      barrageLabel: true,
+      barrageDefinition: true,
+    });
+
+    const lit = evaluateMap(mastered, correct);
+    expect(lit.nodes.find((node) => node.id === "barrage-label")?.state).toBe("lit");
+    expect(lit.litIds).toContain("barrage-label");
+    expect(nodeLocked(lit, "spot-label")).toBe(true);
+    expect(nodeLocked(lit, "rgpo-label")).toBe(true);
+    expect(nodeLocked(lit, "vgpo-label")).toBe(true);
+    expect(lit.nodes.find((node) => node.id === "vgpo-label")?.fraction).toBe(0);
+
+    const cleared = withBarrageAcknowledgment(correct, false);
+    expect(cleared.barrageLabel).toBe(false);
+    expect(cleared.barrageDefinition).toBe(false);
+    expect(evaluateMap(mastered, cleared).litIds).not.toContain("barrage-label");
+  });
+
+  it("stores the acknowledgment beside skill evidence and rejects extra fields", () => {
+    const store = keyedStore();
+    const gates: SkillGates = {
+      schema: "an-alq.skill-acknowledgment.v1",
+      barrageLabel: true,
+      barrageDefinition: false,
+    };
+    saveGates(store, gates);
+    expect(loadGates(store)).toEqual(gates);
+    expect(store.values.has(SKILL_EVIDENCE_KEY)).toBe(false);
+    expect(store.values.has(SKILL_ACK_KEY)).toBe(true);
+
+    store.setItem(SKILL_ACK_KEY, JSON.stringify({ ...gates, power: 12, waveform: "tone" }));
+    expect(loadGates(store)).toEqual(emptyGates());
+    store.setItem(SKILL_ACK_KEY, "{");
+    expect(loadGates(store)).toEqual(emptyGates());
+    expect(loadGates(null)).toEqual(emptyGates());
+  });
+});
+
+function cloneMap() {
+  return JSON.parse(JSON.stringify(skillMap)) as {
+    nodes: { id: string; criterion: Record<string, unknown> }[];
+  };
+}
+
+function nodeLocked(snapshot: { nodes: { id: string; state: string }[] }, id: string): boolean {
+  return snapshot.nodes.find((node) => node.id === id)?.state === "locked";
+}
+
+function masterT1(evidence: SkillEvidence): SkillEvidence {
+  let next = evidence;
+  next = play(next, attempt({ category: "search_radar" }), 4);
+  next = play(next, attempt({ category: "comms_fhss", elapsedMs: 350 }), 3);
+  next = play(next, attempt({ category: "comms_dsss", elapsedMs: 450 }), 4);
+  next = play(next, attempt({ category: "gnss", difficulty: "lead", elapsedMs: 500 }), 4);
+  next = play(next, attempt({ category: "early_warning_radar", elapsedMs: 400 }), 3);
+  next = play(next, attempt({ category: "hf_comms", elapsedMs: 400 }), 3);
+  return next;
+}
+
+function keyedStore(): KeyValueStore & { values: Map<string, string> } {
+  const values = new Map<string, string>();
+  return {
+    values,
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => {
+      values.set(key, value);
+    },
+  };
+}
 
 describe("participation ring slot", () => {
   it("stays empty until a later module supplies an intensity", () => {

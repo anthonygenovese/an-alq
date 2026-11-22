@@ -169,5 +169,11 @@ describe("tier roadmap", () => {
     expect(
       TRAINER_TIERS.filter((tier) => tier.status === "playable").map((tier) => tier.id),
     ).toEqual(["T1"]);
+    expect(TRAINER_TIERS.find((tier) => tier.id === "T3")?.summary.toLowerCase()).not.toContain(
+      "closed-loop",
+    );
+    expect(TRAINER_TIERS.find((tier) => tier.id === "T3")?.summary).toContain(
+      "glossary definition",
+    );
   });
 });

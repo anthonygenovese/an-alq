@@ -115,9 +115,10 @@ describe("scenario file", () => {
     expect(nodeState(snapshot, "open-ear")).toBe("open");
     expect(nodeState(snapshot, "classify-pulsed")).toBe("sealed");
     expect(nodeState(snapshot, "spot-label")).toBe("locked");
-    expect(nodeState(snapshot, "barrage-label")).toBe("locked");
+    expect(nodeState(snapshot, "barrage-label")).toBe("sealed");
     expect(nodeState(snapshot, "rgpo-label")).toBe("locked");
     expect(nodeState(snapshot, "vgpo-label")).toBe("locked");
+    expect(snapshot.litIds).not.toContain("barrage-label");
   });
 });
 
@@ -186,9 +187,10 @@ describe("graded scenario file", () => {
     expect(snapshot.litIds).toEqual(["open-ear"]);
     expect(nodeState(snapshot, "classify-pulsed")).toBe("open");
     expect(nodeState(snapshot, "spot-label")).toBe("locked");
-    expect(nodeState(snapshot, "barrage-label")).toBe("locked");
+    expect(nodeState(snapshot, "barrage-label")).toBe("sealed");
     expect(nodeState(snapshot, "rgpo-label")).toBe("locked");
     expect(nodeState(snapshot, "vgpo-label")).toBe("locked");
+    expect(snapshot.litIds).not.toContain("barrage-label");
   });
 });
 

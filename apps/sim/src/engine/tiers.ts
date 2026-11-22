@@ -18,7 +18,7 @@ export const TRAINER_TIERS = [
     name: "Response technique",
     status: "planned",
     summary:
-      "Choose a training label — spot, barrage, or RGPO — and read closed-loop feedback. No transmitter.",
+      "Barrage is a glossary definition after T1 mastery and an acknowledgment. Spot, RGPO, and VGPO stay locked. No transmitter.",
   },
   {
     id: "T4",

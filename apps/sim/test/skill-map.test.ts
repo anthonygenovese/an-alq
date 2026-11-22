@@ -26,6 +26,7 @@ import {
   type SkillEvidence,
   type SkillGates,
 } from "../src/engine/skill-map.js";
+import { emptyTierContext, recordGridAttempt } from "../src/engine/tier-evidence.js";
 
 function memoryStore(initial = ""): KeyValueStore & { raw: string } {
   const box = { raw: initial };
@@ -374,6 +375,37 @@ function keyedStore(): KeyValueStore & { values: Map<string, string> } {
     },
   };
 }
+
+describe("fictional grid node", () => {
+  it("lights only after T1 mastery, acknowledgment, and grid attempts", () => {
+    const mastered = masterT1(emptyEvidence());
+    const quiet = emptyTierContext();
+    const before = evaluateMap(mastered, emptyGates(), quiet);
+    expect(before.nodes.find((node) => node.id === "converging-fix")?.state).toBe("open");
+    expect(nodeLocked(before, "tdoa-lines")).toBe(true);
+    expect(nodeLocked(before, "aoa-bearings")).toBe(true);
+    expect(nodeLocked(before, "spot-label")).toBe(true);
+    expect(nodeLocked(before, "rgpo-label")).toBe(true);
+    expect(nodeLocked(before, "vgpo-label")).toBe(true);
+
+    let evidence = recordGridAttempt(quiet.evidence, true, 300);
+    evidence = recordGridAttempt(evidence, true, 300);
+    evidence = recordGridAttempt(evidence, false, 300);
+    const unacked = evaluateMap(mastered, emptyGates(), { evidence, acknowledged: false });
+    expect(unacked.litIds).not.toContain("converging-fix");
+
+    const early = evaluateMap(emptyEvidence(), emptyGates(), { evidence, acknowledged: true });
+    expect(early.nodes.find((node) => node.id === "converging-fix")?.state).toBe("sealed");
+
+    const lit = evaluateMap(mastered, emptyGates(), { evidence, acknowledged: true });
+    expect(lit.nodes.find((node) => node.id === "converging-fix")?.state).toBe("lit");
+    expect(nodeLocked(lit, "spot-label")).toBe(true);
+    expect(nodeLocked(lit, "rgpo-label")).toBe(true);
+    expect(nodeLocked(lit, "vgpo-label")).toBe(true);
+    expect(nodeLocked(lit, "tdoa-lines")).toBe(true);
+    expect(nodeLocked(lit, "aoa-bearings")).toBe(true);
+  });
+});
 
 describe("participation ring slot", () => {
   it("stays empty until a later module supplies an intensity", () => {

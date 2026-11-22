@@ -17,7 +17,10 @@ export function RangeTrainer({ nodeId = null }: { nodeId?: string | null }) {
     onGraded: (event) => skills.record(event),
   });
   const setDifficulty = trainer.setDifficulty;
-  const snapshot = evaluateMap(skills.evidence, skills.gates);
+  const snapshot = evaluateMap(skills.evidence, skills.gates, {
+    evidence: skills.tierEvidence,
+    acknowledged: skills.gridAcknowledged,
+  });
 
   useEffect(() => {
     if (!nodeId) return;

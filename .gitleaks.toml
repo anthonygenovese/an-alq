@@ -11,4 +11,6 @@ regexTarget = "match"
 regexes = [
   '''an-alq\.skill-evidence\.v1''',
   '''an-alq\.skill-acknowledgment\.v1''',
+  '''an-alq\.tier-evidence\.v1''',
+  '''an-alq\.tier-acknowledgment\.v1''',
 ]

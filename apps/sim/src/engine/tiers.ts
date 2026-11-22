@@ -9,9 +9,9 @@ export const TRAINER_TIERS = [
   {
     id: "T2",
     name: "Geolocation fix",
-    status: "planned",
+    status: "partial",
     summary:
-      "A synthetic map where TDOA and AOA lines converge on a fix. Hooks live on each archetype. No real coordinates.",
+      "Pick the shared cell on a fictional grid after T1. No coordinates and no fix. TDOA and AOA nodes stay locked.",
   },
   {
     id: "T3",

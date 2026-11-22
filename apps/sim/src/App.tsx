@@ -16,7 +16,10 @@ export function App() {
     onGraded: (event) => skills.record(event),
   });
   const [surface, setSurface] = useState<Surface>("map");
-  const snapshot = evaluateMap(skills.evidence, skills.gates);
+  const snapshot = evaluateMap(skills.evidence, skills.gates, {
+    evidence: skills.tierEvidence,
+    acknowledged: skills.gridAcknowledged,
+  });
   const togglePaused = trainer.togglePaused;
 
   useEffect(() => {
@@ -75,6 +78,9 @@ export function App() {
             gates={skills.gates}
             onAcknowledgeBarrage={skills.acknowledgeBarrage}
             onChooseBarrageDefinition={skills.chooseBarrageDefinition}
+            gridAcknowledged={skills.gridAcknowledged}
+            onAcknowledgeGrid={skills.acknowledgeGrid}
+            onGridAnswer={skills.recordGrid}
             onEnterRange={(nodeId) => {
               const difficulty = suggestedDifficulty(nodeId);
               if (difficulty) trainer.setDifficulty(difficulty);

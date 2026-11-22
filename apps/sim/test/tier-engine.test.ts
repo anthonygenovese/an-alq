@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { resolveGlossaryEntry } from "@an-alq/emitters";
 import { generateRound } from "../src/engine/generator.js";
+import {
+  generateConceptRound,
+  conceptRoundSchema,
+  scoreConceptPick,
+} from "../src/engine/concept-round.js";
 import { generateGridRound, gridRoundSchema, scoreGridPick } from "../src/engine/grid-round.js";
 import { gradeAnswer } from "../src/engine/scoring.js";
 import { skillNodeById } from "../src/engine/skill-map.js";
@@ -38,41 +44,38 @@ describe("tier registration", () => {
     expect(roundKind("classify-pulsed")).toBe("classify");
   });
 
-  it("registers one T2 grid node and leaves the other tiers locked", () => {
+  it("registers conceptual nodes and leaves the unsafe ones locked", () => {
     expect(tierRegistration("T2")).toEqual({
       tier: "T2",
-      playable: ["converging-fix"],
-      locked: ["tdoa-lines", "aoa-bearings"],
+      playable: ["tdoa-lines", "converging-fix"],
+      locked: ["aoa-bearings"],
     });
     expect(roundKind("converging-fix")).toBe("grid");
+    expect(roundKind("tdoa-lines")).toBe("concept");
     expect(gridRound(4)).toEqual(generateGridRound(4));
     expect(tierRegistration("T3")).toEqual({
       tier: "T3",
-      playable: ["barrage-label"],
-      locked: [
-        "spot-label",
-        "rgpo-label",
-        "vgpo-label",
-        "comms-fhss",
-        "comms-dsss",
-        "comms-select",
-      ],
+      playable: ["barrage-label", "comms-fhss"],
+      locked: ["spot-label", "rgpo-label", "vgpo-label", "comms-dsss", "comms-select"],
     });
+    expect(roundKind("comms-fhss")).toBe("concept");
     expect(tierRegistration("T4").playable).toEqual([]);
-    expect(tierRegistration("T5").playable).toEqual([]);
+    expect(tierRegistration("T5")).toEqual({
+      tier: "T5",
+      playable: ["collateral-rule"],
+      locked: ["time-pressure", "several-traces"],
+    });
+    expect(roundKind("collateral-rule")).toBe("concept");
     for (const id of [
-      "tdoa-lines",
       "aoa-bearings",
       "spot-label",
       "rgpo-label",
       "vgpo-label",
-      "comms-fhss",
       "comms-dsss",
       "comms-select",
       "false-track",
       "gnss-term",
       "denial-choice",
-      "collateral-rule",
       "time-pressure",
       "several-traces",
     ]) {
@@ -109,6 +112,40 @@ describe("fictional grid", () => {
       false,
     );
     expect(gridRoundSchema.safeParse({ ...round, power: 12 }).success).toBe(false);
+  });
+});
+
+describe("concept rounds", () => {
+  it("asks for a definition and never names an archetype", () => {
+    for (const seed of [1, 2, 7, 11]) {
+      for (const nodeId of ["tdoa-lines", "comms-fhss", "collateral-rule"] as const) {
+        const round = generateConceptRound(nodeId, seed);
+        expect(generateConceptRound(nodeId, seed)).toEqual(round);
+        expect(round.ask).toBe("definition");
+        expect(round.operational).toBe(false);
+        const blob = JSON.stringify(round).toLowerCase();
+        expect(blob).not.toMatch(/\b(lat|lon|latitude|longitude|mhz|power|waveform|ribbon)\b/);
+        expect(blob).not.toContain("how to");
+        expect(scoreConceptPick(round, round.answerId, 200).correct).toBe(true);
+        expect(scoreConceptPick(round, "nope", 200).correct).toBe(false);
+        expect(conceptRoundSchema.safeParse({ ...round, power: 1 }).success).toBe(false);
+      }
+    }
+    const tdoa = generateConceptRound("tdoa-lines", 3);
+    expect(tdoa.choices.find((choice) => choice.id === "tdoa")?.text).toBe(
+      resolveGlossaryEntry("tdoa")?.definition,
+    );
+    const fhss = generateConceptRound("comms-fhss", 5);
+    expect(fhss.choices.find((choice) => choice.id === "fhss")?.text).toBe(
+      resolveGlossaryEntry("fhss")?.definition,
+    );
+    const board = generateConceptRound("collateral-rule", 9);
+    expect(board.answerId).toBe("protected");
+    expect(board.choices.map((choice) => choice.id).sort()).toEqual([
+      "clear",
+      "protected",
+      "uncertain",
+    ]);
   });
 });
 

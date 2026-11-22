@@ -12,6 +12,7 @@ export function SkillMapScreen({ onEnterRange }: { onEnterRange: (nodeId: string
   const snapshot = evaluateMap(skills.evidence, skills.gates, {
     evidence: skills.tierEvidence,
     acknowledged: skills.gridAcknowledged,
+    acks: skills.tierAcks,
   });
 
   return (
@@ -37,6 +38,9 @@ export function SkillMapScreen({ onEnterRange }: { onEnterRange: (nodeId: string
           gridAcknowledged={skills.gridAcknowledged}
           onAcknowledgeGrid={skills.acknowledgeGrid}
           onGridAnswer={skills.recordGrid}
+          tierAcks={skills.tierAcks}
+          onAcknowledgeConcept={skills.acknowledgeTier}
+          onConceptAnswer={skills.recordTier}
           onEnterRange={onEnterRange}
         />
       </main>

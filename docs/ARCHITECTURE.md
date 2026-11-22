@@ -49,14 +49,14 @@ Stdio is a second entry, `src/stdio.ts`. stdout is the protocol. Logs stay on st
 
 The map is `an-alq.skill-map.v1` in `apps/sim/src/engine/skill-map.ts`. Items are nodes. A node whose criterion is met, and whose required nodes are already lit, becomes a lit node.
 
-| Domain                | Tier | Status   | What a lit node would mean                                                                                                                                                     |
-| --------------------- | ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| SIGINT classification | T1   | Playable | The player named fictional emitters on the synthetic waterfall.                                                                                                                |
-| Geolocation           | T2   | Partial  | `converging-fix` lights when the player picks the shared cell on a fictional grid after T1 mastery and an acknowledgment. TDOA and AOA stay locked. No coordinates and no fix. |
-| Radar response        | T3   | Partial  | `barrage-label` lights from a glossary definition after T1 mastery and an acknowledgment. Spot, RGPO, and VGPO stay locked. No transmitter.                                    |
-| Comms disruption      | T3   | Locked   | Nothing. Recognition labels only.                                                                                                                                              |
-| Electronic deception  | T4   | Locked   | Nothing. No signal is produced.                                                                                                                                                |
-| Multi-threat ops      | T5   | Locked   | Nothing. The range still shows one unknown.                                                                                                                                    |
+| Domain                | Tier | Status   | What a lit node would mean                                                                                                                  |
+| --------------------- | ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| SIGINT classification | T1   | Playable | The player named fictional emitters on the synthetic waterfall.                                                                             |
+| Geolocation           | T2   | Partial  | `converging-fix` is a fictional grid cell. `tdoa-lines` is a glossary definition. AOA stays locked. No coordinates and no fix.              |
+| Radar response        | T3   | Partial  | `barrage-label` lights from a glossary definition after T1 mastery and an acknowledgment. Spot, RGPO, and VGPO stay locked. No transmitter. |
+| Comms disruption      | T3   | Partial  | `comms-fhss` is a glossary definition. DSSS and selectivity stay locked. Nothing is followed.                                               |
+| Electronic deception  | T4   | Locked   | Nothing. No spoofing content.                                                                                                               |
+| Multi-threat ops      | T5   | Partial  | `collateral-rule` picks the fictional board label for observe only. Time pressure and several traces stay locked.                           |
 
 Evidence is `an-alq.skill-evidence.v1`: attempt counts, correct counts, and summed reaction time, keyed by fictional category and by difficulty (`recruit`, `operator`, `lead`). `loadEvidence` rejects a payload that fails the strict schema and returns an empty record. Extra keys, including anything that looks like an email or a name, are dropped.
 
@@ -68,13 +68,13 @@ A participation ring is reserved (`participation-glow-ring`, `computedBy: "later
 
 Defined in `apps/sim/src/engine/tiers.ts`.
 
-| Id  | Name                | Status                                                                                 |
-| --- | ------------------- | -------------------------------------------------------------------------------------- |
-| T1  | Spectral classify   | Playable. Two-second window. Seeded PRNG. Illustrative frequency, PRI, and SNR.        |
-| T2  | Geolocation fix     | One fictional grid cell after T1. No coordinates and no fix. TDOA and AOA stay locked. |
-| T3  | Response technique  | Barrage is a glossary definition. Spot, RGPO, and VGPO stay locked. No transmitter.    |
-| T4  | Deception decisions | Planned. No spoofing.                                                                  |
-| T5  | Multi-threat        | Planned.                                                                               |
+| Id  | Name                | Status                                                                                          |
+| --- | ------------------- | ----------------------------------------------------------------------------------------------- |
+| T1  | Spectral classify   | Playable. Two-second window. Seeded PRNG. Illustrative frequency, PRI, and SNR.                 |
+| T2  | Geolocation fix     | Fictional grid cell and a TDOA definition. AOA stays locked. No coordinates and no fix.         |
+| T3  | Response technique  | Barrage and FHSS are glossary definitions. Spot, RGPO, VGPO, DSSS, and selectivity stay locked. |
+| T4  | Deception decisions | Locked. No spoofing content.                                                                    |
+| T5  | Multi-threat        | Collateral is a fictional board label. The other T5 nodes stay locked.                          |
 
 `pnpm dev` serves the shell at `127.0.0.1:3000`. `pnpm --filter @an-alq/sim dev` still serves the Vite trainer at `127.0.0.1:5173`. CI typechecks each package and runs `pnpm -r build`. The trainer bundle is not the MCP function.
 
@@ -90,7 +90,8 @@ Defined in `apps/sim/src/engine/tiers.ts`.
 
 - CI attachment of the hostname. `mcp.an-alq.com` is live on the `an-alq-mcp` project.
 - OAuth. It shows up only if a ZIP is stored.
-- A T2 node other than the fictional grid cell. TDOA and AOA stay locked. A real fix stays absent.
-- Playable T4 and T5.
-- A T3 node other than the barrage glossary definition. Spot, RGPO, VGPO, and the comms nodes stay locked.
+- AOA, and any T2 node that would compute a real fix.
+- DSSS, selectivity, spot, RGPO, and VGPO.
+- All of T4. Those nodes are spoofing and attack choices.
+- Time pressure and several traces.
 - Any code path that transmits, records live spectrum, or computes a real fix.

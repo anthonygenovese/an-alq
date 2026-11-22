@@ -19,6 +19,7 @@ export function App() {
   const snapshot = evaluateMap(skills.evidence, skills.gates, {
     evidence: skills.tierEvidence,
     acknowledged: skills.gridAcknowledged,
+    acks: skills.tierAcks,
   });
   const togglePaused = trainer.togglePaused;
 
@@ -81,6 +82,9 @@ export function App() {
             gridAcknowledged={skills.gridAcknowledged}
             onAcknowledgeGrid={skills.acknowledgeGrid}
             onGridAnswer={skills.recordGrid}
+            tierAcks={skills.tierAcks}
+            onAcknowledgeConcept={skills.acknowledgeTier}
+            onConceptAnswer={skills.recordTier}
             onEnterRange={(nodeId) => {
               const difficulty = suggestedDifficulty(nodeId);
               if (difficulty) trainer.setDifficulty(difficulty);

@@ -12,7 +12,9 @@ import {
   type SkillGates,
   type SkillSnapshot,
 } from "../engine/skill-map.js";
+import { ConceptDrill } from "./ConceptDrill.js";
 import { GridDrill } from "./GridDrill.js";
+import type { TierAcks, TierNodeId } from "../engine/tier-evidence.js";
 
 const EMPTY_GLOW: ParticipationGlow = { intensity: null };
 
@@ -25,6 +27,9 @@ interface SkillMapProps {
   gridAcknowledged: boolean;
   onAcknowledgeGrid: (acknowledged: boolean) => void;
   onGridAnswer: (correct: boolean, elapsedMs: number) => boolean;
+  tierAcks: TierAcks;
+  onAcknowledgeConcept: (nodeId: TierNodeId, acknowledged: boolean) => void;
+  onConceptAnswer: (nodeId: TierNodeId, correct: boolean, elapsedMs: number) => boolean;
   participation?: ParticipationGlow;
 }
 
@@ -37,6 +42,9 @@ export function SkillMap({
   gridAcknowledged,
   onAcknowledgeGrid,
   onGridAnswer,
+  tierAcks,
+  onAcknowledgeConcept,
+  onConceptAnswer,
   participation = EMPTY_GLOW,
 }: SkillMapProps) {
   const [selectedId, setSelectedId] = useState("open-ear");
@@ -196,6 +204,14 @@ export function SkillMap({
             acknowledged={gridAcknowledged}
             onAcknowledge={onAcknowledgeGrid}
             onAnswer={onGridAnswer}
+          />
+        ) : selected.criterion.source === "concept" ? (
+          <ConceptDrill
+            nodeId={selected.id}
+            state={status.state}
+            acks={tierAcks}
+            onAcknowledge={onAcknowledgeConcept}
+            onAnswer={onConceptAnswer}
           />
         ) : (
           <button

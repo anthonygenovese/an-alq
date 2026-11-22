@@ -20,6 +20,7 @@ export function RangeTrainer({ nodeId = null }: { nodeId?: string | null }) {
   const snapshot = evaluateMap(skills.evidence, skills.gates, {
     evidence: skills.tierEvidence,
     acknowledged: skills.gridAcknowledged,
+    acks: skills.tierAcks,
   });
 
   useEffect(() => {

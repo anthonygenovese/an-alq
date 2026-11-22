@@ -20,17 +20,17 @@ Read-only [Model Context Protocol](https://modelcontextprotocol.io) server and a
 
 ## Surfaces
 
-| Surface            | Path                                         | State                                                                                                                                                  |
-| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Web shell          | `apps/web`                                   | Next.js. `/`, `/range`, `/map`, `/relay`. Progress stays on device.                                                                                    |
-| MCP server         | `apps/mcp`                                   | Shipped. Stateless HTTP and stdio.                                                                                                                     |
-| Content store      | `apps/mcp/content`                           | Sample JSON. Schema rejects unknown keys.                                                                                                              |
-| Emitter library    | `packages/emitters`                          | Shared fictional catalog and glossary.                                                                                                                 |
-| T1 range trainer   | `apps/sim`                                   | Shipped. Waterfall and skill map.                                                                                                                      |
-| Skill map          | `apps/sim/src/engine/skill-map.ts`           | Shipped. T1 nodes can light. Barrage can light from a glossary definition. One T2 node can light from a fictional grid. Other T2–T5 nodes stay locked. |
-| Trainer engine     | `apps/sim/src/engine`                        | Shared by the UI. Not a network service.                                                                                                               |
-| Nixle signal relay | `apps/relay`                                 | In progress. Reads public alerts. Does not post. See the threat model.                                                                                 |
-| `mcp.an-alq.com`   | Vercel project `an-alq-mcp`, root `apps/mcp` | Live. Not deployed by CI. Same stateless endpoint.                                                                                                     |
+| Surface            | Path                                         | State                                                                                                                                                                                 |
+| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web shell          | `apps/web`                                   | Next.js. `/`, `/range`, `/map`, `/relay`. Progress stays on device.                                                                                                                   |
+| MCP server         | `apps/mcp`                                   | Shipped. Stateless HTTP and stdio.                                                                                                                                                    |
+| Content store      | `apps/mcp/content`                           | Sample JSON. Schema rejects unknown keys.                                                                                                                                             |
+| Emitter library    | `packages/emitters`                          | Shared fictional catalog and glossary.                                                                                                                                                |
+| T1 range trainer   | `apps/sim`                                   | Shipped. Waterfall and skill map.                                                                                                                                                     |
+| Skill map          | `apps/sim/src/engine/skill-map.ts`           | Shipped. T1 nodes can light. Barrage, FHSS, and TDOA can light from definitions. One T2 node is a fictional grid. One T5 node is a board label. Spot, RGPO, VGPO, and T4 stay locked. |
+| Trainer engine     | `apps/sim/src/engine`                        | Shared by the UI. Not a network service.                                                                                                                                              |
+| Nixle signal relay | `apps/relay`                                 | In progress. Reads public alerts. Does not post. See the threat model.                                                                                                                |
+| `mcp.an-alq.com`   | Vercel project `an-alq-mcp`, root `apps/mcp` | Live. Not deployed by CI. Same stateless endpoint.                                                                                                                                    |
 
 A verified receipt counts the five newest Nixle emails, not the five newest messages in the inbox. The browser lists `INBOX` with `q=from:(nixle.com OR nixle.us)` and `maxResults=5`, so other mail is not fetched and does not use a slot. The copy when the alert is older than that is "no longer in your latest 5 Nixle alerts". The server still requires the DKIM-signed `Date` to fall inside the freshness window (default 60 minutes). `gmail.readonly` can read the whole mailbox; the cap is this client's list call, not Google's scope.
 
@@ -112,15 +112,15 @@ Opens the web shell at `http://127.0.0.1:3000`. `/range` is the waterfall. `/map
 | Skill map | Six sectors. Items are nodes. A node the player has mastered is a lit node.           |
 | T1 range  | A time-compressed synthetic waterfall. Name the fictional emitter inside two seconds. |
 
-| Tier | Name                | State                                                                                                |
-| ---- | ------------------- | ---------------------------------------------------------------------------------------------------- |
-| T1   | Spectral classify   | Playable. Naming fictional emitters on the synthetic waterfall.                                      |
-| T2   | Geolocation fix     | One fictional grid cell after T1. No coordinates and no fix. TDOA and AOA stay locked.               |
-| T3   | Response technique  | Barrage is a glossary definition after T1 mastery. Spot, RGPO, and VGPO stay locked. No transmitter. |
-| T4   | Deception decisions | Locked. No signal is produced.                                                                       |
-| T5   | Multi-threat        | Locked.                                                                                              |
+| Tier | Name                | State                                                                                           |
+| ---- | ------------------- | ----------------------------------------------------------------------------------------------- |
+| T1   | Spectral classify   | Playable. Naming fictional emitters on the synthetic waterfall.                                 |
+| T2   | Geolocation fix     | Fictional grid cell and a TDOA definition. AOA stays locked. No coordinates and no fix.         |
+| T3   | Response technique  | Barrage and FHSS are glossary definitions. Spot, RGPO, VGPO, DSSS, and selectivity stay locked. |
+| T4   | Deception decisions | Locked. No spoofing content.                                                                    |
+| T5   | Multi-threat        | Collateral is a fictional board label. Time pressure and several traces stay locked.            |
 
-The participation ring around the profile mark is a reserved slot. This build does not compute it. In T2, only the fictional grid node can become a lit node. TDOA and AOA stay locked. T4 and T5 stay locked. In T3, only the barrage node can become a lit node, and only from a glossary definition.
+The participation ring around the profile mark is a reserved slot. This build does not compute it. In T2, the fictional grid node and the TDOA definition can become lit nodes. AOA stays locked. In T3, barrage and FHSS can become lit nodes from glossary definitions. Spot, RGPO, VGPO, DSSS, and selectivity stay locked. T4 stays locked. In T5, only the collateral board label can become a lit node.
 
 `pnpm --filter @an-alq/sim build` writes the library into `apps/sim/dist` and the standalone trainer into `apps/sim/dist/trainer`. Neither directory is what the MCP project deploys.
 
@@ -229,16 +229,16 @@ Signed tags are an owner control. The private key does not live in CI. See [docs
 
 ## Roadmap
 
-| Item                                       | State                                                                                          |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| MCP server v0.1 and T1 trainer             | On `main`.                                                                                     |
-| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR.                   |
-| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                                          |
-| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                         |
-| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                     |
-| T2–T5 playable tiers                       | Foundation is in. One T2 grid node can light. Spot, RGPO, VGPO, comms, T4, and T5 stay locked. |
-| Nixle-to-X relay                           | Separate work. Public alerts only. No subscriber data.                                         |
-| Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.              |
+| Item                                       | State                                                                                                                                                             |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP server v0.1 and T1 trainer             | On `main`.                                                                                                                                                        |
+| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR.                                                                                      |
+| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                                                                                                             |
+| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                                                                                            |
+| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                                                                                        |
+| T2–T5 playable tiers                       | Grid, TDOA definition, FHSS definition, and a collateral board label can light. Spot, RGPO, VGPO, AOA, DSSS, selectivity, T4, and the other T5 nodes stay locked. |
+| Nixle-to-X relay                           | Separate work. Public alerts only. No subscriber data.                                                                                                            |
+| Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.                                                                                 |
 
 ## Development
 

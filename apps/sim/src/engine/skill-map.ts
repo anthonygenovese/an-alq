@@ -6,6 +6,7 @@ import {
   type EmitterCategory,
 } from "@an-alq/emitters";
 import { z } from "zod/v3";
+import { CONCEPT_NODE_IDS } from "./concept-round.js";
 import { emptyTierContext, type TierContext } from "./tier-evidence.js";
 import { DIFFICULTIES, type Difficulty } from "./types.js";
 
@@ -76,6 +77,14 @@ const criterionSchema = z.discriminatedUnion("source", [
     .object({
       source: z.literal("grid"),
       nodeId: z.literal("converging-fix"),
+      ...thresholdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      source: z.literal("concept"),
+      nodeId: z.enum(CONCEPT_NODE_IDS),
+      ask: z.literal("definition"),
       ...thresholdSchema,
     })
     .strict(),
@@ -178,10 +187,23 @@ export const skillMapSchema = z
         });
       }
       if (
+        node.criterion.source === "concept" &&
+        !(CONCEPT_NODE_IDS as readonly string[]).includes(node.id)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "concept criterion is only a definition or a board label",
+        });
+      }
+      const conceptOk =
+        node.criterion.source === "concept" &&
+        (CONCEPT_NODE_IDS as readonly string[]).includes(node.id);
+      if (
         domain.status === "locked" &&
         node.criterion.source !== "unavailable" &&
         !(node.id === "barrage-label" && node.criterion.source === "glossary") &&
-        !(node.id === "converging-fix" && node.criterion.source === "grid")
+        !(node.id === "converging-fix" && node.criterion.source === "grid") &&
+        !conceptOk
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -265,7 +287,7 @@ const rawMap = {
       tier: "T2" as const,
       status: "locked" as const,
       summary:
-        "One fictional grid cell. TDOA and AOA nodes stay locked. No coordinates and no fix.",
+        "A fictional grid and a TDOA definition. AOA stays locked. No coordinates and no fix.",
       startDeg: 32,
       endDeg: 88,
     },
@@ -285,7 +307,7 @@ const rawMap = {
       tier: "T3" as const,
       status: "locked" as const,
       summary:
-        "Preview. FHSS and DSSS recognition for a later drill. Nothing is followed or interrupted.",
+        "FHSS is a glossary definition. DSSS and selectivity stay locked. Nothing is followed.",
       startDeg: 152,
       endDeg: 208,
     },
@@ -305,7 +327,7 @@ const rawMap = {
       tier: "T5" as const,
       status: "locked" as const,
       summary:
-        "Preview. Time pressure and collateral-spectrum rules across several fictional traces.",
+        "Collateral is a fictional board label for observe only. The other nodes stay locked.",
       startDeg: 272,
       endDeg: 328,
     },
@@ -426,13 +448,13 @@ const rawMap = {
       "geolocation",
       "TDOA lines",
       "TDOA",
-      "Preview. A later map draws time-difference lines. This node does not.",
+      "Choose the glossary definition of TDOA. It does not compute a fix.",
       "T2",
       "dot",
       1,
       48,
-      [],
-      unavailable,
+      ["low-snr", "classify-chirp", "classify-continuous"],
+      { source: "concept", nodeId: "tdoa-lines", ask: "definition", ...gate(3, 0.6, null) },
       ["tdoa"],
     ),
     node(
@@ -524,13 +546,13 @@ const rawMap = {
       "comms-disruption",
       "FHSS",
       "FHSS",
-      "Preview. Recognize the hop cartoon. Nothing is followed.",
+      "Choose the glossary definition of FHSS. Nothing is followed.",
       "T3",
       "dot",
       1,
       168,
-      [],
-      unavailable,
+      ["low-snr", "classify-chirp", "classify-continuous"],
+      { source: "concept", nodeId: "comms-fhss", ask: "definition", ...gate(3, 0.6, null) },
       ["fhss"],
     ),
     node(
@@ -608,13 +630,13 @@ const rawMap = {
       "multi-threat",
       "Collateral",
       "COLLAT.",
-      "Preview. Protected categories stay observe-only in later scenarios.",
+      "Pick the fictional board label that means observe only. Not an instruction.",
       "T5",
       "dot",
       1,
       288,
-      [],
-      unavailable,
+      ["low-snr", "classify-chirp", "classify-continuous"],
+      { source: "concept", nodeId: "collateral-rule", ask: "definition", ...gate(3, 0.6, null) },
       ["esm"],
     ),
     node(
@@ -864,6 +886,11 @@ export function scoreCriterion(
     if (!tier.acknowledged) return { ...score, met: false };
     return score;
   }
+  if (criterion.source === "concept") {
+    const score = scoreRecord(tier.evidence.byNode[criterion.nodeId], criterion);
+    if (tier.acks?.[criterion.nodeId] !== true) return { ...score, met: false };
+    return score;
+  }
   return scoreRecord(pooledRecord(evidence, criterion), criterion);
 }
 
@@ -1003,7 +1030,12 @@ function statusFor(
   const score = scoreCriterion(evidence, node.criterion, gates, tier);
   const domain = skillMap.domains.find((item) => item.id === node.domainId);
   let state: NodeState = "locked";
-  if (domain?.status === "playable" || isBarrageGlossary(node) || isConvergingGrid(node)) {
+  if (
+    domain?.status === "playable" ||
+    isBarrageGlossary(node) ||
+    isConvergingGrid(node) ||
+    isConceptNode(node)
+  ) {
     const ready = node.requires.every((id) => lit.has(id));
     if (!ready) state = "sealed";
     else if (lit.has(node.id)) state = "lit";
@@ -1027,7 +1059,12 @@ function canLight(
   tier: TierContext,
 ): boolean {
   const domain = skillMap.domains.find((item) => item.id === node.domainId);
-  if (domain?.status !== "playable" && !isBarrageGlossary(node) && !isConvergingGrid(node)) {
+  if (
+    domain?.status !== "playable" &&
+    !isBarrageGlossary(node) &&
+    !isConvergingGrid(node) &&
+    !isConceptNode(node)
+  ) {
     return false;
   }
   if (!node.requires.every((id) => lit.has(id))) return false;
@@ -1042,11 +1079,17 @@ function isConvergingGrid(node: SkillNode): boolean {
   return node.id === "converging-fix" && node.criterion.source === "grid";
 }
 
+function isConceptNode(node: SkillNode): boolean {
+  return (
+    node.criterion.source === "concept" && (CONCEPT_NODE_IDS as readonly string[]).includes(node.id)
+  );
+}
+
 function pooledRecord(
   evidence: SkillEvidence,
   criterion: Exclude<
     SkillCriterion,
-    { source: "unavailable" } | { source: "glossary" } | { source: "grid" }
+    { source: "unavailable" } | { source: "glossary" } | { source: "grid" } | { source: "concept" }
   >,
 ): AttemptRecord {
   const records =

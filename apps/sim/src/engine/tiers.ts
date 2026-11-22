@@ -11,26 +11,27 @@ export const TRAINER_TIERS = [
     name: "Geolocation fix",
     status: "partial",
     summary:
-      "Pick the shared cell on a fictional grid after T1. No coordinates and no fix. TDOA and AOA nodes stay locked.",
+      "A fictional grid and a TDOA definition after T1. AOA stays locked. No coordinates and no fix.",
   },
   {
     id: "T3",
     name: "Response technique",
-    status: "planned",
+    status: "partial",
     summary:
-      "Barrage is a glossary definition after T1 mastery and an acknowledgment. Spot, RGPO, and VGPO stay locked. No transmitter.",
+      "Barrage and FHSS are glossary definitions after T1. Spot, RGPO, VGPO, and the other comms nodes stay locked. No transmitter.",
   },
   {
     id: "T4",
     name: "Deception decisions",
     status: "planned",
-    summary: "False tracks and denial-versus-deception choices on synthetic pictures. No spoofing.",
+    summary: "Locked. No spoofing content.",
   },
   {
     id: "T5",
     name: "Multi-threat",
-    status: "planned",
-    summary: "Several archetypes at once, with time pressure and collateral-spectrum rules.",
+    status: "partial",
+    summary:
+      "Collateral is a fictional board label for observe only. Time pressure and several traces stay locked.",
   },
 ] as const;
 

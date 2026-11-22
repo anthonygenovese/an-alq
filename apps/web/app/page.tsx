@@ -30,7 +30,11 @@ export default function HomePage() {
           </li>
           <li>
             <strong>Map</strong>
-            <span>Six sectors. T1 nodes can light. T2 through T5 stay locked.</span>
+            <span>
+              Six sectors. T1 nodes can light. After T1, the T3 barrage node can become a lit node
+              from a glossary definition. Spot, RGPO, VGPO, and the rest of T2 through T5 stay
+              locked.
+            </span>
           </li>
           <li>
             <strong>Relay</strong>

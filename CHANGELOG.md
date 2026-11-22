@@ -2,6 +2,14 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.4.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.3.0...an-alq-v0.4.0) (2026-11-22)
+
+
+### Features
+
+* light the barrage node from a glossary definition ([#19](https://github.com/anthonygenovese/an-alq/issues/19)) ([391e1a3](https://github.com/anthonygenovese/an-alq/commit/391e1a3c3d70036ec23761a009bfbc99ab9add5b))
+* **web:** add tiers page with lit nodes and next-node hint ([#22](https://github.com/anthonygenovese/an-alq/issues/22)) ([9caa98f](https://github.com/anthonygenovese/an-alq/commit/9caa98f7db4fb16ca29af9150c5efaeea7b6c565))
+
 ## [0.3.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.2.0...an-alq-v0.3.0) (2026-11-22)
 
 

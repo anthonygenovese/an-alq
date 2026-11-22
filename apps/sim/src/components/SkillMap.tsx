@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { resolveGlossaryEntry } from "@an-alq/emitters";
 import {
+  barrageDefinitionQuestion,
   nodePosition,
   participationRingOpacity,
   sectorCenter,
@@ -8,6 +9,7 @@ import {
   skillNodeById,
   type NodeState,
   type ParticipationGlow,
+  type SkillGates,
   type SkillSnapshot,
 } from "../engine/skill-map.js";
 
@@ -15,11 +17,21 @@ const EMPTY_GLOW: ParticipationGlow = { intensity: null };
 
 interface SkillMapProps {
   snapshot: SkillSnapshot;
+  gates: SkillGates;
   onEnterRange: (nodeId: string) => void;
+  onAcknowledgeBarrage: (acknowledged: boolean) => void;
+  onChooseBarrageDefinition: (choiceId: string) => boolean;
   participation?: ParticipationGlow;
 }
 
-export function SkillMap({ snapshot, onEnterRange, participation = EMPTY_GLOW }: SkillMapProps) {
+export function SkillMap({
+  snapshot,
+  gates,
+  onEnterRange,
+  onAcknowledgeBarrage,
+  onChooseBarrageDefinition,
+  participation = EMPTY_GLOW,
+}: SkillMapProps) {
   const [selectedId, setSelectedId] = useState("open-ear");
   const selected = skillNodeById.get(selectedId) ?? skillMap.nodes[0];
   const domain = skillMap.domains.find((item) => item.id === selected?.domainId);
@@ -153,23 +165,34 @@ export function SkillMap({ snapshot, onEnterRange, participation = EMPTY_GLOW }:
             Requires {selected.requires.map((id) => skillNodeById.get(id)?.label ?? id).join(" · ")}
           </p>
         ) : null}
-        {selected.glossaryTerms.map((term) => {
-          const entry = resolveGlossaryEntry(term);
-          if (!entry) return null;
-          return (
-            <p key={term} className="gloss">
-              <strong>{entry.term}.</strong> {entry.definition}
-            </p>
-          );
-        })}
-        <button
-          type="button"
-          className="enter"
-          disabled={status.state === "locked"}
-          onClick={() => onEnterRange(selected.id)}
-        >
-          {status.state === "locked" ? "Locked preview" : "Enter T1 range"}
-        </button>
+        {selected.criterion.source === "glossary" && status.state !== "lit"
+          ? null
+          : selected.glossaryTerms.map((term) => {
+              const entry = resolveGlossaryEntry(term);
+              if (!entry) return null;
+              return (
+                <p key={term} className="gloss">
+                  <strong>{entry.term}.</strong> {entry.definition}
+                </p>
+              );
+            })}
+        {selected.criterion.source === "glossary" ? (
+          <BarrageDefinition
+            state={status.state}
+            gates={gates}
+            onAcknowledge={onAcknowledgeBarrage}
+            onChoose={onChooseBarrageDefinition}
+          />
+        ) : (
+          <button
+            type="button"
+            className="enter"
+            disabled={status.state === "locked"}
+            onClick={() => onEnterRange(selected.id)}
+          >
+            {status.state === "locked" ? "Locked preview" : "Enter T1 range"}
+          </button>
+        )}
         <p className="hint">
           A lit node is a skill you have mastered. The ring around the profile mark is reserved.
         </p>
@@ -246,11 +269,78 @@ function stateLabel(state: NodeState): string {
   return "Locked";
 }
 
+function BarrageDefinition({
+  state,
+  gates,
+  onAcknowledge,
+  onChoose,
+}: {
+  state: NodeState;
+  gates: SkillGates;
+  onAcknowledge: (acknowledged: boolean) => void;
+  onChoose: (choiceId: string) => boolean;
+}) {
+  const [miss, setMiss] = useState(false);
+  if (state === "sealed") {
+    return <p className="mono">This node opens after the required T1 nodes are lit.</p>;
+  }
+  if (state !== "open") return null;
+  const question = barrageDefinitionQuestion();
+  return (
+    <form
+      className="definition-list"
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <label className="ack" htmlFor="barrage-ack">
+        <input
+          id="barrage-ack"
+          type="checkbox"
+          checked={gates.barrageLabel}
+          onChange={(event) => {
+            setMiss(false);
+            onAcknowledge(event.target.checked);
+          }}
+        />
+        <span>
+          I acknowledge this node is an illustrative glossary definition. It is non-operational. It
+          does not transmit.
+        </span>
+      </label>
+      <fieldset disabled={!gates.barrageLabel}>
+        <legend>{question.prompt}</legend>
+        {question.choices.map((choice) => (
+          <button
+            key={choice.id}
+            type="button"
+            className="definition-choice"
+            onClick={() => {
+              const accepted = onChoose(choice.id);
+              setMiss(!accepted);
+            }}
+          >
+            {choice.definition}
+          </button>
+        ))}
+      </fieldset>
+      {miss ? (
+        <p className="miss">That paragraph is a different glossary entry. Nothing was recorded.</p>
+      ) : null}
+    </form>
+  );
+}
+
 function progressCopy(
   status: SkillSnapshot["nodes"][number],
   criterion: NonNullable<ReturnType<typeof skillNodeById.get>>["criterion"],
 ): string {
   if (criterion.source === "unavailable") return "No drill writes this constellation yet.";
+  if (criterion.source === "glossary") {
+    if (status.state === "lit") return "Definition matched. Illustrative. Not a procedure.";
+    if (status.state === "sealed") return "Opens after the required T1 nodes are lit.";
+    return "Acknowledge, then choose the glossary definition.";
+  }
   if (status.state === "lit") return "Mastered from range performance.";
   const speed =
     criterion.maxMeanCorrectMs === null

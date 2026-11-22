@@ -12,12 +12,17 @@ import { DIFFICULTIES, type Difficulty } from "./types.js";
  * EW skill map. Nodes record what a player has demonstrated in the trainer.
  * A later module may wrap the profile mark with a participation ring.
  * That ring is how you participate. This map is what you learned.
+ * barrage-label is a glossary definition after T1 mastery.
  * Nothing here transmits, jams, spoofs, or geolocates.
  */
 
 export const SKILL_MAP_SCHEMA = "an-alq.skill-map.v1" as const;
 export const SKILL_EVIDENCE_SCHEMA = "an-alq.skill-evidence.v1" as const;
 export const SKILL_EVIDENCE_KEY = "an-alq.skill-evidence.v1";
+export const SKILL_ACK_SCHEMA = "an-alq.skill-acknowledgment.v1" as const;
+export const SKILL_ACK_STORAGE_NAME = "an-alq.skill-acknowledgment.v1";
+
+const BARRAGE_DEFINITION_IDS = ["spot_jamming", "barrage_jamming", "rgpo", "vgpo"] as const;
 
 const attemptRecordSchema = z
   .object({
@@ -57,6 +62,13 @@ const criterionSchema = z.discriminatedUnion("source", [
   z
     .object({
       source: z.literal("unavailable"),
+    })
+    .strict(),
+  z
+    .object({
+      source: z.literal("glossary"),
+      term: z.literal("barrage_jamming"),
+      ask: z.literal("definition"),
     })
     .strict(),
 ]);
@@ -145,7 +157,17 @@ export const skillMapSchema = z
           message: `${node.id} sits outside its sector`,
         });
       }
-      if (domain.status === "locked" && node.criterion.source !== "unavailable") {
+      if (node.criterion.source === "glossary" && node.id !== "barrage-label") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "glossary criterion is only the barrage definition",
+        });
+      }
+      if (
+        domain.status === "locked" &&
+        node.criterion.source !== "unavailable" &&
+        !(node.id === "barrage-label" && node.criterion.source === "glossary")
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `${node.id} is in a locked domain and needs an unavailable criterion`,
@@ -237,7 +259,8 @@ const rawMap = {
       name: "Radar response",
       tier: "T3" as const,
       status: "locked" as const,
-      summary: "Preview of training labels: spot, barrage, RGPO, VGPO. No transmitter.",
+      summary:
+        "Barrage is a glossary definition. Spot, RGPO, and VGPO stay locked. No transmitter.",
       startDeg: 92,
       endDeg: 148,
     },
@@ -444,13 +467,13 @@ const rawMap = {
       "radar-response",
       "Barrage",
       "BARRAGE",
-      "Preview training label. No jammer and no waveform.",
+      "Match the glossary definition of the barrage training label. Illustrative. No jammer and no waveform.",
       "T3",
       "dot",
       1,
       136,
-      [],
-      unavailable,
+      ["low-snr", "classify-chirp", "classify-continuous"],
+      { source: "glossary", term: "barrage_jamming", ask: "definition" },
       ["barrage_jamming"],
     ),
     node(
@@ -708,6 +731,68 @@ export interface KeyValueStore {
   setItem(key: string, value: string): void;
 }
 
+/** Browser-only gates for barrage-label. Booleans. No technique fields. Never sent. */
+export interface SkillGates {
+  schema: typeof SKILL_ACK_SCHEMA;
+  barrageLabel: boolean;
+  barrageDefinition: boolean;
+}
+
+export interface BarrageDefinitionChoice {
+  id: (typeof BARRAGE_DEFINITION_IDS)[number];
+  definition: string;
+}
+
+export interface BarrageDefinitionQuestion {
+  prompt: string;
+  choices: readonly BarrageDefinitionChoice[];
+  answerId: "barrage_jamming";
+}
+
+const gatesSchema = z
+  .object({
+    schema: z.literal(SKILL_ACK_SCHEMA),
+    barrageLabel: z.boolean(),
+    barrageDefinition: z.boolean(),
+  })
+  .strict();
+
+export function emptyGates(): SkillGates {
+  return { schema: SKILL_ACK_SCHEMA, barrageLabel: false, barrageDefinition: false };
+}
+
+/**
+ * Definition recognition for barrage-label.
+ * Choices are glossary paragraphs. No archetype is named, so Ribbon-4 is not a prompt.
+ */
+export function barrageDefinitionQuestion(): BarrageDefinitionQuestion {
+  const choices = BARRAGE_DEFINITION_IDS.map((id) => {
+    const entry = resolveGlossaryEntry(id);
+    if (!entry) throw new Error(`missing glossary entry ${id}`);
+    return { id, definition: entry.definition };
+  });
+  return {
+    prompt:
+      "Which paragraph is the definition of the barrage training label? Illustrative. Not a procedure.",
+    choices,
+    answerId: "barrage_jamming",
+  };
+}
+
+export function withBarrageAcknowledgment(gates: SkillGates, acknowledged: boolean): SkillGates {
+  if (!acknowledged) return { ...gates, barrageLabel: false, barrageDefinition: false };
+  if (gates.barrageLabel) return gates;
+  return { ...gates, barrageLabel: true };
+}
+
+/** A definition choice counts only after the acknowledgment flag is set. */
+export function withBarrageDefinition(gates: SkillGates, choiceId: string): SkillGates {
+  if (!gates.barrageLabel) return gates;
+  if (choiceId !== barrageDefinitionQuestion().answerId) return gates;
+  if (gates.barrageDefinition) return gates;
+  return { ...gates, barrageDefinition: true };
+}
+
 const evidenceSchema = z
   .object({
     schema: z.literal(SKILL_EVIDENCE_SCHEMA),
@@ -734,19 +819,28 @@ export function recordAttempt(evidence: SkillEvidence, event: AttemptEvent): Ski
 export function applyAttempt(
   evidence: SkillEvidence,
   event: AttemptEvent,
+  gates: SkillGates = emptyGates(),
 ): { evidence: SkillEvidence; newlyLit: string[] } {
-  const before = new Set(evaluateMap(evidence).litIds);
+  const before = new Set(evaluateMap(evidence, gates).litIds);
   const next = recordAttempt(evidence, event);
-  const after = evaluateMap(next).litIds;
+  const after = evaluateMap(next, gates).litIds;
   return {
     evidence: next,
     newlyLit: after.filter((id) => !before.has(id)),
   };
 }
 
-export function scoreCriterion(evidence: SkillEvidence, criterion: SkillCriterion): CriterionScore {
+export function scoreCriterion(
+  evidence: SkillEvidence,
+  criterion: SkillCriterion,
+  gates: SkillGates = emptyGates(),
+): CriterionScore {
   if (criterion.source === "unavailable") {
     return { met: false, fraction: 0, attempts: 0, accuracy: 0, meanCorrectMs: null };
+  }
+  if (criterion.source === "glossary") {
+    const met = gates.barrageLabel === true && gates.barrageDefinition === true;
+    return { met, fraction: met ? 1 : 0, attempts: 0, accuracy: 0, meanCorrectMs: null };
   }
   const record = pooledRecord(evidence, criterion);
   const accuracy = record.attempts === 0 ? 0 : record.correct / record.attempts;
@@ -773,19 +867,22 @@ export function scoreCriterion(evidence: SkillEvidence, criterion: SkillCriterio
   };
 }
 
-export function evaluateMap(evidence: SkillEvidence): SkillSnapshot {
+export function evaluateMap(
+  evidence: SkillEvidence,
+  gates: SkillGates = emptyGates(),
+): SkillSnapshot {
   const lit = new Set<string>();
   for (let pass = 0; pass < skillMap.nodes.length + 1; pass += 1) {
     let added = false;
     for (const node of skillMap.nodes) {
-      if (!canLight(node, lit, evidence)) continue;
+      if (!canLight(node, lit, evidence, gates)) continue;
       if (lit.has(node.id)) continue;
       lit.add(node.id);
       added = true;
     }
     if (!added) break;
   }
-  const nodes = skillMap.nodes.map((node) => statusFor(node, lit, evidence));
+  const nodes = skillMap.nodes.map((node) => statusFor(node, lit, evidence, gates));
   const litIds = nodes.filter((node) => node.state === "lit").map((node) => node.id);
   return { nodes, litIds, litCount: litIds.length };
 }
@@ -836,6 +933,23 @@ export function saveEvidence(store: KeyValueStore, evidence: SkillEvidence): voi
   store.setItem(SKILL_EVIDENCE_KEY, JSON.stringify(evidence));
 }
 
+export function loadGates(store: KeyValueStore | null): SkillGates {
+  if (!store) return emptyGates();
+  const raw = store.getItem(SKILL_ACK_STORAGE_NAME);
+  if (!raw) return emptyGates();
+  try {
+    const parsed = gatesSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) return emptyGates();
+    return parsed.data;
+  } catch {
+    return emptyGates();
+  }
+}
+
+export function saveGates(store: KeyValueStore, gates: SkillGates): void {
+  store.setItem(SKILL_ACK_STORAGE_NAME, JSON.stringify(gates));
+}
+
 export function browserStore(): KeyValueStore | null {
   try {
     if (typeof globalThis.localStorage === "undefined") return null;
@@ -850,11 +964,16 @@ export function suggestedDifficulty(nodeId: string): Difficulty | null {
   return null;
 }
 
-function statusFor(node: SkillNode, lit: ReadonlySet<string>, evidence: SkillEvidence): NodeStatus {
-  const score = scoreCriterion(evidence, node.criterion);
+function statusFor(
+  node: SkillNode,
+  lit: ReadonlySet<string>,
+  evidence: SkillEvidence,
+  gates: SkillGates,
+): NodeStatus {
+  const score = scoreCriterion(evidence, node.criterion, gates);
   const domain = skillMap.domains.find((item) => item.id === node.domainId);
   let state: NodeState = "locked";
-  if (domain?.status === "playable") {
+  if (domain?.status === "playable" || isBarrageGlossary(node)) {
     const ready = node.requires.every((id) => lit.has(id));
     if (!ready) state = "sealed";
     else if (lit.has(node.id)) state = "lit";
@@ -870,16 +989,25 @@ function statusFor(node: SkillNode, lit: ReadonlySet<string>, evidence: SkillEvi
   };
 }
 
-function canLight(node: SkillNode, lit: ReadonlySet<string>, evidence: SkillEvidence): boolean {
+function canLight(
+  node: SkillNode,
+  lit: ReadonlySet<string>,
+  evidence: SkillEvidence,
+  gates: SkillGates,
+): boolean {
   const domain = skillMap.domains.find((item) => item.id === node.domainId);
-  if (domain?.status !== "playable") return false;
+  if (domain?.status !== "playable" && !isBarrageGlossary(node)) return false;
   if (!node.requires.every((id) => lit.has(id))) return false;
-  return scoreCriterion(evidence, node.criterion).met;
+  return scoreCriterion(evidence, node.criterion, gates).met;
+}
+
+function isBarrageGlossary(node: SkillNode): boolean {
+  return node.id === "barrage-label" && node.criterion.source === "glossary";
 }
 
 function pooledRecord(
   evidence: SkillEvidence,
-  criterion: Exclude<SkillCriterion, { source: "unavailable" }>,
+  criterion: Exclude<SkillCriterion, { source: "unavailable" } | { source: "glossary" }>,
 ): AttemptRecord {
   const records =
     criterion.source === "any"

@@ -34,14 +34,14 @@ docs: correct the health path
 
 ## What belongs where
 
-| Change                        | Where                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------------- |
-| Tool, schema, log, HTTP guard | `apps/mcp/src`, `apps/mcp/api`, `apps/mcp/test`                                         |
-| Web shell                     | `apps/web`. No server-only features. Progress stays in `localStorage`.                  |
-| Trainer UI and engine         | `packages/sim`                                                                          |
-| Emitter library and glossary  | `packages/emitters`                                                                     |
-| Sample content                | `apps/mcp/content`, and only if it matches `content/FORMAT.md`                          |
-| Relay                         | `packages/relay`. Read the relay section of `docs/THREAT_MODEL.md` before extending it. |
+| Change                        | Where                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| Tool, schema, log, HTTP guard | `apps/mcp/src`, `apps/mcp/api`, `apps/mcp/test`                                     |
+| Web shell                     | `apps/web`. No server-only features. Progress stays in `localStorage`.              |
+| Trainer UI and engine         | `apps/sim`                                                                          |
+| Emitter library and glossary  | `packages/emitters`                                                                 |
+| Sample content                | `apps/mcp/content`, and only if it matches `content/FORMAT.md`                      |
+| Relay                         | `apps/relay`. Read the relay section of `docs/THREAT_MODEL.md` before extending it. |
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records the layout.
 

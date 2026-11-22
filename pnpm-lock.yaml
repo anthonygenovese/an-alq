@@ -251,54 +251,7 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(@types/node@22.20.5)(@vitest/coverage-v8@5.1.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  apps/web:
-    dependencies:
-      '@an-alq/emitters':
-        specifier: workspace:*
-        version: link:../../packages/emitters
-      '@an-alq/relay':
-        specifier: workspace:*
-        version: link:../../packages/relay
-      '@an-alq/sim':
-        specifier: workspace:*
-        version: link:../../packages/sim
-      '@fontsource/ibm-plex-mono':
-        specifier: ^5.3.0
-        version: 5.3.0
-      next:
-        specifier: 16.4.6
-        version: 16.4.6(@babel/core@7.29.13(supports-color@7.2.0))(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      react:
-        specifier: 19.3.1
-        version: 19.3.1
-      react-dom:
-        specifier: 19.3.1
-        version: 19.3.1(react@19.3.1)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.0
-        version: 22.20.5
-      '@types/react':
-        specifier: ^19.3.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.3.0
-        version: 19.3.0(@types/react@19.3.0)
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  packages/emitters:
-    dependencies:
-      zod:
-        specifier: ^4.6.7
-        version: 4.6.7
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  packages/relay:
+  apps/relay:
     devDependencies:
       '@types/node':
         specifier: ^22.19.0
@@ -322,11 +275,11 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(@types/node@22.20.5)(@vitest/coverage-v8@5.1.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  packages/sim:
+  apps/sim:
     dependencies:
       '@an-alq/emitters':
         specifier: workspace:*
-        version: link:../emitters
+        version: link:../../packages/emitters
       '@fontsource/ibm-plex-mono':
         specifier: ^5.3.0
         version: 5.3.0
@@ -364,6 +317,53 @@ importers:
       vitest:
         specifier: ^5.1.1
         version: 5.1.1(@types/node@22.20.5)(@vitest/coverage-v8@5.1.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
+  apps/web:
+    dependencies:
+      '@an-alq/emitters':
+        specifier: workspace:*
+        version: link:../../packages/emitters
+      '@an-alq/relay':
+        specifier: workspace:*
+        version: link:../relay
+      '@an-alq/sim':
+        specifier: workspace:*
+        version: link:../sim
+      '@fontsource/ibm-plex-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      next:
+        specifier: 16.4.6
+        version: 16.4.6(@babel/core@7.29.13(supports-color@7.2.0))(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.0
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  packages/emitters:
+    dependencies:
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 

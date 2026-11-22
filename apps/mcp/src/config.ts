@@ -1,7 +1,9 @@
+import packageJson from "../package.json" with { type: "json" };
 export { CAPABILITIES_URL, ILLUSTRATIVE, TRAINING_DISCLAIMER } from "@an-alq/emitters";
 
 export const SERVER_NAME = "an-alq";
-export const SERVER_VERSION = "0.1.0";
+/** Same version release-please writes to apps/mcp/package.json. */
+export const SERVER_VERSION = packageJson.version;
 export const PUBLIC_SITE = "https://an-alq.com";
 
 export const ILLUSTRATIVE_DISCLAIMER =
@@ -11,7 +13,7 @@ export const SAMPLE_DISCLAIMER =
   "Sample content for pipeline testing. Not live news, intelligence, or tasking. See content/FORMAT.md.";
 
 export const SERVER_INSTRUCTIONS = [
-  "AN-ALQ public information server v0.1.",
+  `AN-ALQ public information server v${SERVER_VERSION}.`,
   ILLUSTRATIVE_DISCLAIMER,
   "News drops and frontier picks are sample data until a record's sample field is false.",
   "Accept a 5-digit ZIP only when the caller offers one. Never ask for a name, email, phone, street address, or free-text personal note.",

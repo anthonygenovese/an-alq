@@ -17,6 +17,13 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
     files: ["packages/sim/**/*.{ts,tsx}", "apps/web/**/*.{ts,tsx}"],
     plugins: reactHooks.configs.flat.recommended.plugins,
     rules: {

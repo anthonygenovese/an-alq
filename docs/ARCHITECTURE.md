@@ -17,6 +17,7 @@ Capability figures and emitter-library numbers are illustrative. The trainer's w
 apps/web/                 Next.js shell. /, /range, /map, /relay
 apps/mcp/                 MCP server, api/, content/, tests
 apps/sim/                 T1 waterfall, skill map, and the trainer engine
+apps/sim/scenarios/       Synthetic T1 scenarios. A seed and scripted answers.
 apps/relay/               Nixle signal relay. The web shell runs it in demo mode
 packages/emitters/        Fictional emitter library and glossary
 pnpm-workspace.yaml       Workspace root

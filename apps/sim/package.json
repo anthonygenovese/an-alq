@@ -21,6 +21,11 @@
       "development": "./src/map.tsx",
       "default": "./dist/map.js"
     },
+    "./catalog": {
+      "types": "./src/catalog.ts",
+      "development": "./src/catalog.ts",
+      "default": "./dist/catalog.js"
+    },
     "./styles.css": "./src/styles.css"
   },
   "engines": {

@@ -20,7 +20,7 @@ export const SKILL_MAP_SCHEMA = "an-alq.skill-map.v1" as const;
 export const SKILL_EVIDENCE_SCHEMA = "an-alq.skill-evidence.v1" as const;
 export const SKILL_EVIDENCE_KEY = "an-alq.skill-evidence.v1";
 export const SKILL_ACK_SCHEMA = "an-alq.skill-acknowledgment.v1" as const;
-export const SKILL_ACK_KEY = "an-alq.skill-acknowledgment.v1";
+export const SKILL_ACK_STORAGE_NAME = "an-alq.skill-acknowledgment.v1";
 
 const BARRAGE_DEFINITION_IDS = ["spot_jamming", "barrage_jamming", "rgpo", "vgpo"] as const;
 
@@ -935,7 +935,7 @@ export function saveEvidence(store: KeyValueStore, evidence: SkillEvidence): voi
 
 export function loadGates(store: KeyValueStore | null): SkillGates {
   if (!store) return emptyGates();
-  const raw = store.getItem(SKILL_ACK_KEY);
+  const raw = store.getItem(SKILL_ACK_STORAGE_NAME);
   if (!raw) return emptyGates();
   try {
     const parsed = gatesSchema.safeParse(JSON.parse(raw));
@@ -947,7 +947,7 @@ export function loadGates(store: KeyValueStore | null): SkillGates {
 }
 
 export function saveGates(store: KeyValueStore, gates: SkillGates): void {
-  store.setItem(SKILL_ACK_KEY, JSON.stringify(gates));
+  store.setItem(SKILL_ACK_STORAGE_NAME, JSON.stringify(gates));
 }
 
 export function browserStore(): KeyValueStore | null {

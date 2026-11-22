@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EMITTER_CATEGORIES, emitterLibrary, resolveGlossaryEntry } from "@an-alq/emitters";
 import {
-  SKILL_ACK_KEY,
+  SKILL_ACK_STORAGE_NAME,
   SKILL_EVIDENCE_KEY,
   applyAttempt,
   barrageDefinitionQuestion,
@@ -330,11 +330,14 @@ describe("barrage definition node", () => {
     saveGates(store, gates);
     expect(loadGates(store)).toEqual(gates);
     expect(store.values.has(SKILL_EVIDENCE_KEY)).toBe(false);
-    expect(store.values.has(SKILL_ACK_KEY)).toBe(true);
+    expect(store.values.has(SKILL_ACK_STORAGE_NAME)).toBe(true);
 
-    store.setItem(SKILL_ACK_KEY, JSON.stringify({ ...gates, power: 12, waveform: "tone" }));
+    store.setItem(
+      SKILL_ACK_STORAGE_NAME,
+      JSON.stringify({ ...gates, power: 12, waveform: "tone" }),
+    );
     expect(loadGates(store)).toEqual(emptyGates());
-    store.setItem(SKILL_ACK_KEY, "{");
+    store.setItem(SKILL_ACK_STORAGE_NAME, "{");
     expect(loadGates(store)).toEqual(emptyGates());
     expect(loadGates(null)).toEqual(emptyGates());
   });

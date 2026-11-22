@@ -6,7 +6,8 @@
     "rootDir": "src",
     "declaration": true,
     "sourceMap": true,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["src/node/**", "dist", "node_modules"]
 }

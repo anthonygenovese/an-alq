@@ -2,6 +2,13 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.6.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.5.0...an-alq-v0.6.0) (2026-11-22)
+
+
+### Features
+
+* **sim:** add definition nodes for TDOA, FHSS, and collateral ([#25](https://github.com/anthonygenovese/an-alq/issues/25)) ([b423acb](https://github.com/anthonygenovese/an-alq/commit/b423acb899bfd200ba258395566ae37b8f1348f1))
+
 ## [0.5.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.4.0...an-alq-v0.5.0) (2026-11-22)
 
 

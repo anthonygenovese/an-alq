@@ -2,6 +2,13 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.5.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.4.0...an-alq-v0.5.0) (2026-11-22)
+
+
+### Features
+
+* **sim:** add tier engine and first T2 geolocation-grid node ([#23](https://github.com/anthonygenovese/an-alq/issues/23)) ([d7d7ebd](https://github.com/anthonygenovese/an-alq/commit/d7d7ebd2af86750601e313f85086b8c0c01c877b))
+
 ## [0.4.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.3.0...an-alq-v0.4.0) (2026-11-22)
 
 

@@ -2,6 +2,19 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.6.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.5.0...an-alq-v0.6.0) (2026-11-22)
+
+
+### Features
+
+* **sim:** add definition nodes for TDOA, FHSS, and collateral ([#25](https://github.com/anthonygenovese/an-alq/issues/25)) ([b423acb](https://github.com/anthonygenovese/an-alq/commit/b423acb899bfd200ba258395566ae37b8f1348f1))
+* **web:** add a light theme toggle on the home page ([#30](https://github.com/anthonygenovese/an-alq/issues/30)) ([9e2984b](https://github.com/anthonygenovese/an-alq/commit/9e2984b57f22f5ee668f8133316c4aee78cf7a6c))
+
+
+### Bug Fixes
+
+* **mcp:** report package version from package.json on /healthz ([#28](https://github.com/anthonygenovese/an-alq/issues/28)) ([77fa1d9](https://github.com/anthonygenovese/an-alq/commit/77fa1d921d61a26f1825e52e2a317adbda275412))
+
 ## [0.5.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.4.0...an-alq-v0.5.0) (2026-11-22)
 
 

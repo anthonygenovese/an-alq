@@ -1,0 +1,25 @@
+X-Fixture-Note: Sanitized illustrative sample. Not a real resident's mail. The DKIM b= value is a placeholder and is not key material.
+Date: Thu, 15 Jan 2026 15:00:00 +0000
+From: Nixle Alerts <alerts@nixle.com>
+To: resident@example.com
+Message-ID: <illustrative-sanitized-1000042@example.com>
+MIME-Version: 1.0
+Subject: South Brunswick PD: Traffic advisory
+Content-Type: multipart/alternative; boundary="nixle-sanitized"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nixle.com; s=selector2;
+	h=from:to:subject:date; bh=sanitized-body-hash; b=sanitized-placeholder;
+
+--nixle-sanitized
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+South Brunswick PD: Traffic advisory. Route 1 southbound closed at Finnegans Lane due to a disabled vehicle. Expect delays.
+https://local.nixle.com/alert/1000042
+
+--nixle-sanitized
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>South Brunswick PD: Traffic advisory. Route 1 southbound closed at Finnegans Lane due to a disabled vehicle. Expect delays.</p><p><a href="https://local.nixle.com/alert/1000042">View alert</a></p></body></html>
+
+--nixle-sanitized--

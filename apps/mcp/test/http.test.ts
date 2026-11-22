@@ -4,6 +4,7 @@ import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { afterEach, describe, expect, it } from "vitest";
+import packageJson from "../package.json" with { type: "json" };
 import { createApp } from "../src/app.js";
 import { SlidingWindowRateLimiter } from "../src/rate-limit.js";
 import { captureConsole } from "./console.js";
@@ -175,7 +176,11 @@ describe("streamable HTTP", () => {
 
     const healthz = await fetch(`${url}/healthz`);
     expect(healthz.status).toBe(200);
-    expect(await healthz.json()).toMatchObject({ ok: true, name: "an-alq" });
+    expect(await healthz.json()).toEqual({
+      ok: true,
+      name: "an-alq",
+      version: packageJson.version,
+    });
     expect(healthz.headers.get("x-content-type-options")).toBe("nosniff");
     expect(healthz.headers.get("x-frame-options")).toBe("DENY");
     expect(healthz.headers.get("referrer-policy")).toBe("no-referrer");

@@ -57,7 +57,7 @@ The UI is a local page. It imports the engine. It does not open a socket to the 
 
 ## STRIDE — Nixle signal relay
 
-The relay reads public alert text. It does not post to X, send mail, or hold a Gmail token. Code lives in `packages/relay`. A receipt vote is separate from a relay pulse.
+The relay reads public alert text. It does not post to X, send mail, or hold a Gmail token. Code lives in `apps/relay`. A receipt vote is separate from a relay pulse.
 
 A verified receipt looks at the five newest **Nixle** messages in the inbox, not the five newest messages of any kind. The browser calls `users.messages.list` with `labelIds=INBOX`, `q=from:(nixle.com OR nixle.us)`, and `maxResults=5`. Gmail applies that sender filter. Promotions, mailing lists, and other mail are not returned and are not fetched. The sender list is the same domains that publish Nixle DKIM keys (`nixle.com`, and `nixle.us` if a message uses it). If that query is rejected, the client may walk inbox ids and read only the `From` line, discarding it immediately, and still count only Nixle senders toward the five. It does not fetch a non-Nixle body.
 

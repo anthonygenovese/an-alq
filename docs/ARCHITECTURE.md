@@ -6,8 +6,8 @@ AN-ALQ in this repository is a pnpm workspace. The web shell, the MCP server, an
 | ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | Web shell          | Next.js in `apps/web`. Vercel project `an-alq-web`.    | The trainer, the skill map, and the relay demo. No call to `/mcp`.             |
 | MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.               |
-| Range trainer      | `packages/sim`, mounted by the web shell and by Vite   | The emitter package, bundled. No call to `/mcp`.                               |
-| Nixle signal relay | `packages/relay`                                       | Reads public alerts. Does not post. Receipts use the five newest Nixle emails. |
+| Range trainer      | `apps/sim`, mounted by the web shell and by Vite       | The emitter package, bundled. No call to `/mcp`.                               |
+| Nixle signal relay | `apps/relay`                                           | Reads public alerts. Does not post. Receipts use the five newest Nixle emails. |
 
 Capability figures and emitter-library numbers are illustrative. The trainer's waterfall is synthetic. Nothing in this tree is a receiver, recorder, jammer, spoofer, or geolocation system.
 
@@ -16,13 +16,13 @@ Capability figures and emitter-library numbers are illustrative. The trainer's w
 ```
 apps/web/                 Next.js shell. /, /range, /map, /relay
 apps/mcp/                 MCP server, api/, content/, tests
+apps/sim/                 T1 waterfall, skill map, and the trainer engine
+apps/relay/               Nixle signal relay. The web shell runs it in demo mode
 packages/emitters/        Fictional emitter library and glossary
-packages/sim/             T1 waterfall, skill map, and the trainer engine
-packages/relay/           Nixle signal relay. The web shell runs it in demo mode
 pnpm-workspace.yaml       Workspace root
 ```
 
-`packages/emitters` is the shared catalog. The server and the trainer both depend on it. The web shell depends on the trainer and the relay, and it does not depend on the server.
+Deployable projects live in `apps/`. `packages/emitters` is the shared catalog. The server and the trainer both depend on it. The web shell depends on the trainer and the relay, and it does not depend on the server.
 
 ## MCP request path
 
@@ -45,7 +45,7 @@ Stdio is a second entry, `src/stdio.ts`. stdout is the protocol. Logs stay on st
 
 ## Skill map
 
-The map is `an-alq.skill-map.v1` in `packages/sim/src/engine/skill-map.ts`. Items are nodes. A node whose criterion is met, and whose required nodes are already lit, becomes a lit node.
+The map is `an-alq.skill-map.v1` in `apps/sim/src/engine/skill-map.ts`. Items are nodes. A node whose criterion is met, and whose required nodes are already lit, becomes a lit node.
 
 | Domain                | Tier | Status   | What a lit node would mean                                      |
 | --------------------- | ---- | -------- | --------------------------------------------------------------- |
@@ -64,7 +64,7 @@ A participation ring is reserved (`participation-glow-ring`, `computedBy: "later
 
 ## Trainer tiers
 
-Defined in `packages/sim/src/engine/tiers.ts`.
+Defined in `apps/sim/src/engine/tiers.ts`.
 
 | Id  | Name                | Status                                                                          |
 | --- | ------------------- | ------------------------------------------------------------------------------- |

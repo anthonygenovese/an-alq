@@ -24,7 +24,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["packages/sim/**/*.{ts,tsx}", "apps/web/**/*.{ts,tsx}"],
+    files: ["apps/sim/**/*.{ts,tsx}", "apps/web/**/*.{ts,tsx}"],
     plugins: reactHooks.configs.flat.recommended.plugins,
     rules: {
       ...reactHooks.configs.flat.recommended.rules,
@@ -51,7 +51,7 @@ export default tseslint.config(
     files: [
       "apps/mcp/src/**/*.ts",
       "apps/mcp/api/**/*.ts",
-      "packages/sim/**/*.{ts,tsx}",
+      "apps/sim/**/*.{ts,tsx}",
       "apps/web/**/*.{ts,tsx}",
     ],
     rules: {

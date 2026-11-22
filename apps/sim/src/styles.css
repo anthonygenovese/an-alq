@@ -873,6 +873,28 @@ button:focus-visible {
 .grid-cell:disabled {
   opacity: 0.45;
 }
+.concept-drill {
+  margin-top: 12px;
+}
+.concept-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.concept-choices .definition-choice {
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.concept-choices .definition-choice:disabled {
+  opacity: 0.45;
+}
 
 @media (max-width: 980px) {
   .map-screen {

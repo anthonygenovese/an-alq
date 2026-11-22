@@ -26,7 +26,12 @@ import {
   type SkillEvidence,
   type SkillGates,
 } from "../src/engine/skill-map.js";
-import { emptyTierContext, recordGridAttempt } from "../src/engine/tier-evidence.js";
+import {
+  emptyTierAcks,
+  emptyTierContext,
+  recordGridAttempt,
+  recordTierAttempt,
+} from "../src/engine/tier-evidence.js";
 
 function memoryStore(initial = ""): KeyValueStore & { raw: string } {
   const box = { raw: initial };
@@ -98,7 +103,7 @@ describe("mastery", () => {
     expect(fresh.litCount).toBe(0);
     expect(fresh.nodes.find((node) => node.id === "open-ear")?.state).toBe("open");
     expect(fresh.nodes.find((node) => node.id === "classify-pulsed")?.state).toBe("sealed");
-    expect(fresh.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("locked");
+    expect(fresh.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("sealed");
 
     const two = play(emptyEvidence(), attempt({ category: "search_radar" }), 2);
     const afterTwo = evaluateMap(two);
@@ -154,7 +159,7 @@ describe("mastery", () => {
         "low-snr",
       ]),
     );
-    expect(snapshot.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("locked");
+    expect(snapshot.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("sealed");
     expect(snapshot.nodes.find((node) => node.id === "gnss-term")?.state).toBe("locked");
     expect(snapshot.nodes.find((node) => node.id === "spot-label")?.state).toBe("locked");
     expect(snapshot.nodes.find((node) => node.id === "rgpo-label")?.state).toBe("locked");
@@ -382,7 +387,7 @@ describe("fictional grid node", () => {
     const quiet = emptyTierContext();
     const before = evaluateMap(mastered, emptyGates(), quiet);
     expect(before.nodes.find((node) => node.id === "converging-fix")?.state).toBe("open");
-    expect(nodeLocked(before, "tdoa-lines")).toBe(true);
+    expect(before.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("open");
     expect(nodeLocked(before, "aoa-bearings")).toBe(true);
     expect(nodeLocked(before, "spot-label")).toBe(true);
     expect(nodeLocked(before, "rgpo-label")).toBe(true);
@@ -402,8 +407,52 @@ describe("fictional grid node", () => {
     expect(nodeLocked(lit, "spot-label")).toBe(true);
     expect(nodeLocked(lit, "rgpo-label")).toBe(true);
     expect(nodeLocked(lit, "vgpo-label")).toBe(true);
-    expect(nodeLocked(lit, "tdoa-lines")).toBe(true);
+    expect(lit.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("open");
     expect(nodeLocked(lit, "aoa-bearings")).toBe(true);
+  });
+
+  it("lights a concept node only after T1 mastery, acknowledgment, and attempts", () => {
+    const mastered = masterT1(emptyEvidence());
+    let evidence = emptyTierContext().evidence;
+    for (const id of ["tdoa-lines", "comms-fhss", "collateral-rule"] as const) {
+      evidence = recordTierAttempt(evidence, id, true, 200);
+      evidence = recordTierAttempt(evidence, id, true, 200);
+      evidence = recordTierAttempt(evidence, id, true, 200);
+    }
+    const silent = emptyTierAcks();
+    const held = evaluateMap(mastered, emptyGates(), {
+      evidence,
+      acknowledged: false,
+      acks: silent,
+    });
+    expect(held.litIds).not.toContain("tdoa-lines");
+    expect(held.litIds).not.toContain("comms-fhss");
+    expect(held.litIds).not.toContain("collateral-rule");
+    const acks = {
+      ...silent,
+      "tdoa-lines": true,
+      "comms-fhss": true,
+      "collateral-rule": true,
+    };
+    const lit = evaluateMap(mastered, emptyGates(), { evidence, acknowledged: false, acks });
+    expect(lit.nodes.find((node) => node.id === "tdoa-lines")?.state).toBe("lit");
+    expect(lit.nodes.find((node) => node.id === "comms-fhss")?.state).toBe("lit");
+    expect(lit.nodes.find((node) => node.id === "collateral-rule")?.state).toBe("lit");
+    for (const id of [
+      "aoa-bearings",
+      "spot-label",
+      "rgpo-label",
+      "vgpo-label",
+      "comms-dsss",
+      "comms-select",
+      "false-track",
+      "gnss-term",
+      "denial-choice",
+      "time-pressure",
+      "several-traces",
+    ]) {
+      expect(nodeLocked(lit, id)).toBe(true);
+    }
   });
 });
 

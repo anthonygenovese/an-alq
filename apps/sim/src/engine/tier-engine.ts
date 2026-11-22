@@ -8,7 +8,7 @@ import { skillMap, type SkillNode } from "./skill-map.js";
  * Registration for tier rounds. T1 still calls generateRound and gradeAnswer.
  * Locked nodes have no generator.
  */
-export type RoundKind = "classify" | "grid" | "glossary" | "locked";
+export type RoundKind = "classify" | "grid" | "glossary" | "concept" | "locked";
 
 export function classifyRound(options: GenerateRoundOptions) {
   return generateRound(options);
@@ -44,6 +44,7 @@ export function roundKind(nodeId: string): RoundKind {
   if (!node || node.criterion.source === "unavailable") return "locked";
   if (node.criterion.source === "glossary") return "glossary";
   if (node.criterion.source === "grid") return "grid";
+  if (node.criterion.source === "concept") return "concept";
   return "classify";
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChartMark } from "../components/chart-mark";
+import { ThemeToggle } from "../components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "AN-ALQ",
@@ -9,9 +10,12 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main className="landing">
+    <main className="landing home">
       <section>
-        <p className="eyebrow">AN-ALQ</p>
+        <div className="landing-tools">
+          <p className="eyebrow">AN-ALQ</p>
+          <ThemeToggle />
+        </div>
         <h1>Range, map, relay.</h1>
         <p className="lede">
           A console for the Tier 1 trainer, the skill map, and the signal relay. The waterfall is

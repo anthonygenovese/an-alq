@@ -2,15 +2,51 @@
   color-scheme: dark;
   --bg: #07090d;
   --bg-2: #10161c;
+  --chart-panel: rgba(12, 18, 24, 0.72);
   --line: rgba(228, 238, 243, 0.16);
   --line-strong: rgba(240, 180, 90, 0.55);
+  --control-line: #6d757a;
   --text: #e4eef3;
   --muted: #9eb2bf;
   --accent: #f0b45a;
+  --accent-fill: #f0b45a;
+  --accent-edge: #f0b45a;
+  --on-accent: #07090d;
+  --chart-stroke: rgba(228, 238, 243, 0.28);
+  --chart-stroke-faint: rgba(228, 238, 243, 0.12);
+  --glow: rgba(240, 180, 90, 0.08);
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+/* Light tokens apply on the home page only. Text is at least 4.5:1 on --bg.
+   Control borders and the primary button edge are at least 3:1 on --bg. */
+html[data-theme="light"]:has(.home) {
+  color-scheme: light;
+}
+
+html[data-theme="light"] body:has(.home) {
+  color-scheme: light;
+  --bg: #f4f7f8;
+  --bg-2: #ffffff;
+  --chart-panel: #ffffff;
+  --line: rgba(18, 34, 42, 0.16);
+  --line-strong: #8a5a28;
+  --control-line: #5c686f;
+  --text: #12222a;
+  --muted: #3d5160;
+  --accent: #7a4308;
+  --accent-fill: #f0b45a;
+  --accent-edge: #7a4308;
+  --on-accent: #1a140c;
+  --chart-stroke: rgba(18, 34, 42, 0.38);
+  --chart-stroke-faint: rgba(18, 34, 42, 0.16);
+  --glow: rgba(122, 67, 8, 0.08);
+  --shadow: 0 18px 50px rgba(18, 34, 42, 0.12);
+  background: radial-gradient(900px 420px at 8% -10%, var(--glow), transparent 55%), var(--bg);
+  color: var(--text);
 }
 
 * {
@@ -24,8 +60,7 @@ body {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(900px 420px at 8% -10%, rgba(240, 180, 90, 0.08), transparent 55%), var(--bg);
+  background: radial-gradient(900px 420px at 8% -10%, var(--glow), transparent 55%), var(--bg);
   color: var(--text);
 }
 
@@ -93,9 +128,17 @@ input {
 }
 
 .nav-links a[aria-current="page"] {
-  color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent-fill);
+  border-color: var(--accent-edge);
+}
+
+body:has(.home) .nav-links a {
+  border-color: var(--control-line);
+}
+
+body:has(.home) .nav-links a[aria-current="page"] {
+  border-color: var(--accent-edge);
 }
 
 .shell-main .app {
@@ -148,9 +191,60 @@ input {
 }
 
 .actions a:first-child {
-  background: var(--accent);
-  color: var(--bg);
-  border-color: var(--accent);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  border-color: var(--accent-edge);
+}
+
+.landing-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.theme-toggle {
+  position: relative;
+  appearance: none;
+  margin: 0;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--control-line);
+  padding: 7px 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.theme-toggle:focus-visible,
+body:has(.home) .brand-link:focus-visible,
+body:has(.home) .nav-links a:focus-visible,
+body:has(.home) .actions a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+html:not([data-theme="light"]) .theme-label-to-dark {
+  display: none;
+}
+
+html[data-theme="light"] .theme-label-to-light {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .facts {
@@ -186,7 +280,7 @@ input {
 
 .chart-card {
   border: 1px solid var(--line);
-  background: rgba(12, 18, 24, 0.72);
+  background: var(--chart-panel);
   box-shadow: var(--shadow);
   padding: 12px;
 }
@@ -208,12 +302,12 @@ input {
 
 .stroke {
   fill: none;
-  stroke: rgba(228, 238, 243, 0.28);
+  stroke: var(--chart-stroke);
   stroke-width: 1;
 }
 
 .stroke.faint {
-  stroke: rgba(228, 238, 243, 0.12);
+  stroke: var(--chart-stroke-faint);
 }
 
 .lit-node {

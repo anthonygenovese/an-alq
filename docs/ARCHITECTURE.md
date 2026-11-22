@@ -86,7 +86,7 @@ Defined in `packages/sim/src/engine/tiers.ts`.
 
 ## What is intentionally absent
 
-- A deployed hostname. `mcp.an-alq.com` is the `an-alq-mcp` project. CI does not attach it.
+- CI attachment of the hostname. `mcp.an-alq.com` is live on the `an-alq-mcp` project.
 - OAuth. It shows up only if a ZIP is stored.
 - Playable T2–T5.
 - Any code path that transmits, records live spectrum, or computes a real fix.

@@ -4,7 +4,7 @@
 AN-ALQ
 MCP endpoint  ·  T1 range trainer  ·  skill-map nodes
 illustrative figures  ·  synthetic spectrum  ·  no PII retained on the server
-an-alq.com                         future  mcp.an-alq.com
+an-alq.com                         live    mcp.an-alq.com
 ```
 
 [![CI](https://github.com/anthonygenovese/an-alq/actions/workflows/ci.yml/badge.svg)](https://github.com/anthonygenovese/an-alq/actions/workflows/ci.yml)
@@ -30,7 +30,7 @@ Read-only [Model Context Protocol](https://modelcontextprotocol.io) server and a
 | Skill map          | `packages/sim/src/engine/skill-map.ts`       | Shipped. T1 nodes can light. T2–T5 nodes stay locked.                  |
 | Trainer engine     | `packages/sim/src/engine`                    | Shared by the UI. Not a network service.                               |
 | Nixle signal relay | `packages/relay`                             | In progress. Reads public alerts. Does not post. See the threat model. |
-| `mcp.an-alq.com`   | Vercel project `an-alq-mcp`, root `apps/mcp` | Not deployed by CI. Same stateless endpoint.                           |
+| `mcp.an-alq.com`   | Vercel project `an-alq-mcp`, root `apps/mcp` | Live. Not deployed by CI. Same stateless endpoint.                     |
 
 A verified receipt counts the five newest Nixle emails, not the five newest messages in the inbox. The browser lists `INBOX` with `q=from:(nixle.com OR nixle.us)` and `maxResults=5`, so other mail is not fetched and does not use a slot. The copy when the alert is older than that is "no longer in your latest 5 Nixle alerts". The server still requires the DKIM-signed `Date` to fall inside the freshness window (default 60 minutes). `gmail.readonly` can read the whole mailbox; the cap is this client's list call, not Google's scope.
 
@@ -40,7 +40,7 @@ A verified receipt counts the five newest Nixle emails, not the five newest mess
 flowchart TB
   mcpClient[MCP client]
   browser[Browser]
-  futureHost["mcp.an-alq.com\nnot deployed"]
+  mcpHost["mcp.an-alq.com\nlive"]
   vercel["an-alq-mcp\n/mcp · /healthz"]
   mcp["MCP server\napps/mcp"]
   store["Content store\napps/mcp/content"]
@@ -51,8 +51,8 @@ flowchart TB
   map["Skill map\nnodes light locally"]
   relay["Relay demo\npackages/relay"]
 
-  mcpClient --> futureHost
-  futureHost -.-> vercel
+  mcpClient --> mcpHost
+  mcpHost --> vercel
   vercel --> mcp
   mcp --> store
   mcp --> library
@@ -199,7 +199,7 @@ Two Vercel projects, one repository. This repository does not deploy itself and 
 | Output directory | Leave empty. There is no static bundle. `api/mcp.ts` and `api/health.ts` are Vercel Functions.             |
 | Node.js          | 22.x                                                                                                       |
 
-`apps/mcp/vercel.json` rewrites `/mcp` to `/api/mcp` and `/health` and `/healthz` to `/api/health`. The MCP function is capped at 10 seconds. Security headers are set on the function and again at the edge. Content-Security-Policy on the API paths is `default-src 'none'`. Point `mcp.an-alq.com` at the `an-alq-mcp` project.
+`apps/mcp/vercel.json` rewrites `/mcp` to `/api/mcp` and `/health` and `/healthz` to `/api/health`. The MCP function is capped at 10 seconds. Security headers are set on the function and again at the edge. Content-Security-Policy on the API paths is `default-src 'none'`. `mcp.an-alq.com` is attached to the `an-alq-mcp` project. CI does not attach it.
 
 Variables are in [`apps/mcp/.env.example`](apps/mcp/.env.example):
 
@@ -233,7 +233,7 @@ Signed tags are an owner control. The private key does not live in CI. See [docs
 | ------------------------------------------ | ---------------------------------------------------------------------------- |
 | MCP server v0.1 and T1 trainer             | On `main`.                                                                   |
 | Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR. |
-| `mcp.an-alq.com`                           | Attach the domain to the `an-alq-mcp` project. Not done by CI.               |
+| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                        |
 | OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                       |
 | Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                   |
 | T2–T5 playable tiers                       | Locked nodes. No engine for them.                                            |

@@ -196,7 +196,7 @@ Two Vercel projects, one repository. This repository does not deploy itself and 
 | Root directory   | `apps/mcp`                                                                                                 |
 | Install command  | `pnpm install --frozen-lockfile` from the repository root, with files outside the root directory included. |
 | Build command    | `pnpm build` (builds `@an-alq/emitters`, then typechecks the server)                                       |
-| Output directory | Leave empty. There is no static bundle. `api/mcp.ts` and `api/health.ts` are Vercel Functions.             |
+| Output directory | `public` (holds a placeholder `index.txt`). `api/mcp.ts` and `api/health.ts` are Vercel Functions.         |
 | Node.js          | 22.x                                                                                                       |
 
 `apps/mcp/vercel.json` rewrites `/mcp` to `/api/mcp` and `/health` and `/healthz` to `/api/health`. The MCP function is capped at 10 seconds. Security headers are set on the function and again at the edge. Content-Security-Policy on the API paths is `default-src 'none'`. `mcp.an-alq.com` is attached to the `an-alq-mcp` project. CI does not attach it.

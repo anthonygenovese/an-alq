@@ -2,6 +2,13 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.3.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.2.0...an-alq-v0.3.0) (2026-11-22)
+
+
+### Features
+
+* **sim:** add scenario file loader and example replay ([#15](https://github.com/anthonygenovese/an-alq/issues/15)) ([994bffa](https://github.com/anthonygenovese/an-alq/commit/994bffac0949879d4cdaf9baf3dde3e844e76bd0))
+
 ## [0.2.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.1.0...an-alq-v0.2.0) (2026-11-22)
 
 ### Features

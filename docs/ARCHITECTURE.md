@@ -49,18 +49,18 @@ Stdio is a second entry, `src/stdio.ts`. stdout is the protocol. Logs stay on st
 
 The map is `an-alq.skill-map.v1` in `apps/sim/src/engine/skill-map.ts`. Items are nodes. A node whose criterion is met, and whose required nodes are already lit, becomes a lit node.
 
-| Domain                | Tier | Status   | What a lit node would mean                                                                                                                  |
-| --------------------- | ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| SIGINT classification | T1   | Playable | The player named fictional emitters on the synthetic waterfall.                                                                             |
-| Geolocation           | T2   | Locked   | Nothing. The criterion is unavailable. No fix is computed.                                                                                  |
-| Radar response        | T3   | Partial  | `barrage-label` lights from a glossary definition after T1 mastery and an acknowledgment. Spot, RGPO, and VGPO stay locked. No transmitter. |
-| Comms disruption      | T3   | Locked   | Nothing. Recognition labels only.                                                                                                           |
-| Electronic deception  | T4   | Locked   | Nothing. No signal is produced.                                                                                                             |
-| Multi-threat ops      | T5   | Locked   | Nothing. The range still shows one unknown.                                                                                                 |
+| Domain                | Tier | Status   | What a lit node would mean                                                                                                                                                     |
+| --------------------- | ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SIGINT classification | T1   | Playable | The player named fictional emitters on the synthetic waterfall.                                                                                                                |
+| Geolocation           | T2   | Partial  | `converging-fix` lights when the player picks the shared cell on a fictional grid after T1 mastery and an acknowledgment. TDOA and AOA stay locked. No coordinates and no fix. |
+| Radar response        | T3   | Partial  | `barrage-label` lights from a glossary definition after T1 mastery and an acknowledgment. Spot, RGPO, and VGPO stay locked. No transmitter.                                    |
+| Comms disruption      | T3   | Locked   | Nothing. Recognition labels only.                                                                                                                                              |
+| Electronic deception  | T4   | Locked   | Nothing. No signal is produced.                                                                                                                                                |
+| Multi-threat ops      | T5   | Locked   | Nothing. The range still shows one unknown.                                                                                                                                    |
 
 Evidence is `an-alq.skill-evidence.v1`: attempt counts, correct counts, and summed reaction time, keyed by fictional category and by difficulty (`recruit`, `operator`, `lead`). `loadEvidence` rejects a payload that fails the strict schema and returns an empty record. Extra keys, including anything that looks like an email or a name, are dropped.
 
-The UI writes that record to `localStorage` under the same key. The barrage acknowledgment and definition match are a second browser record, `an-alq.skill-acknowledgment.v1`, with two booleans and no technique fields. `loadGates` drops a document that fails its strict schema. The MCP server never sees either record.
+The UI writes that record to `localStorage` under the same key. The barrage acknowledgment and definition match are a second browser record, `an-alq.skill-acknowledgment.v1`, with two booleans and no technique fields. The fictional grid uses `an-alq.tier-evidence.v1` and `an-alq.tier-acknowledgment.v1`. Each loader drops a document that fails its strict schema. The MCP server never sees these records.
 
 A participation ring is reserved (`participation-glow-ring`, `computedBy: "later-module"`). This build passes a null intensity and draws nothing for it. The ring is how a later module would show participation. The map is what the player demonstrated.
 
@@ -68,13 +68,13 @@ A participation ring is reserved (`participation-glow-ring`, `computedBy: "later
 
 Defined in `apps/sim/src/engine/tiers.ts`.
 
-| Id  | Name                | Status                                                                              |
-| --- | ------------------- | ----------------------------------------------------------------------------------- |
-| T1  | Spectral classify   | Playable. Two-second window. Seeded PRNG. Illustrative frequency, PRI, and SNR.     |
-| T2  | Geolocation fix     | Planned. Hooks only. No real coordinates.                                           |
-| T3  | Response technique  | Barrage is a glossary definition. Spot, RGPO, and VGPO stay locked. No transmitter. |
-| T4  | Deception decisions | Planned. No spoofing.                                                               |
-| T5  | Multi-threat        | Planned.                                                                            |
+| Id  | Name                | Status                                                                                 |
+| --- | ------------------- | -------------------------------------------------------------------------------------- |
+| T1  | Spectral classify   | Playable. Two-second window. Seeded PRNG. Illustrative frequency, PRI, and SNR.        |
+| T2  | Geolocation fix     | One fictional grid cell after T1. No coordinates and no fix. TDOA and AOA stay locked. |
+| T3  | Response technique  | Barrage is a glossary definition. Spot, RGPO, and VGPO stay locked. No transmitter.    |
+| T4  | Deception decisions | Planned. No spoofing.                                                                  |
+| T5  | Multi-threat        | Planned.                                                                               |
 
 `pnpm dev` serves the shell at `127.0.0.1:3000`. `pnpm --filter @an-alq/sim dev` still serves the Vite trainer at `127.0.0.1:5173`. CI typechecks each package and runs `pnpm -r build`. The trainer bundle is not the MCP function.
 
@@ -90,6 +90,7 @@ Defined in `apps/sim/src/engine/tiers.ts`.
 
 - CI attachment of the hostname. `mcp.an-alq.com` is live on the `an-alq-mcp` project.
 - OAuth. It shows up only if a ZIP is stored.
-- Playable T2, T4, and T5.
+- A T2 node other than the fictional grid cell. TDOA and AOA stay locked. A real fix stays absent.
+- Playable T4 and T5.
 - A T3 node other than the barrage glossary definition. Spot, RGPO, VGPO, and the comms nodes stay locked.
 - Any code path that transmits, records live spectrum, or computes a real fix.

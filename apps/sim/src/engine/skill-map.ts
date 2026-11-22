@@ -6,6 +6,7 @@ import {
   type EmitterCategory,
 } from "@an-alq/emitters";
 import { z } from "zod/v3";
+import { emptyTierContext, type TierContext } from "./tier-evidence.js";
 import { DIFFICULTIES, type Difficulty } from "./types.js";
 
 /**
@@ -69,6 +70,13 @@ const criterionSchema = z.discriminatedUnion("source", [
       source: z.literal("glossary"),
       term: z.literal("barrage_jamming"),
       ask: z.literal("definition"),
+    })
+    .strict(),
+  z
+    .object({
+      source: z.literal("grid"),
+      nodeId: z.literal("converging-fix"),
+      ...thresholdSchema,
     })
     .strict(),
 ]);
@@ -163,10 +171,17 @@ export const skillMapSchema = z
           message: "glossary criterion is only the barrage definition",
         });
       }
+      if (node.criterion.source === "grid" && node.id !== "converging-fix") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "grid criterion is only the fictional converging cell",
+        });
+      }
       if (
         domain.status === "locked" &&
         node.criterion.source !== "unavailable" &&
-        !(node.id === "barrage-label" && node.criterion.source === "glossary")
+        !(node.id === "barrage-label" && node.criterion.source === "glossary") &&
+        !(node.id === "converging-fix" && node.criterion.source === "grid")
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -250,7 +265,7 @@ const rawMap = {
       tier: "T2" as const,
       status: "locked" as const,
       summary:
-        "Preview. TDOA and AOA lines on a synthetic map. No coordinates and no fix is computed.",
+        "One fictional grid cell. TDOA and AOA nodes stay locked. No coordinates and no fix.",
       startDeg: 32,
       endDeg: 88,
     },
@@ -439,13 +454,13 @@ const rawMap = {
       "geolocation",
       "Converging fix",
       "FIX",
-      "Preview. The lines would meet on a synthetic map. No fix is computed.",
+      "Pick the shared cell on a fictional grid. Illustrative. Not a location.",
       "T2",
       "diamond",
       2,
       60,
-      ["tdoa-lines", "aoa-bearings"],
-      unavailable,
+      ["low-snr", "classify-chirp", "classify-continuous"],
+      { source: "grid", nodeId: "converging-fix", ...gate(3, 0.6, null) },
       ["tdoa"],
     ),
     node(
@@ -820,10 +835,11 @@ export function applyAttempt(
   evidence: SkillEvidence,
   event: AttemptEvent,
   gates: SkillGates = emptyGates(),
+  tier: TierContext = emptyTierContext(),
 ): { evidence: SkillEvidence; newlyLit: string[] } {
-  const before = new Set(evaluateMap(evidence, gates).litIds);
+  const before = new Set(evaluateMap(evidence, gates, tier).litIds);
   const next = recordAttempt(evidence, event);
-  const after = evaluateMap(next, gates).litIds;
+  const after = evaluateMap(next, gates, tier).litIds;
   return {
     evidence: next,
     newlyLit: after.filter((id) => !before.has(id)),
@@ -834,6 +850,7 @@ export function scoreCriterion(
   evidence: SkillEvidence,
   criterion: SkillCriterion,
   gates: SkillGates = emptyGates(),
+  tier: TierContext = emptyTierContext(),
 ): CriterionScore {
   if (criterion.source === "unavailable") {
     return { met: false, fraction: 0, attempts: 0, accuracy: 0, meanCorrectMs: null };
@@ -842,7 +859,18 @@ export function scoreCriterion(
     const met = gates.barrageLabel === true && gates.barrageDefinition === true;
     return { met, fraction: met ? 1 : 0, attempts: 0, accuracy: 0, meanCorrectMs: null };
   }
-  const record = pooledRecord(evidence, criterion);
+  if (criterion.source === "grid") {
+    const score = scoreRecord(tier.evidence.byNode["converging-fix"], criterion);
+    if (!tier.acknowledged) return { ...score, met: false };
+    return score;
+  }
+  return scoreRecord(pooledRecord(evidence, criterion), criterion);
+}
+
+function scoreRecord(
+  record: AttemptRecord,
+  criterion: { minAttempts: number; minAccuracy: number; maxMeanCorrectMs: number | null },
+): CriterionScore {
   const accuracy = record.attempts === 0 ? 0 : record.correct / record.attempts;
   const meanCorrectMs = record.correct === 0 ? null : record.correctElapsedMs / record.correct;
   const attemptsMet = record.attempts >= criterion.minAttempts;
@@ -870,19 +898,20 @@ export function scoreCriterion(
 export function evaluateMap(
   evidence: SkillEvidence,
   gates: SkillGates = emptyGates(),
+  tier: TierContext = emptyTierContext(),
 ): SkillSnapshot {
   const lit = new Set<string>();
   for (let pass = 0; pass < skillMap.nodes.length + 1; pass += 1) {
     let added = false;
     for (const node of skillMap.nodes) {
-      if (!canLight(node, lit, evidence, gates)) continue;
+      if (!canLight(node, lit, evidence, gates, tier)) continue;
       if (lit.has(node.id)) continue;
       lit.add(node.id);
       added = true;
     }
     if (!added) break;
   }
-  const nodes = skillMap.nodes.map((node) => statusFor(node, lit, evidence, gates));
+  const nodes = skillMap.nodes.map((node) => statusFor(node, lit, evidence, gates, tier));
   const litIds = nodes.filter((node) => node.state === "lit").map((node) => node.id);
   return { nodes, litIds, litCount: litIds.length };
 }
@@ -969,11 +998,12 @@ function statusFor(
   lit: ReadonlySet<string>,
   evidence: SkillEvidence,
   gates: SkillGates,
+  tier: TierContext,
 ): NodeStatus {
-  const score = scoreCriterion(evidence, node.criterion, gates);
+  const score = scoreCriterion(evidence, node.criterion, gates, tier);
   const domain = skillMap.domains.find((item) => item.id === node.domainId);
   let state: NodeState = "locked";
-  if (domain?.status === "playable" || isBarrageGlossary(node)) {
+  if (domain?.status === "playable" || isBarrageGlossary(node) || isConvergingGrid(node)) {
     const ready = node.requires.every((id) => lit.has(id));
     if (!ready) state = "sealed";
     else if (lit.has(node.id)) state = "lit";
@@ -994,20 +1024,30 @@ function canLight(
   lit: ReadonlySet<string>,
   evidence: SkillEvidence,
   gates: SkillGates,
+  tier: TierContext,
 ): boolean {
   const domain = skillMap.domains.find((item) => item.id === node.domainId);
-  if (domain?.status !== "playable" && !isBarrageGlossary(node)) return false;
+  if (domain?.status !== "playable" && !isBarrageGlossary(node) && !isConvergingGrid(node)) {
+    return false;
+  }
   if (!node.requires.every((id) => lit.has(id))) return false;
-  return scoreCriterion(evidence, node.criterion, gates).met;
+  return scoreCriterion(evidence, node.criterion, gates, tier).met;
 }
 
 function isBarrageGlossary(node: SkillNode): boolean {
   return node.id === "barrage-label" && node.criterion.source === "glossary";
 }
 
+function isConvergingGrid(node: SkillNode): boolean {
+  return node.id === "converging-fix" && node.criterion.source === "grid";
+}
+
 function pooledRecord(
   evidence: SkillEvidence,
-  criterion: Exclude<SkillCriterion, { source: "unavailable" } | { source: "glossary" }>,
+  criterion: Exclude<
+    SkillCriterion,
+    { source: "unavailable" } | { source: "glossary" } | { source: "grid" }
+  >,
 ): AttemptRecord {
   const records =
     criterion.source === "any"

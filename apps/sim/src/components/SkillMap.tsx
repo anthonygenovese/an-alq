@@ -12,6 +12,7 @@ import {
   type SkillGates,
   type SkillSnapshot,
 } from "../engine/skill-map.js";
+import { GridDrill } from "./GridDrill.js";
 
 const EMPTY_GLOW: ParticipationGlow = { intensity: null };
 
@@ -21,6 +22,9 @@ interface SkillMapProps {
   onEnterRange: (nodeId: string) => void;
   onAcknowledgeBarrage: (acknowledged: boolean) => void;
   onChooseBarrageDefinition: (choiceId: string) => boolean;
+  gridAcknowledged: boolean;
+  onAcknowledgeGrid: (acknowledged: boolean) => void;
+  onGridAnswer: (correct: boolean, elapsedMs: number) => boolean;
   participation?: ParticipationGlow;
 }
 
@@ -30,6 +34,9 @@ export function SkillMap({
   onEnterRange,
   onAcknowledgeBarrage,
   onChooseBarrageDefinition,
+  gridAcknowledged,
+  onAcknowledgeGrid,
+  onGridAnswer,
   participation = EMPTY_GLOW,
 }: SkillMapProps) {
   const [selectedId, setSelectedId] = useState("open-ear");
@@ -182,6 +189,13 @@ export function SkillMap({
             gates={gates}
             onAcknowledge={onAcknowledgeBarrage}
             onChoose={onChooseBarrageDefinition}
+          />
+        ) : selected.criterion.source === "grid" ? (
+          <GridDrill
+            state={status.state}
+            acknowledged={gridAcknowledged}
+            onAcknowledge={onAcknowledgeGrid}
+            onAnswer={onGridAnswer}
           />
         ) : (
           <button

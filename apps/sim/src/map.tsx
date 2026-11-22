@@ -9,7 +9,10 @@ import "./styles.css";
 /** Skill map. A node the player has mastered is a lit node. Evidence stays on device. */
 export function SkillMapScreen({ onEnterRange }: { onEnterRange: (nodeId: string) => void }) {
   const skills = useSkillEvidence();
-  const snapshot = evaluateMap(skills.evidence, skills.gates);
+  const snapshot = evaluateMap(skills.evidence, skills.gates, {
+    evidence: skills.tierEvidence,
+    acknowledged: skills.gridAcknowledged,
+  });
 
   return (
     <div className="app">
@@ -31,6 +34,9 @@ export function SkillMapScreen({ onEnterRange }: { onEnterRange: (nodeId: string
           gates={skills.gates}
           onAcknowledgeBarrage={skills.acknowledgeBarrage}
           onChooseBarrageDefinition={skills.chooseBarrageDefinition}
+          gridAcknowledged={skills.gridAcknowledged}
+          onAcknowledgeGrid={skills.acknowledgeGrid}
+          onGridAnswer={skills.recordGrid}
           onEnterRange={onEnterRange}
         />
       </main>

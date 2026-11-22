@@ -31,8 +31,8 @@ export default function HomePage() {
           <li>
             <strong>Map</strong>
             <span>
-              Six sectors. T1 nodes can light. After T1, the T3 barrage node can become a lit node
-              from a glossary definition. Spot, RGPO, VGPO, and the rest of T2 through T5 stay
+              Six sectors. T1 nodes can light. After T1, the barrage node and the fictional T2 grid
+              node can become lit nodes. Spot, RGPO, VGPO, and the other T2 through T5 nodes stay
               locked.
             </span>
           </li>

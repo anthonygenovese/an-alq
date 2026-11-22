@@ -12,8 +12,11 @@ import {
 } from "@an-alq/sim/catalog";
 
 export function TiersScreen() {
-  const { evidence, gates } = useSkillEvidence();
-  const snapshot = evaluateMap(evidence, gates);
+  const { evidence, gates, tierEvidence, gridAcknowledged } = useSkillEvidence();
+  const snapshot = evaluateMap(evidence, gates, {
+    evidence: tierEvidence,
+    acknowledged: gridAcknowledged,
+  });
   const litWord = snapshot.litCount === 1 ? "node" : "nodes";
 
   return (

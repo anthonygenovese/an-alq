@@ -1,0 +1,10 @@
+{
+  "schema": "an-alq.scenario.v1",
+  "tier": "T1",
+  "figures_are": "illustrative",
+  "fictional": true,
+  "operational": false,
+  "seed": 3,
+  "difficulty": "recruit",
+  "answers": [{ "elapsedMs": 500, "answerId": null }]
+}

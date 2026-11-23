@@ -1,6 +1,6 @@
 # Threat model
 
-Scope is the code in this repository and one designed component that is not implemented. The product is educational. Quantitative figures are illustrative. There is no real RF, jamming, spoofing, or geolocation. T2 picks a cell on a fictional grid or a glossary definition. T3 FHSS is a glossary definition. T5 picks a fictional board label. None of these is a fix, a procedure, or spoofing.
+Scope is the code in this repository. The product is educational. Quantitative figures are illustrative. There is no real RF, jamming, spoofing, or geolocation. T2 picks a cell on a fictional grid or a glossary definition. T3 FHSS is a glossary definition. T5 picks a fictional board label. None of these is a fix, a procedure, or spoofing.
 
 Reviewed: November 2026, against the MCP server v0.1 and the T1 range trainer.
 
@@ -12,17 +12,17 @@ Reviewed: November 2026, against the MCP server v0.1 and the T1 range trainer.
 | The no-echo rule         | Error strings and logs must not repeat a ZIP, an address, a header, or a body.                                  |
 | Rate-limit fairness      | One caller should not pin the process. The bucket must not be forgeable.                                        |
 | On-device skill evidence | Aggregate counts in the browser. Low sensitivity, still not for a server.                                       |
-| Future relay credential  | Not in the repo. Called out so it is not invented casually.                                                     |
+| Relay read token         | `X_BEARER_TOKEN` is an app-only read token. It is not a posting credential and it is not logged.                |
 
 ## Actors
 
-| Actor               | Can                                                                             |
-| ------------------- | ------------------------------------------------------------------------------- |
-| MCP client          | Send JSON-RPC to `/mcp` or over stdio.                                          |
-| Browser player      | Run the trainer locally. Read and write their own `localStorage`.               |
-| Hostile HTTP client | Send a large body, a forged forwarded-for header, a hostile `Host` or `Origin`. |
-| Maintainer          | Merge to `main`, cut a release, hold the only production credentials.           |
-| Future relay        | Not built. Would hold a posting credential and read public alerts.              |
+| Actor               | Can                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| MCP client          | Send JSON-RPC to `/mcp` or over stdio.                                                        |
+| Browser player      | Run the trainer locally. Read and write their own `localStorage`.                             |
+| Hostile HTTP client | Send a large body, a forged forwarded-for header, a hostile `Host` or `Origin`.               |
+| Maintainer          | Merge to `main`, cut a release, hold the only production credentials.                         |
+| Relay poll          | `apps/web` cron. Holds an app-only read token and writes a public snapshot. It does not post. |
 
 ## Assumptions
 
@@ -72,7 +72,7 @@ A verified receipt looks at the five newest **Nixle** messages in the inbox, not
 | Denial of service      | Fallback votes are rate limited. The inbox read is five Nixle ids.                                                                                                                     |
 | Elevation              | Gmail scope is `gmail.readonly`. There is no send, modify, label, or delete call. X is a public read.                                                                                  |
 
-Decay is the retention policy. A signal, its relay times, and its vote nullifiers stay in memory until the activity score falls or the inactivity TTL hits. Nothing is written to disk. There is no archive of who received an alert.
+Decay is the retention policy. A signal and its vote nullifiers stay until the activity score falls or the inactivity TTL hits. The public snapshot in Redis keeps the same TTL. The cursor is a separate server-side key. There is no archive of who received an alert.
 
 ## Privacy summary
 
@@ -83,6 +83,7 @@ Decay is the retention policy. A signal, its relay times, and its vote nullifier
 | MCP logs               | Allowlisted fields, stderr                                                                                     | The platform's log retention, which should be short. No body is in the line. |
 | Browser `localStorage` | Aggregate trainer counts, the barrage acknowledgment, and the fictional-grid acknowledgment and attempt counts | The player clears site data. The server never receives the records.          |
 | Git                    | Sample content, fictional catalog, source                                                                      | Review. No secrets. gitleaks runs on the full history in CI.                 |
+| Relay Redis            | Public snapshot (summary, category, agency, pulse, Nixle link) and a server-side cursor                        | Snapshot TTL is the inactivity window. The cursor TTL is 7 days. No handles. |
 
 Anonymity is the absence of an identifier, not a hash of one that we then store. The address hash exists only inside the rate-limit map and is gone with the window.
 

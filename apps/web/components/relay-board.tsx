@@ -3,12 +3,74 @@
 import { useEffect, useRef, useState } from "react";
 import { buildContributionChart } from "@an-alq/relay/chart";
 import { DemoClock, DemoSimulator, SPEED_STEPS, isSpeedStep } from "@an-alq/relay";
-import { CATEGORY_LABEL, DISCLAIMER, type LiveSnapshot } from "@an-alq/relay/types";
+import {
+  CATEGORY_LABEL,
+  DISCLAIMER,
+  type Category,
+  type LiveSnapshot,
+  type Pulse,
+} from "@an-alq/relay/types";
+
+interface LiveCard {
+  summary: string;
+  category: Category;
+  agency: string | null;
+  pulse: Pulse;
+  nixleUrl: string | null;
+}
 
 export function RelayBoard() {
   const demoRef = useRef<DemoSimulator | null>(null);
   const clockRef = useRef<DemoClock | null>(null);
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
+  const [live, setLive] = useState<LiveCard[] | null>(null);
+  const [liveNote, setLiveNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const response = await fetch("/api/relay/snapshot");
+        if (!response.ok) return;
+        const body = (await response.json()) as {
+          mode?: string;
+          demo?: boolean;
+          stale?: boolean;
+          disclaimer?: string;
+          items?: LiveCard[];
+        };
+        if (cancelled) return;
+        const items = Array.isArray(body.items) ? body.items : [];
+        if (
+          body.mode === "live" &&
+          body.demo === false &&
+          body.stale === false &&
+          items.length > 0
+        ) {
+          setLive(items);
+          setLiveNote(null);
+          return;
+        }
+        setLive(null);
+        setLiveNote(
+          body.stale
+            ? "Demo fixtures. The last public snapshot is stale."
+            : "Demo fixtures. A live snapshot is not available.",
+        );
+      } catch {
+        if (!cancelled) {
+          setLive(null);
+          setLiveNote("Demo fixtures. A live snapshot is not available.");
+        }
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const demo = new DemoSimulator();
@@ -52,30 +114,34 @@ export function RelayBoard() {
           <p className="eyebrow">Public alerts</p>
           <h1>Relay</h1>
         </div>
-        <p className="demo-flag">Demo · fixtures only</p>
+        <p className="demo-flag">{live ? "Live, public X reads" : "Demo · fixtures only"}</p>
       </div>
       <p className="relay-note" role="note">
-        {DISCLAIMER} This board replays synthetic posts. It does not read a mailbox and it does not
-        post.
+        {DISCLAIMER} It does not read a mailbox and it does not post.
+        {liveNote ? ` ${liveNote}` : ""}
       </p>
-      <div className="controls" role="group" aria-label="Demo speed">
-        {SPEED_STEPS.map((speed) => (
-          <button
-            key={speed}
-            type="button"
-            className={snapshot?.speed === speed ? "is-on" : ""}
-            onClick={() => setSpeed(speed)}
-          >
-            {speed}×
+      {live ? null : (
+        <div className="controls" role="group" aria-label="Demo speed">
+          {SPEED_STEPS.map((speed) => (
+            <button
+              key={speed}
+              type="button"
+              className={snapshot?.speed === speed ? "is-on" : ""}
+              onClick={() => setSpeed(speed)}
+            >
+              {speed}×
+            </button>
+          ))}
+          <button type="button" onClick={reset}>
+            Reset
           </button>
-        ))}
-        <button type="button" onClick={reset}>
-          Reset
-        </button>
-      </div>
+        </div>
+      )}
       <div className="relay-layout">
         <div className="relay-chart">
-          {chart ? (
+          {live ? (
+            <p className="page-fallback">Public Nixle alerts from the latest read.</p>
+          ) : chart ? (
             <svg viewBox="-160 -160 320 320" role="img" aria-label="Contribution chart">
               <circle className="stroke" r={chart.tickRing} />
               {chart.rings.map((radius) => (
@@ -118,11 +184,11 @@ export function RelayBoard() {
           )}
         </div>
         <ol className="signal-list">
-          {snapshot && snapshot.signals.length === 0 ? (
+          {live && live.length === 0 ? (
             <li className="empty-signals">No signals in the window yet.</li>
           ) : null}
-          {snapshot?.signals.map((signal) => (
-            <li key={signal.id}>
+          {live?.map((signal) => (
+            <li key={`${signal.nixleUrl ?? signal.summary}`}>
               <div className="signal-kicker">
                 <span>{CATEGORY_LABEL[signal.category]}</span>
                 <span>
@@ -130,21 +196,67 @@ export function RelayBoard() {
                     className="pulse"
                     style={{ opacity: signal.pulse.opacity }}
                     aria-hidden="true"
-                  />{" "}
-                  {signal.receptions} receptions
+                  />
                 </span>
               </div>
-              <p>{signal.summary}</p>
-              {signal.agency ? (
-                <p className="empty-signals">
-                  {signal.agency}
-                  {signal.jurisdiction ? ` · ${signal.jurisdiction}` : ""}
+              {nixleLink(signal.nixleUrl) ? (
+                <p>
+                  <a href={nixleLink(signal.nixleUrl) ?? undefined}>{signal.summary}</a>
                 </p>
-              ) : null}
+              ) : (
+                <p>{signal.summary}</p>
+              )}
+              {signal.agency ? <p className="empty-signals">{signal.agency}</p> : null}
             </li>
           ))}
+          {!live && snapshot && snapshot.signals.length === 0 ? (
+            <li className="empty-signals">No signals in the window yet.</li>
+          ) : null}
+          {!live &&
+            snapshot?.signals.map((signal) => (
+              <li key={signal.id}>
+                <div className="signal-kicker">
+                  <span>{CATEGORY_LABEL[signal.category]}</span>
+                  <span>
+                    <span
+                      className="pulse"
+                      style={{ opacity: signal.pulse.opacity }}
+                      aria-hidden="true"
+                    />{" "}
+                    {signal.receptions} receptions
+                  </span>
+                </div>
+                <p>{signal.summary}</p>
+                {signal.agency ? (
+                  <p className="empty-signals">
+                    {signal.agency}
+                    {signal.jurisdiction ? ` · ${signal.jurisdiction}` : ""}
+                  </p>
+                ) : null}
+              </li>
+            ))}
         </ol>
       </div>
     </section>
   );
+}
+
+function nixleLink(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return null;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host !== "nixle.us" &&
+      host !== "nixle.com" &&
+      !host.endsWith(".nixle.us") &&
+      !host.endsWith(".nixle.com")
+    ) {
+      return null;
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }

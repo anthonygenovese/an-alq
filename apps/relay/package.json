@@ -20,6 +20,11 @@
       "types": "./src/types.ts",
       "development": "./src/types.ts",
       "default": "./dist/types.js"
+    },
+    "./live": {
+      "types": "./src/live/poll.ts",
+      "development": "./src/live/poll.ts",
+      "default": "./dist/live/poll.js"
     }
   },
   "engines": {
@@ -29,6 +34,9 @@
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.35.6"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

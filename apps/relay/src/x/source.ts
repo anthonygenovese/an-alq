@@ -1,6 +1,6 @@
 import type { SignalSource } from "../source.js";
 import type { RawPost } from "../types.js";
-import { NIXLE_SEARCH_QUERY, XReader } from "./read.js";
+import { NIXLE_SEARCH_QUERY, XReader, type RecentSearchReport } from "./read.js";
 
 /**
  * Public posts only. Sensitivity is low: no mailbox, no account profile,
@@ -11,13 +11,19 @@ export class XSource implements SignalSource {
   readonly sensitivity = "low" as const;
   readonly privateData = false;
   #sinceId: string | null = null;
+  #maxResults: number;
 
-  constructor(private readonly reader: XReader) {}
+  constructor(
+    private readonly reader: XReader,
+    maxResults = 10,
+  ) {
+    this.#maxResults = maxResults;
+  }
 
   async pull(signal?: AbortSignal): Promise<RawPost[]> {
     const posts = await this.reader.searchRecent(NIXLE_SEARCH_QUERY, {
       sinceId: this.#sinceId ?? undefined,
-      maxResults: 10,
+      maxResults: this.#maxResults,
       signal,
     });
     return posts;
@@ -26,5 +32,19 @@ export class XSource implements SignalSource {
   /** Test seam. The cursor is a post id kept only in this process. */
   noteCursor(id: string): void {
     this.#sinceId = id;
+  }
+
+  /**
+   * One cron tick. Cold start passes `startTime` and no `sinceId`.
+   * Steady state passes `sinceId` only. The Redis cursor outlives this object.
+   */
+  pullContract(opts: {
+    sinceId?: string;
+    startTime?: string;
+    maxResults: number;
+    signal?: AbortSignal;
+    timeoutMs?: number;
+  }): Promise<RecentSearchReport> {
+    return this.reader.searchRecentReport(NIXLE_SEARCH_QUERY, { ...opts, maxPages: 3 });
   }
 }

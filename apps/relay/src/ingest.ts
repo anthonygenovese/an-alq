@@ -17,7 +17,9 @@ const PRECISIONS = new Set<Precision>(["intersection", "centroid"]);
 const CATEGORY_SET = new Set<string>(CATEGORIES);
 
 const SECRET = /bearer\s+|ya29\.|access_token|refresh_token|authorization/i;
-const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+
+/** Bound for the linear mailbox scan. Longer input is refused. */
+export const MAX_EMAIL_SCAN = 4_096;
 
 export type IngestResult = { ok: true; extract: AlertExtract } | { ok: false; reason: "rejected" };
 
@@ -34,7 +36,7 @@ export function parseIngestBody(value: unknown): IngestResult {
     return { ok: false, reason: "rejected" };
   }
   if (!Number.isFinite(Date.parse(observedAt))) return { ok: false, reason: "rejected" };
-  if (SECRET.test(summary) || EMAIL.test(summary)) return { ok: false, reason: "rejected" };
+  if (hasSecret(summary) || containsEmail(summary)) return { ok: false, reason: "rejected" };
   const agency = optionalString(value.agency, 80);
   const jurisdiction = optionalString(value.jurisdiction, 80);
   const nixleUrl = optionalString(value.nixleUrl, 200);
@@ -84,7 +86,79 @@ export function ingestRequest(extract: AlertExtract): {
 
 function containsSecret(extract: AlertExtract): boolean {
   const blob = JSON.stringify(extract);
-  return SECRET.test(blob) || EMAIL.test(blob);
+  if (blob.length > MAX_EMAIL_SCAN) return true;
+  return hasSecret(blob) || containsEmail(blob);
+}
+
+function hasSecret(value: string): boolean {
+  if (value.length > MAX_EMAIL_SCAN) return true;
+  return SECRET.test(value);
+}
+
+/**
+ * Mailbox shape, one forward pass. No nested quantifiers.
+ * Over-long input is refused instead of scanned.
+ */
+export function containsEmail(value: string): boolean {
+  if (value.length > MAX_EMAIL_SCAN) return true;
+  const text = value.toLowerCase();
+  let index = 0;
+  let local = 0;
+  while (index < text.length) {
+    const code = text.charCodeAt(index);
+    if (isLocal(code)) {
+      local += 1;
+      index += 1;
+      continue;
+    }
+    if (code === 64 && local > 0) {
+      const domain = readDomain(text, index + 1);
+      if (domain.ok) return true;
+      local = 0;
+      index = domain.next;
+      continue;
+    }
+    local = 0;
+    index += 1;
+  }
+  return false;
+}
+
+function readDomain(text: string, start: number): { ok: boolean; next: number } {
+  let index = start;
+  let label = 0;
+  let sawDot = false;
+  let tld = 0;
+  let tldLetters = true;
+  while (index < text.length) {
+    const code = text.charCodeAt(index);
+    if (code === 46) {
+      if (label === 0) return { ok: false, next: index };
+      sawDot = true;
+      label = 0;
+      tld = 0;
+      tldLetters = true;
+      index += 1;
+      continue;
+    }
+    if (isLabel(code)) {
+      label += 1;
+      if (code >= 97 && code <= 122) tld += 1;
+      else tldLetters = false;
+      index += 1;
+      continue;
+    }
+    break;
+  }
+  return { ok: sawDot && tldLetters && tld >= 2, next: index };
+}
+
+function isLocal(code: number): boolean {
+  return isLabel(code) || code === 46 || code === 95 || code === 37 || code === 43;
+}
+
+function isLabel(code: number): boolean {
+  return (code >= 97 && code <= 122) || (code >= 48 && code <= 57) || code === 45;
 }
 
 function readLocation(value: unknown): GeoPoint | null | undefined {
@@ -103,7 +177,7 @@ function readLocation(value: unknown): GeoPoint | null | undefined {
     return undefined;
   if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return undefined;
   if (typeof precision !== "string" || !PRECISIONS.has(precision as Precision)) return undefined;
-  if (typeof label !== "string" || label.length > 80 || EMAIL.test(label) || SECRET.test(label))
+  if (typeof label !== "string" || label.length > 80 || containsEmail(label) || hasSecret(label))
     return undefined;
   return { lat, lon, precision: precision as Precision, label };
 }
@@ -120,7 +194,7 @@ function optionalString(value: unknown, max: number): string | null | undefined 
   if (typeof value !== "string") return undefined;
   const trimmed = value.trim();
   if (trimmed.length > max) return undefined;
-  if (trimmed && (EMAIL.test(trimmed) || SECRET.test(trimmed))) return undefined;
+  if (trimmed && (containsEmail(trimmed) || hasSecret(trimmed))) return undefined;
   return trimmed || null;
 }
 

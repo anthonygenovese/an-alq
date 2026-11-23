@@ -237,7 +237,7 @@ Signed tags are an owner control. The private key does not live in CI. See [docs
 | OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                                                                                            |
 | Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                                                                                        |
 | T2–T5 playable tiers                       | Grid, TDOA definition, FHSS definition, and a collateral board label can light. Spot, RGPO, VGPO, AOA, DSSS, selectivity, T4, and the other T5 nodes stay locked. |
-| Nixle-to-X relay                           | Public read on a daily cron (Hobby). The page shows a Redis snapshot, or demo fixtures. Nothing is posted.                                                        |
+| Nixle-to-X relay                           | Public read on a daily cron (once a day). The page shows a Redis snapshot, or demo fixtures. Nothing is posted.                                                   |
 | Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.                                                                                 |
 
 ## Development

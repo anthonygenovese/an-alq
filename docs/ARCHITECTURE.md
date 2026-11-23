@@ -86,7 +86,7 @@ Defined in `apps/sim/src/engine/tiers.ts`.
 
 [`apps/mcp/.env.example`](../apps/mcp/.env.example) is the full list for the server. No secret is required to boot. `apps/mcp/vercel.json` rewrites `/mcp`, `/health`, and `/healthz`, sets edge headers, and caps the MCP function at 10 seconds. CSP on the edge is scoped to the API paths. `apps/web/next.config.ts` sets the shell's headers, and `apps/web/vercel.json` repeats them.
 
-The web shell polls X only from `GET /api/cron/relay` (`*/2 * * * *`, which needs Vercel Pro). The handler reads `X_BEARER_TOKEN` from the environment and stores `an-alq:relay:snapshot` in Upstash Redis. `GET /api/relay/snapshot` is same-origin. `connect-src` stays `'self'`. Preview deploys stay on demo fixtures unless `RELAY_ALLOW_PREVIEW=1`. The filtered stream stays closed.
+The web shell polls X only from `GET /api/cron/relay`. The schedule in `apps/web/vercel.json` is `0 13 * * *` (once a day). The linked project rejects a faster cron because it is on the Hobby plan, which allows one run per day. A Pro project can use `*/2 * * * *`. The handler reads `X_BEARER_TOKEN` from the environment and stores `an-alq:relay:snapshot` in Upstash Redis. `GET /api/relay/snapshot` is same-origin. `connect-src` stays `'self'`. Preview deploys stay on demo fixtures unless `RELAY_ALLOW_PREVIEW=1`. The filtered stream stays closed.
 
 ## What is intentionally absent
 

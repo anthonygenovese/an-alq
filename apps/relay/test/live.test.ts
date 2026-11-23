@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { containsEmail, parseIngestBody } from "../src/ingest.js";
 import { cronAuthorized } from "../src/live/auth.js";
 import { postsAffordable } from "../src/live/budget.js";
 import { livePollingAllowed } from "../src/live/mode.js";
@@ -572,5 +573,28 @@ describe("ingest", () => {
       },
     });
     expect(rejected.status).toBe(400);
+  });
+
+  it("rejects a long percent string without a polynomial scan", () => {
+    const attack = "%".repeat(50_000);
+    const started = performance.now();
+    expect(containsEmail(attack)).toBe(true);
+    expect(containsEmail("%".repeat(2_000))).toBe(false);
+    expect(containsEmail("%".repeat(80) + "a@b.co")).toBe(true);
+    const parsed = parseIngestBody({
+      summary: attack,
+      category: "traffic",
+      observedAt: "2026-01-15T15:00:00.000Z",
+      nixleUrl: NIXLE,
+    });
+    expect(parsed.ok).toBe(false);
+    expect(performance.now() - started).toBeLessThan(100);
+    const mailbox = parseIngestBody({
+      summary: "Road work a@b.co",
+      category: "traffic",
+      observedAt: "2026-01-15T15:00:00.000Z",
+      nixleUrl: NIXLE,
+    });
+    expect(mailbox.ok).toBe(false);
   });
 });

@@ -271,11 +271,11 @@ describe("live poll", () => {
   });
 
   it("stops before another run would cross the budget", async () => {
-    expect(postsAffordable(191, 1, 0.005, 10)).toBe(0);
-    const kv = memoryKv({ "an-alq:relay:budget:2026-01": "191" });
+    expect(postsAffordable(7, 1, 0.005, 10)).toBe(10);
+    const kv = memoryKv({ "an-alq:relay:budget:2026-01": "7" });
     let called = false;
     const result = await runRelayPoll({
-      env: liveEnv(),
+      env: liveEnv({ RELAY_X_BUDGET_USD: "0.02" }),
       authorization: "Bearer cron-test",
       now: NOW,
       kv,

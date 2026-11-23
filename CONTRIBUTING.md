@@ -4,6 +4,8 @@ Issues and pull requests are welcome. Vulnerability reports go through [SECURITY
 
 The project is educational. Capability figures stay labeled illustrative. Do not add real RF, jamming, spoofing, live-spectrum capture, or geolocation of a real emitter. Skill-map items are nodes. A node a player has mastered is a lit node.
 
+Do not publish the owner's hard cap, budget ceiling, or internal cost limits. [AGENTS.md](AGENTS.md) is the rule.
+
 ## Setup
 
 Node `22.23.4`, from `.nvmrc`. pnpm `12.21.0`, from `packageManager`.

@@ -51,6 +51,7 @@ function liveEnv(extra: Record<string, string> = {}): Record<string, string> {
     VERCEL_ENV: "production",
     CRON_SECRET: "cron-test",
     X_BEARER_TOKEN: "read-token-test",
+    RELAY_X_BUDGET_USD: "1",
     ...extra,
   };
 }
@@ -196,6 +197,7 @@ describe("live poll", () => {
     const snapshot = kv.values.get(SNAPSHOT_KEY) ?? "";
     expect(snapshot).not.toContain(TWEET_A);
     expect(snapshot).not.toContain("newest_id");
+    expect(snapshot).not.toMatch(/"budget"|"spend"|"remaining"/);
     expect(snapshot).not.toContain("author-should-not-leak");
     expect(snapshot).not.toContain("author_id");
 
@@ -248,9 +250,29 @@ describe("live poll", () => {
     expect(() => assertPublic({ author_id: "nope" })).toThrow(/banned key/);
   });
 
+  it("refuses to read when the budget cap is unset", async () => {
+    const env = liveEnv();
+    delete env.RELAY_X_BUDGET_USD;
+    let called = false;
+    const result = await runRelayPoll({
+      env,
+      authorization: "Bearer cron-test",
+      now: NOW,
+      kv: memoryKv(),
+      fetchImpl: async () => {
+        called = true;
+        return jsonResponse(200, searchBody([]));
+      },
+    });
+    expect(called).toBe(false);
+    expect(result.body.status).toBe("error");
+    expect(result.body.skipped).toBe("budget");
+    expect(JSON.stringify(result.body)).not.toMatch(/\$|USD/);
+  });
+
   it("stops before another run would cross the budget", async () => {
-    expect(postsAffordable(2991, 15, 0.005, 10)).toBe(0);
-    const kv = memoryKv({ "an-alq:relay:budget:2026-01": "2991" });
+    expect(postsAffordable(191, 1, 0.005, 10)).toBe(0);
+    const kv = memoryKv({ "an-alq:relay:budget:2026-01": "191" });
     let called = false;
     const result = await runRelayPoll({
       env: liveEnv(),

@@ -1,4 +1,3 @@
-export const DEFAULT_BUDGET_USD = 15;
 export const DEFAULT_UNIT_USD = 0.005;
 export const MIN_RESULTS = 10;
 export const MAX_RESULTS = 100;

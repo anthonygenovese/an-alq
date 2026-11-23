@@ -16,7 +16,6 @@ import { cronAuthorized } from "./auth.js";
 import {
   budgetKey,
   clampRunMax,
-  DEFAULT_BUDGET_USD,
   DEFAULT_UNIT_USD,
   postsAffordable,
   secondsUntilNextUtcMonth,
@@ -109,7 +108,8 @@ export async function runRelayPoll(input: {
   const paused = await kv.get(PAUSE_KEY);
   if (paused && Number(paused) > now) return { status: 200, body: { ok: true, skipped: "paused" } };
 
-  const cap = numberEnv(input.env.RELAY_X_BUDGET_USD, DEFAULT_BUDGET_USD);
+  const cap = budgetCap(input.env.RELAY_X_BUDGET_USD);
+  if (cap === null) return { status: 200, body: { ok: true, status: "error", skipped: "budget" } };
   const unit = numberEnv(input.env.RELAY_X_UNIT_USD, DEFAULT_UNIT_USD);
   const cursor = parseCursor(await kv.get(CURSOR_KEY), now);
   const cold = cursor === null;
@@ -401,6 +401,13 @@ function coldStart(now: number): string {
 function snapshotTtl(env: Record<string, string | undefined>): number {
   const ms = numberEnv(env.RELAY_INACTIVITY_TTL_MS, DEFAULT_DECAY.inactivityTtlMs);
   return Math.max(60, Math.floor(ms / 1000));
+}
+
+function budgetCap(value: string | undefined): number | null {
+  if (value === undefined || value.trim() === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed;
 }
 
 function numberEnv(value: string | undefined, fallback: number): number {

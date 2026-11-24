@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { buildContributionChart } from "@an-alq/relay/chart";
-import { DemoClock, DemoSimulator, SPEED_STEPS, isSpeedStep } from "@an-alq/relay";
+import { DemoClock, DemoSimulator, SPEED_STEPS, hostListed, isSpeedStep } from "@an-alq/relay";
 import {
   CATEGORY_LABEL,
   DISCLAIMER,
@@ -124,7 +124,7 @@ export function RelayBoard() {
           <p className="eyebrow">Public alerts</p>
           <h1>Relay</h1>
         </div>
-        <p className="demo-flag">{live ? "Live, public X reads" : "Demo · fixtures only"}</p>
+        <p className="demo-flag">{live ? "Live public alerts" : "Demo · fixtures only"}</p>
       </div>
       <p className="relay-note" role="note">
         {DISCLAIMER} It does not read a mailbox and it does not post.
@@ -150,7 +150,7 @@ export function RelayBoard() {
       <div className="relay-layout">
         <div className="relay-chart">
           {live ? (
-            <p className="page-fallback">Public Nixle alerts from the latest read.</p>
+            <p className="page-fallback">Public alerts from the latest read.</p>
           ) : chart ? (
             <svg viewBox="-160 -160 320 320" role="img" aria-label="Contribution chart">
               <circle className="stroke" r={chart.tickRing} />
@@ -258,11 +258,7 @@ function allowedLink(url: string | null, hosts: readonly string[]): string | nul
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== "https:") return null;
-    const host = parsed.hostname.toLowerCase();
-    const listed = hosts.some(
-      (allowed) => host === allowed || host.endsWith(`.${allowed.toLowerCase()}`),
-    );
-    return listed ? parsed.toString() : null;
+    return hostListed(parsed.hostname, hosts) ? parsed.toString() : null;
   } catch {
     return null;
   }

@@ -8,6 +8,12 @@ export function hostsForSource(source: string | null): readonly string[] {
   return [];
 }
 
+/** Exact host match. A subdomain counts only when that subdomain is listed. */
+export function hostListed(hostname: string, hosts: readonly string[]): boolean {
+  const host = hostname.toLowerCase().replace(/\.$/, "");
+  return hosts.some((allowed) => host === allowed.toLowerCase());
+}
+
 export function hostAllowed(url: string, hosts: readonly string[]): boolean {
   let parsed: URL;
   try {
@@ -16,6 +22,5 @@ export function hostAllowed(url: string, hosts: readonly string[]): boolean {
     return false;
   }
   if (parsed.protocol !== "https:") return false;
-  const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
-  return hosts.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+  return hostListed(parsed.hostname, hosts);
 }

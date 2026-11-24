@@ -17,6 +17,30 @@ const STREET =
   /\b\d{1,6}\s+(?:[A-Za-z0-9.'-]+\s+){0,4}(?:street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|lane|ln|court|ct|way|parkway|pkwy)\b\.?/gi;
 const HONORIFIC_NAME = /\b(?:mr|mrs|ms|miss|dr|sgt|officer)\.?\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b/g;
 const GIVEN_SURNAME = /\b[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\b/g;
+const PLACE_FIRST = new Set([
+  "south",
+  "north",
+  "east",
+  "west",
+  "new",
+  "upper",
+  "lower",
+  "fort",
+  "mount",
+  "lake",
+  "port",
+  "san",
+  "santa",
+  "los",
+  "las",
+  "saint",
+  "cape",
+  "point",
+  "grand",
+  "little",
+  "great",
+  "old",
+]);
 const KEPT_SECOND = new Set([
   "Department",
   "District",
@@ -71,8 +95,9 @@ export interface PublicSnapshot {
 
 function stripPersonalNames(input: string): string {
   return input.replace(HONORIFIC_NAME, " ").replace(GIVEN_SURNAME, (match) => {
-    const second = match.split(/\s+/)[1] ?? "";
-    return KEPT_SECOND.has(second) ? match : " ";
+    const [first, second] = match.split(/\s+/);
+    if (PLACE_FIRST.has((first ?? "").toLowerCase())) return match;
+    return KEPT_SECOND.has(second ?? "") ? match : " ";
   });
 }
 

@@ -1,9 +1,31 @@
-import type { Geocoder } from "../types.js";
-import type { RawPost } from "../types.js";
+import type { Geocoder, RawPost } from "../types.js";
+import { extractNixle } from "../nixle.js";
 import { parsePost } from "../parse.js";
 import type { Signal, SignalSource } from "../source.js";
-import { hostAllowed, NIXLE_HOSTS, NIXLE_SOURCE_ID } from "../sources/allow.js";
+import { hostAllowed, hostsForSource, NIXLE_HOSTS, NIXLE_SOURCE_ID } from "../sources/allow.js";
+import { NIXLE_SEARCH_QUERY } from "../x/read.js";
 import type { XSource } from "../x/source.js";
+
+export const nixleSearchQuery = NIXLE_SEARCH_QUERY;
+
+export function nixleAllowlist(): readonly string[] {
+  return hostsForSource(NIXLE_SOURCE_ID);
+}
+
+/** Nixle link parser. Callers that are not this adapter do not use it. */
+export function nixleRef(
+  text: string,
+  urls: readonly string[],
+): { url: string; key: string } | null {
+  return extractNixle(text, urls);
+}
+
+export function refForSource(
+  sourceId: string,
+): (text: string, urls: readonly string[]) => { url: string; key: string } | null {
+  if (sourceId === NIXLE_SOURCE_ID) return nixleRef;
+  return () => null;
+}
 
 /** Nixle posts from the existing read-only search. Selected only when the source id matches. */
 export class NixleSource implements SignalSource {
@@ -16,20 +38,42 @@ export class NixleSource implements SignalSource {
     private readonly geocoder: Geocoder,
   ) {}
 
-  pull(signal?: AbortSignal): Promise<RawPost[]> {
-    return this.posts.pull(signal);
+  async pull(signal?: AbortSignal): Promise<RawPost[]> {
+    const report = await this.pullContract(nixleSearchQuery, { maxResults: 10, signal });
+    return report.posts;
   }
 
   fetch(signal?: AbortSignal): Promise<RawPost[]> {
     return this.pull(signal);
   }
 
-  pullContract(opts: Parameters<XSource["pullContract"]>[0]): ReturnType<XSource["pullContract"]> {
-    return this.posts.pullContract(opts);
+  pullContract(
+    query: string,
+    opts: {
+      sinceId?: string;
+      startTime?: string;
+      maxResults: number;
+      signal?: AbortSignal;
+      timeoutMs?: number;
+    },
+  ): ReturnType<XSource["pullContract"]> {
+    if (query !== nixleSearchQuery) {
+      return Promise.resolve({
+        outcome: "empty",
+        httpStatus: null,
+        posts: [],
+        returned: 0,
+        newestId: null,
+        problemType: null,
+        cursorWritable: false,
+        partialErrors: [],
+      });
+    }
+    return this.posts.pullContract(query, opts);
   }
 
   normalize(post: RawPost): Signal | null {
-    const candidate = parsePost(post, this.geocoder);
+    const candidate = parsePost(post, this.geocoder, nixleRef);
     if (!candidate?.sourceUrl || !candidate.sourceKey) return null;
     if (!hostAllowed(candidate.sourceUrl, NIXLE_HOSTS)) return null;
     return {

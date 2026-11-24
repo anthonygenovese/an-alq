@@ -1,4 +1,5 @@
-import { hostAllowed, NIXLE_HOSTS } from "./sources/allow.js";
+import { nixleAllowlist } from "./nixle/adapter.js";
+import { hostAllowed } from "./sources/allow.js";
 import { CATEGORIES, type Category, type GeoPoint, type Precision } from "./types.js";
 import type { AlertExtract } from "./extract.js";
 
@@ -75,7 +76,7 @@ export function ingestRequest(extract: AlertExtract): {
   headers: { "content-type": "application/json" };
   body: string;
 } {
-  const clean = parseIngestBody(extract, NIXLE_HOSTS);
+  const clean = parseIngestBody(extract, nixleAllowlist());
   if (!clean.ok) throw new Error("ingest rejected");
   return {
     url: "/api/ingest",

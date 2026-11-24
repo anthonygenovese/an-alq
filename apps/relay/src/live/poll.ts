@@ -9,7 +9,8 @@ import { findBannedKey } from "../privacy.js";
 import { LIVE_BOARD, acceptRelay } from "../runtime.js";
 import type { RawPost } from "../types.js";
 import { NixleSource } from "../nixle/adapter.js";
-import { hostsForSource, NIXLE_SOURCE_ID } from "../sources/allow.js";
+import { hostsForSource } from "../sources/allow.js";
+import { refForSource } from "../nixle/adapter.js";
 import { XRateLimiter } from "../x/limit.js";
 import type { RecentSearchReport } from "../x/read.js";
 import { XReader } from "../x/read.js";
@@ -23,6 +24,7 @@ import {
   secondsUntilNextUtcMonth,
 } from "./budget.js";
 import { configuredRelaySource, livePollingAllowed, redisRest } from "./mode.js";
+import { searchQueryForSource } from "./sources.js";
 
 export { configuredRelaySource };
 export { hostsForSource } from "../sources/allow.js";
@@ -100,7 +102,9 @@ export async function runRelayPoll(input: {
   if (!cronAuthorized(input.authorization, input.env.CRON_SECRET)) {
     return { status: 401, body: { ok: false } };
   }
-  if (configuredRelaySource(input.env) !== NIXLE_SOURCE_ID) {
+  const sourceId = configuredRelaySource(input.env);
+  const query = sourceId ? searchQueryForSource(sourceId) : null;
+  if (!sourceId || !query) {
     return { status: 200, body: { ok: true, skipped: "source" } };
   }
   if (!livePollingAllowed(input.env)) {
@@ -137,7 +141,7 @@ export async function runRelayPoll(input: {
   });
   const source = new NixleSource(new XSource(reader, affordable), geocoder);
   const run = (sinceId?: string, startTime?: string) =>
-    source.pullContract({
+    source.pullContract(query, {
       sinceId,
       startTime,
       maxResults: affordable,
@@ -165,7 +169,14 @@ export async function runRelayPoll(input: {
     return { status: 200, body: { ok: true, status: "error", read: readCount } };
   }
 
-  const published = await publish(kv, now, kept, publishStatus(report), ttl);
+  const published = await publish(
+    kv,
+    now,
+    kept,
+    publishStatus(report),
+    ttl,
+    refForSource(sourceId),
+  );
   if (!published) return { status: 200, body: { ok: true, skipped: "privacy", read: readCount } };
   if (shouldWriteCursor(report)) await writeCursor(kv, now, remembered, report);
   const stored = parseStored(await kv.get(SNAPSHOT_KEY));
@@ -194,7 +205,14 @@ export async function handleIngest(input: {
   if (!ingestSecret || !cronAuthorized(input.authorization, ingestSecret)) {
     return { status: 401, body: { ok: false } };
   }
-  const parsed = parseIngestBody(input.body, hostsForSource(configuredRelaySource(input.env)));
+  const sourceId = configuredRelaySource(input.env);
+  if (!sourceId || !searchQueryForSource(sourceId)) {
+    return { status: 200, body: { ok: true, stored: false, skipped: "source" } };
+  }
+  if (input.env.RELAY_MODE !== "live") {
+    return { status: 200, body: { ok: true, stored: false, skipped: "demo" } };
+  }
+  const parsed = parseIngestBody(input.body, hostsForSource(sourceId));
   if (!parsed.ok) return { status: 400, body: { ok: false } };
   const kv = input.kv === undefined ? kvFromEnv(input.env) : input.kv;
   if (!kv) return { status: 200, body: { ok: true, stored: false } };
@@ -209,6 +227,7 @@ export async function handleIngest(input: {
       postMaterial: "",
     },
     new OfflineStubGeocoder(),
+    refForSource(sourceId),
   );
   const posts: RawPost[] = candidate
     ? [
@@ -221,7 +240,14 @@ export async function handleIngest(input: {
         },
       ]
     : [];
-  const published = await publish(kv, now, posts, "ok", snapshotTtl(input.env));
+  const published = await publish(
+    kv,
+    now,
+    posts,
+    "ok",
+    snapshotTtl(input.env),
+    refForSource(sourceId),
+  );
   if (!published) return { status: 200, body: { ok: true, stored: false } };
   return { status: 200, body: { ok: true, stored: true } };
 }
@@ -269,6 +295,7 @@ async function publish(
   posts: readonly RawPost[],
   status: Exclude<SnapshotStatus, "demo" | "error">,
   ttlSeconds: number,
+  extractRef: ReturnType<typeof refForSource>,
 ): Promise<boolean> {
   const board = new SignalBoard({
     ...LIVE_BOARD,
@@ -278,9 +305,10 @@ async function publish(
   const ledger = new ContributionLedger(DEFAULT_GLOW);
   const prior = parseStored(await kv.get(SNAPSHOT_KEY));
   if (prior) {
-    for (const item of prior.items) rehydrate(board, geocoder, item, now, ttlSeconds * 1000);
+    for (const item of prior.items)
+      rehydrate(board, geocoder, item, now, ttlSeconds * 1000, extractRef);
   }
-  for (const post of posts) acceptRelay(board, ledger, post, geocoder, now);
+  for (const post of posts) acceptRelay(board, ledger, post, geocoder, now, extractRef);
   board.prune(now);
   const items = board.signals(now).map(publicItem);
   let snapshot: PublicSnapshot;
@@ -308,6 +336,7 @@ function rehydrate(
   item: PublicItem,
   now: number,
   ttlMs: number,
+  extractRef: ReturnType<typeof refForSource>,
 ): void {
   const createdAt = Date.parse(item.lastSeen);
   if (!Number.isFinite(createdAt) || now - createdAt >= ttlMs) return;
@@ -320,6 +349,7 @@ function rehydrate(
       postMaterial: "",
     },
     geocoder,
+    extractRef,
   );
   if (candidate) board.ingest(candidate, now);
 }

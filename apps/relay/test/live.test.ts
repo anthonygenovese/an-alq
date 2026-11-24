@@ -3,7 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { containsEmail, parseIngestBody } from "../src/ingest.js";
 import { cronAuthorized } from "../src/live/auth.js";
 import { postsAffordable } from "../src/live/budget.js";
-import { livePollingAllowed } from "../src/live/mode.js";
+import { configuredRelaySource, livePollingAllowed } from "../src/live/mode.js";
+import { APPROVED_RELAY_SOURCES } from "../src/live/sources.js";
 import {
   CURSOR_KEY,
   PAUSE_KEY,
@@ -92,6 +93,33 @@ function searchBody(tweets: ReturnType<typeof tweet>[], extra: Record<string, un
   return { data: tweets, ...extra };
 }
 
+function sourceIsApproved(env: Record<string, string | undefined> = liveEnv()): boolean {
+  const id = env.RELAY_SOURCE?.trim().toLowerCase() ?? "";
+  return id !== "" && id !== "none" && APPROVED_RELAY_SOURCES.includes(id);
+}
+
+/** When the configured id is not approved, the poll must not read or spend. */
+async function skipsWhenUnapproved(env: Record<string, string> = liveEnv()): Promise<boolean> {
+  if (sourceIsApproved(env)) return false;
+  const budgetKey = "an-alq:relay:budget:2026-01";
+  const kv = memoryKv({ [budgetKey]: "0" });
+  let called = false;
+  const result = await runRelayPoll({
+    env,
+    authorization: "Bearer cron-test",
+    now: NOW,
+    kv,
+    fetchImpl: async () => {
+      called = true;
+      return jsonResponse(200, searchBody([]));
+    },
+  });
+  expect(called).toBe(false);
+  expect(result.body.skipped).toBe("source");
+  expect(kv.values.get(budgetKey)).toBe("0");
+  return true;
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -130,14 +158,17 @@ describe("live poll", () => {
       },
     });
     expect(called).toBe(false);
-    expect(demo.body.skipped).toBe("demo");
+    expect(demo.body.skipped).toBe(sourceIsApproved(liveEnv()) ? "demo" : "source");
   });
 
   it("does not read or spend when no live source is configured", async () => {
+    expect(configuredRelaySource({ RELAY_SOURCE: "nixle" })).toBe("nixle");
+    expect(configuredRelaySource({ RELAY_SOURCE: "other" })).toBeNull();
+    expect(APPROVED_RELAY_SOURCES).toEqual(["nixle"]);
     const budgetKey = "an-alq:relay:budget:2026-01";
     const kv = memoryKv({ [budgetKey]: "3" });
     let called = false;
-    for (const source of [undefined, "", "none", "NONE"]) {
+    for (const source of [undefined, "", "none", "NONE", "other"]) {
       const env = liveEnv();
       if (source === undefined) delete env.RELAY_SOURCE;
       else env.RELAY_SOURCE = source;
@@ -171,7 +202,10 @@ describe("live poll", () => {
       },
     });
     expect(called).toBe(false);
-    expect(demo.body.skipped).toBe("demo");
+    expect(demo.body.skipped).toBe(
+      sourceIsApproved({ ...liveEnv(), RELAY_MODE: "demo" }) ? "demo" : "source",
+    );
+    if (!sourceIsApproved()) return;
     const noRedis = await runRelayPoll({
       env: liveEnv(),
       authorization: "Bearer cron-test",
@@ -193,6 +227,7 @@ describe("live poll", () => {
   });
 
   it("cold-starts with start_time only, then polls with since_id only", async () => {
+    if (await skipsWhenUnapproved()) return;
     const urls: string[] = [];
     const kv = memoryKv();
     await runRelayPoll({
@@ -246,6 +281,7 @@ describe("live poll", () => {
   });
 
   it("drops a non-Nixle post and keeps banned keys out of the snapshot", async () => {
+    if (await skipsWhenUnapproved()) return;
     const kv = memoryKv();
     const result = await runRelayPoll({
       env: liveEnv(),
@@ -278,6 +314,7 @@ describe("live poll", () => {
   });
 
   it("refuses to read when the budget cap is unset", async () => {
+    if (await skipsWhenUnapproved()) return;
     const env = liveEnv();
     delete env.RELAY_X_BUDGET_USD;
     let called = false;
@@ -335,6 +372,7 @@ describe("live poll", () => {
   });
 
   it("stops before another run would cross the budget", async () => {
+    if (await skipsWhenUnapproved()) return;
     expect(postsAffordable(7, 1, 0.005, 10)).toBe(10);
     const kv = memoryKv({ "an-alq:relay:budget:2026-01": "7" });
     let called = false;
@@ -353,6 +391,7 @@ describe("live poll", () => {
   });
 
   it("drops a card once it is past the inactivity window", async () => {
+    if (await skipsWhenUnapproved()) return;
     const kv = memoryKv({
       [SNAPSHOT_KEY]: JSON.stringify({
         generated_at: new Date(NOW - 50 * 60_000).toISOString(),
@@ -393,6 +432,7 @@ describe("live poll", () => {
   });
 
   it("caps a tick at three pages, marks it truncated, and still advances the cursor", async () => {
+    if (await skipsWhenUnapproved()) return;
     const urls: string[] = [];
     const kv = memoryKv();
     const pages = [
@@ -425,6 +465,7 @@ describe("live poll", () => {
   });
 
   it("retries a rejected since_id once with start_time and never sends both", async () => {
+    if (await skipsWhenUnapproved()) return;
     const urls: string[] = [];
     const kv = memoryKv({
       [CURSOR_KEY]: JSON.stringify({
@@ -453,6 +494,7 @@ describe("live poll", () => {
   });
 
   it("pauses until the next cycle when usage is capped", async () => {
+    if (await skipsWhenUnapproved()) return;
     const kv = memoryKv();
     let called = 0;
     const first = await runRelayPoll({
@@ -485,6 +527,7 @@ describe("live poll", () => {
   });
 
   it("keeps generated_at when a later tick only marks the snapshot stale", async () => {
+    if (await skipsWhenUnapproved()) return;
     const generated = "2026-01-15T14:00:00.000Z";
     const kv = memoryKv({
       [SNAPSHOT_KEY]: JSON.stringify({
@@ -527,6 +570,7 @@ describe("live poll", () => {
   });
 
   it("does not retry an auth failure, and retries one server error before going stale", async () => {
+    if (await skipsWhenUnapproved()) return;
     const generated = "2026-01-15T14:00:00.000Z";
     const prior = {
       generated_at: generated,
@@ -581,6 +625,7 @@ describe("live poll", () => {
   });
 
   it("logs search errors without the post text or an authorization header", async () => {
+    if (await skipsWhenUnapproved()) return;
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const kv = memoryKv();
     await runRelayPoll({
@@ -654,6 +699,37 @@ describe("ingest", () => {
       now: NOW,
     });
     expect(unset.status).toBe(401);
+    const kvLive = memoryKv();
+    const blocked = await handleIngest({
+      env: { ...liveEnv(), RELAY_SOURCE: "other" },
+      authorization: "Bearer ingest-test",
+      kv: kvLive,
+      now: NOW,
+      body: {
+        summary: "Road work ahead",
+        category: "traffic",
+        observedAt: "2026-01-15T15:00:00.000Z",
+        sourceUrl: NIXLE,
+      },
+    });
+    expect(blocked.body.skipped).toBe("source");
+    expect(blocked.body.stored).toBe(false);
+    expect(kvLive.values.has(SNAPSHOT_KEY)).toBe(false);
+    const demoKv = memoryKv();
+    const demo = await handleIngest({
+      env: { ...liveEnv(), RELAY_MODE: "demo" },
+      authorization: "Bearer ingest-test",
+      kv: demoKv,
+      now: NOW,
+      body: {
+        summary: "Road work ahead",
+        category: "traffic",
+        observedAt: "2026-01-15T15:00:00.000Z",
+        sourceUrl: NIXLE,
+      },
+    });
+    expect(demo.body.stored).toBe(false);
+    expect(demoKv.values.has(SNAPSHOT_KEY)).toBe(false);
     const rejected = await handleIngest({
       env: liveEnv(),
       authorization: "Bearer ingest-test",
@@ -666,7 +742,11 @@ describe("ingest", () => {
         sourceUrl: NIXLE,
       },
     });
-    expect(rejected.status).toBe(400);
+    if (sourceIsApproved()) expect(rejected.status).toBe(400);
+    else {
+      expect(rejected.body.skipped).toBe("source");
+      expect(rejected.body.stored).toBe(false);
+    }
   });
 
   it("rejects a long percent string without a polynomial scan", () => {
@@ -695,5 +775,6 @@ describe("ingest", () => {
   it("strips a personal name and keeps an agency phrase", () => {
     expect(tightenSummary("Road work for Jane Doe")).not.toMatch(/Jane|Doe/);
     expect(tightenSummary("Fire Department notice")).toMatch(/Fire Department/);
+    expect(tightenSummary("South Brunswick traffic advisory")).toMatch(/South Brunswick/);
   });
 });

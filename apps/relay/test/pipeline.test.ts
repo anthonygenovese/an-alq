@@ -5,6 +5,7 @@ import { DEFAULT_DECAY } from "../src/decay.js";
 import { postFromExtract } from "../src/extract.js";
 import { OfflineStubGeocoder } from "../src/geo.js";
 import { INBOX_CAP, scanInboxForAlert } from "../src/gmail/inbox.js";
+import { nixleRef } from "../src/nixle/adapter.js";
 import { parsePost } from "../src/parse.js";
 import { pulseFromActivity } from "../src/pulse.js";
 import { LIVE_BOARD } from "../src/runtime.js";
@@ -40,7 +41,7 @@ describe("recorded Nixle email", () => {
     expect(JSON.stringify(scan.extract)).not.toContain(MESSAGE_ID);
 
     const observedMs = Date.parse(scan.extract.observedAt);
-    const candidate = parsePost(postFromExtract(scan.extract), geocoder);
+    const candidate = parsePost(postFromExtract(scan.extract), geocoder, nixleRef);
     expect(candidate).not.toBeNull();
     if (!candidate) return;
     expect(candidate.sourceKey).toBe(ALERT_KEY);

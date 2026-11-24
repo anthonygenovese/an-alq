@@ -1,16 +1,22 @@
 import { classify } from "./classify.js";
 import { locateAgency, parseIntersection } from "./geo.js";
 import { matchAgency } from "./gazetteer.js";
-import { extractNixle } from "./nixle.js";
 import { displaySummary, normalizeAlertText } from "./normalize.js";
 import type { Candidate, Geocoder, RawPost } from "./types.js";
 
+export type SourceRef = { url: string; key: string };
+export type SourceRefExtractor = (text: string, urls: readonly string[]) => SourceRef | null;
+
 const MAX_TEXT = 2_000;
 
-export function parsePost(post: RawPost, geocoder: Geocoder): Candidate | null {
+export function parsePost(
+  post: RawPost,
+  geocoder: Geocoder,
+  extractRef: SourceRefExtractor = () => null,
+): Candidate | null {
   if (!Number.isFinite(post.createdAt)) return null;
   const text = post.text.slice(0, MAX_TEXT);
-  const nixle = extractNixle(text, post.urls);
+  const nixle = extractRef(text, post.urls);
   const normalizedText = normalizeAlertText(text);
   const agency = matchAgency(normalizedText);
   const category = classify(normalizedText);

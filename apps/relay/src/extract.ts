@@ -1,3 +1,4 @@
+import { nixleRef } from "./nixle/adapter.js";
 import { parsePost } from "./parse.js";
 import type { Category, Geocoder, GeoPoint, RawPost } from "./types.js";
 
@@ -27,6 +28,7 @@ export function extractFromPost(post: RawPost, geocoder: Geocoder): AlertExtract
       accountMaterial: null,
     },
     geocoder,
+    nixleRef,
   );
   if (!parsed) return null;
   return {

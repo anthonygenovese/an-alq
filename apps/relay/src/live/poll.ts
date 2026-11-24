@@ -205,12 +205,12 @@ export async function handleIngest(input: {
   if (!ingestSecret || !cronAuthorized(input.authorization, ingestSecret)) {
     return { status: 401, body: { ok: false } };
   }
+  if (!livePollingAllowed(input.env)) {
+    return { status: 200, body: { ok: true, stored: false, skipped: "demo" } };
+  }
   const sourceId = configuredRelaySource(input.env);
   if (!sourceId || !searchQueryForSource(sourceId)) {
     return { status: 200, body: { ok: true, stored: false, skipped: "source" } };
-  }
-  if (input.env.RELAY_MODE !== "live") {
-    return { status: 200, body: { ok: true, stored: false, skipped: "demo" } };
   }
   const parsed = parseIngestBody(input.body, hostsForSource(sourceId));
   if (!parsed.ok) return { status: 400, body: { ok: false } };

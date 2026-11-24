@@ -162,13 +162,13 @@ describe("live poll", () => {
   });
 
   it("does not read or spend when no live source is configured", async () => {
-    expect(configuredRelaySource({ RELAY_SOURCE: "nixle" })).toBe("nixle");
+    expect(configuredRelaySource({ RELAY_SOURCE: "nixle" })).toBeNull();
     expect(configuredRelaySource({ RELAY_SOURCE: "other" })).toBeNull();
-    expect(APPROVED_RELAY_SOURCES).toEqual(["nixle"]);
+    expect(APPROVED_RELAY_SOURCES).toEqual([]);
     const budgetKey = "an-alq:relay:budget:2026-01";
     const kv = memoryKv({ [budgetKey]: "3" });
     let called = false;
-    for (const source of [undefined, "", "none", "NONE", "other"]) {
+    for (const source of [undefined, "", "none", "NONE", "nixle", "other"]) {
       const env = liveEnv();
       if (source === undefined) delete env.RELAY_SOURCE;
       else env.RELAY_SOURCE = source;
@@ -335,6 +335,7 @@ describe("live poll", () => {
   });
 
   it("counts a read when the tick does not publish", async () => {
+    if (await skipsWhenUnapproved()) return;
     const kv = memoryKv();
     let calls = 0;
     const result = await runRelayPoll({
@@ -728,8 +729,28 @@ describe("ingest", () => {
         sourceUrl: NIXLE,
       },
     });
+    expect(demo.body.skipped).toBe("demo");
     expect(demo.body.stored).toBe(false);
     expect(demoKv.values.has(SNAPSHOT_KEY)).toBe(false);
+    for (const extra of [{ VERCEL_ENV: "preview" }, { RELAY_STREAM: "1" }]) {
+      const gated = memoryKv();
+      const held = await handleIngest({
+        env: { ...liveEnv(), ...extra },
+        authorization: "Bearer ingest-test",
+        kv: gated,
+        now: NOW,
+        body: {
+          summary: "Road work ahead",
+          category: "traffic",
+          observedAt: "2026-01-15T15:00:00.000Z",
+          sourceUrl: NIXLE,
+        },
+      });
+      expect(livePollingAllowed({ ...liveEnv(), ...extra })).toBe(false);
+      expect(held.body.skipped).toBe("demo");
+      expect(held.body.stored).toBe(false);
+      expect(gated.values.has(SNAPSHOT_KEY)).toBe(false);
+    }
     const rejected = await handleIngest({
       env: liveEnv(),
       authorization: "Bearer ingest-test",

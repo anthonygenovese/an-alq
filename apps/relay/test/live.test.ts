@@ -52,6 +52,7 @@ function liveEnv(extra: Record<string, string> = {}): Record<string, string> {
     CRON_SECRET: "cron-test",
     X_BEARER_TOKEN: "read-token-test",
     RELAY_X_BUDGET_USD: "1",
+    RELAY_SOURCE: "nixle",
     ...extra,
   };
 }
@@ -129,6 +130,31 @@ describe("live poll", () => {
     });
     expect(called).toBe(false);
     expect(demo.body.skipped).toBe("demo");
+  });
+
+  it("does not read or spend when no live source is configured", async () => {
+    const budgetKey = "an-alq:relay:budget:2026-01";
+    const kv = memoryKv({ [budgetKey]: "3" });
+    let called = false;
+    for (const source of [undefined, "", "none", "NONE"]) {
+      const env = liveEnv();
+      if (source === undefined) delete env.RELAY_SOURCE;
+      else env.RELAY_SOURCE = source;
+      const result = await runRelayPoll({
+        env,
+        authorization: "Bearer cron-test",
+        now: NOW,
+        kv,
+        fetchImpl: async () => {
+          called = true;
+          return jsonResponse(200, searchBody([]));
+        },
+      });
+      expect(result.status).toBe(200);
+      expect(result.body.skipped).toBe("source");
+    }
+    expect(called).toBe(false);
+    expect(kv.values.get(budgetKey)).toBe("3");
   });
 
   it("does not call X in demo mode and falls back when redis or the token is missing", async () => {

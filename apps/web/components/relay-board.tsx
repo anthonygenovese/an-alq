@@ -36,10 +36,17 @@ export function RelayBoard() {
           mode?: string;
           demo?: boolean;
           stale?: boolean;
+          source?: string;
+          notice?: string | null;
           disclaimer?: string;
           items?: LiveCard[];
         };
         if (cancelled) return;
+        if (body.source === "none" || body.notice === "No live source configured") {
+          setLive(null);
+          setLiveNote("No live source configured");
+          return;
+        }
         const items = Array.isArray(body.items) ? body.items : [];
         if (
           body.mode === "live" &&

@@ -20,7 +20,9 @@ import {
   postsAffordable,
   secondsUntilNextUtcMonth,
 } from "./budget.js";
-import { livePollingAllowed, redisRest } from "./mode.js";
+import { configuredRelaySource, livePollingAllowed, redisRest } from "./mode.js";
+
+export { configuredRelaySource };
 import {
   demoSnapshot,
   liveSnapshot,
@@ -94,6 +96,9 @@ export async function runRelayPoll(input: {
 }): Promise<PollResult> {
   if (!cronAuthorized(input.authorization, input.env.CRON_SECRET)) {
     return { status: 401, body: { ok: false } };
+  }
+  if (!configuredRelaySource(input.env)) {
+    return { status: 200, body: { ok: true, skipped: "source" } };
   }
   if (!livePollingAllowed(input.env)) {
     return { status: 200, body: { ok: true, skipped: "demo" } };

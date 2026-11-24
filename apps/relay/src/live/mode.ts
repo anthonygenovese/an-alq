@@ -1,3 +1,10 @@
+/** Empty or "none" means the cron has no live source. */
+export function configuredRelaySource(env: Record<string, string | undefined>): string | null {
+  const raw = env.RELAY_SOURCE?.trim().toLowerCase() ?? "";
+  if (raw === "" || raw === "none") return null;
+  return raw;
+}
+
 /** Live reads require live mode and production, unless preview is explicitly allowed. */
 export function livePollingAllowed(env: Record<string, string | undefined>): boolean {
   if (env.RELAY_MODE !== "live") return false;

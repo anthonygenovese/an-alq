@@ -1,5 +1,4 @@
-import { searchQueryForSource } from "../live/sources.js";
-import type { SignalSource } from "../source.js";
+import type { Signal, SignalSource } from "../source.js";
 import type { RawPost } from "../types.js";
 import { XReader, type RecentSearchReport } from "./read.js";
 
@@ -11,29 +10,26 @@ export class XSource implements SignalSource {
   readonly id = "x" as const;
   readonly sensitivity = "low" as const;
   readonly privateData = false;
-  #sinceId: string | null = null;
-  #maxResults: number;
 
   constructor(
     private readonly reader: XReader,
     maxResults = 10,
   ) {
-    this.#maxResults = maxResults;
+    void maxResults;
+  }
+
+  fetch(signal?: AbortSignal): Promise<RawPost[]> {
+    return this.pull(signal);
+  }
+
+  normalize(post: RawPost): Signal | null {
+    void post;
+    return null;
   }
 
   async pull(signal?: AbortSignal): Promise<RawPost[]> {
-    const query = searchQueryForSource(this.id);
-    if (!query) return [];
-    return this.reader.searchRecent(query, {
-      sinceId: this.#sinceId ?? undefined,
-      maxResults: this.#maxResults,
-      signal,
-    });
-  }
-
-  /** Test seam. The cursor is a post id kept only in this process. */
-  noteCursor(id: string): void {
-    this.#sinceId = id;
+    void signal;
+    return [];
   }
 
   /**

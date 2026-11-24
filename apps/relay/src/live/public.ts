@@ -15,6 +15,49 @@ const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi;
 const PHONE = /(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]\d{4}\b/g;
 const STREET =
   /\b\d{1,6}\s+(?:[A-Za-z0-9.'-]+\s+){0,4}(?:street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|lane|ln|court|ct|way|parkway|pkwy)\b\.?/gi;
+const HONORIFIC_NAME = /\b(?:mr|mrs|ms|miss|dr|sgt|officer)\.?\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b/g;
+const GIVEN_SURNAME = /\b[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\b/g;
+const PLACE_FIRST = new Set([
+  "south",
+  "north",
+  "east",
+  "west",
+  "new",
+  "upper",
+  "lower",
+  "fort",
+  "mount",
+  "lake",
+  "port",
+  "san",
+  "santa",
+  "los",
+  "las",
+  "saint",
+  "cape",
+  "point",
+  "grand",
+  "little",
+  "great",
+  "old",
+]);
+const KEPT_SECOND = new Set([
+  "Department",
+  "District",
+  "County",
+  "Police",
+  "Fire",
+  "Service",
+  "Works",
+  "Alert",
+  "Road",
+  "Street",
+  "Avenue",
+  "Highway",
+  "City",
+  "State",
+  "Office",
+]);
 
 export type SnapshotStatus = "ok" | "empty" | "truncated" | "error" | "demo";
 
@@ -25,7 +68,7 @@ export interface PublicItem {
   jurisdiction: string | null;
   firstSeen: string;
   lastSeen: string;
-  nixleUrl: string | null;
+  sourceUrl: string | null;
   pulse: Pulse;
   receptions: number;
   receptionMark: ReceptionMark;
@@ -50,12 +93,19 @@ export interface PublicSnapshot {
   items: PublicItem[];
 }
 
-/** Agency, category, Nixle link, and a short line. Not the raw post. */
+function stripPersonalNames(input: string): string {
+  return input.replace(HONORIFIC_NAME, " ").replace(GIVEN_SURNAME, (match) => {
+    const [first, second] = match.split(/\s+/);
+    if (PLACE_FIRST.has((first ?? "").toLowerCase())) return match;
+    return KEPT_SECOND.has(second ?? "") ? match : " ";
+  });
+}
+
+/** Agency, category, source link, and a short line. Not the raw post. */
 export function tightenSummary(input: string): string {
-  const cleaned = displaySummary(input)
-    .replace(EMAIL, " ")
-    .replace(PHONE, " ")
-    .replace(STREET, " ")
+  const cleaned = stripPersonalNames(
+    displaySummary(input).replace(EMAIL, " ").replace(PHONE, " ").replace(STREET, " "),
+  )
     .replace(/\s+/g, " ")
     .trim();
   return cleaned.slice(0, 160);
@@ -63,13 +113,13 @@ export function tightenSummary(input: string): string {
 
 export function publicItem(signal: LiveSignal): PublicItem {
   return {
-    summary: tightenSummary(signal.summary) || "Nixle alert",
+    summary: tightenSummary(signal.summary) || "Public alert",
     category: signal.category,
     agency: signal.agency,
     jurisdiction: signal.jurisdiction,
     firstSeen: signal.firstSeen,
     lastSeen: signal.lastSeen,
-    nixleUrl: signal.nixleUrl,
+    sourceUrl: signal.sourceUrl,
     pulse: { periodMs: signal.pulse.periodMs, opacity: signal.pulse.opacity },
     receptions: signal.receptions,
     receptionMark: signal.receptionMark,

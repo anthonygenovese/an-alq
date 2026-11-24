@@ -71,8 +71,8 @@ export interface Candidate {
   normalizedText: string;
   summary: string;
   category: Category;
-  nixleKey: string | null;
-  nixleUrl: string | null;
+  sourceKey: string | null;
+  sourceUrl: string | null;
   agency: string | null;
   jurisdiction: string | null;
   location: GeoPoint | null;
@@ -96,8 +96,8 @@ export interface LiveSignal {
   jurisdiction: string | null;
   firstSeen: string;
   lastSeen: string;
-  nixleUrl: string | null;
-  nixleKey: string | null;
+  sourceUrl: string | null;
+  sourceKey: string | null;
   location: GeoPoint | null;
   pulse: Pulse;
   /** Verified receptions. Not a person and not a relay count. */

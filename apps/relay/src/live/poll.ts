@@ -8,6 +8,9 @@ import { ContributionLedger, DEFAULT_GLOW } from "../participation.js";
 import { findBannedKey } from "../privacy.js";
 import { LIVE_BOARD, acceptRelay } from "../runtime.js";
 import type { RawPost } from "../types.js";
+import { NixleSource } from "../nixle/adapter.js";
+import { hostsForSource } from "../sources/allow.js";
+import { refForSource } from "../nixle/adapter.js";
 import { XRateLimiter } from "../x/limit.js";
 import type { RecentSearchReport } from "../x/read.js";
 import { XReader } from "../x/read.js";
@@ -24,6 +27,7 @@ import { configuredRelaySource, livePollingAllowed, redisRest } from "./mode.js"
 import { searchQueryForSource } from "./sources.js";
 
 export { configuredRelaySource };
+export { hostsForSource } from "../sources/allow.js";
 import {
   demoSnapshot,
   liveSnapshot,
@@ -100,7 +104,7 @@ export async function runRelayPoll(input: {
   }
   const sourceId = configuredRelaySource(input.env);
   const query = sourceId ? searchQueryForSource(sourceId) : null;
-  if (!query) {
+  if (!sourceId || !query) {
     return { status: 200, body: { ok: true, skipped: "source" } };
   }
   if (!livePollingAllowed(input.env)) {
@@ -127,6 +131,7 @@ export async function runRelayPoll(input: {
   const affordable = postsAffordable(Number.isFinite(spent) ? spent : 0, cap, unit, desired);
   if (affordable < 10) return { status: 200, body: { ok: true, skipped: "budget" } };
 
+  const geocoder = new OfflineStubGeocoder();
   const reader = new XReader({
     bearerToken: token,
     baseUrl: input.env.X_API_BASE,
@@ -134,7 +139,7 @@ export async function runRelayPoll(input: {
     limiter: new XRateLimiter(0),
     now: () => now,
   });
-  const source = new XSource(reader);
+  const source = new NixleSource(new XSource(reader, affordable), geocoder);
   const run = (sinceId?: string, startTime?: string) =>
     source.pullContract(query, {
       sinceId,
@@ -147,27 +152,33 @@ export async function runRelayPoll(input: {
   let report = cursor
     ? await run(cursor.newest_id, undefined)
     : await run(undefined, coldStart(now));
+  let readCount = report.returned;
   if (report.outcome === "bad_since") {
     await kv.del(CURSOR_KEY);
     remembered = null;
     report = await run(undefined, coldStart(now));
+    readCount += report.returned;
   }
+  await recordReadSpend(kv, now, readCount, unit, cap);
   notePartial(report);
   if (report.outcome === "usage_capped") await pauseUntil(kv, now);
 
+  const kept = report.posts.filter((post) => source.normalize(post));
   if (!shouldPublish(report)) {
     await markStale(kv, now, errorFor(report), ttl);
-    return { status: 200, body: { ok: true, status: "error" } };
+    return { status: 200, body: { ok: true, status: "error", read: readCount } };
   }
 
-  const published = await publish(kv, now, report.posts, publishStatus(report), ttl);
-  if (!published) return { status: 200, body: { ok: true, skipped: "privacy" } };
+  const published = await publish(
+    kv,
+    now,
+    kept,
+    publishStatus(report),
+    ttl,
+    refForSource(sourceId),
+  );
+  if (!published) return { status: 200, body: { ok: true, skipped: "privacy", read: readCount } };
   if (shouldWriteCursor(report)) await writeCursor(kv, now, remembered, report);
-  if (report.returned > 0) {
-    const nextSpent = await kv.incrby(budgetKey(now), report.returned);
-    await kv.expire(budgetKey(now), secondsUntilNextUtcMonth(now));
-    if (nextSpent * unit > cap + 1e-9) await pauseUntil(kv, now);
-  }
   const stored = parseStored(await kv.get(SNAPSHOT_KEY));
   return {
     status: 200,
@@ -190,17 +201,18 @@ export async function handleIngest(input: {
   kv?: RelayKv | null;
   now?: number;
 }): Promise<PollResult> {
-  if (!cronAuthorized(input.authorization, input.env.CRON_SECRET)) {
+  const ingestSecret = input.env.RELAY_INGEST_SECRET;
+  if (!ingestSecret || !cronAuthorized(input.authorization, ingestSecret)) {
     return { status: 401, body: { ok: false } };
+  }
+  if (!livePollingAllowed(input.env)) {
+    return { status: 200, body: { ok: true, stored: false, skipped: "demo" } };
   }
   const sourceId = configuredRelaySource(input.env);
   if (!sourceId || !searchQueryForSource(sourceId)) {
     return { status: 200, body: { ok: true, stored: false, skipped: "source" } };
   }
-  if (input.env.RELAY_MODE !== "live") {
-    return { status: 200, body: { ok: true, stored: false, skipped: "demo" } };
-  }
-  const parsed = parseIngestBody(input.body);
+  const parsed = parseIngestBody(input.body, hostsForSource(sourceId));
   if (!parsed.ok) return { status: 400, body: { ok: false } };
   const kv = input.kv === undefined ? kvFromEnv(input.env) : input.kv;
   if (!kv) return { status: 200, body: { ok: true, stored: false } };
@@ -208,28 +220,49 @@ export async function handleIngest(input: {
   const extract = parsed.extract;
   const candidate = parsePost(
     {
-      text: `${extract.summary} ${extract.nixleUrl ?? ""}`.trim(),
+      text: `${extract.summary} ${extract.sourceUrl ?? ""}`.trim(),
       createdAt: Date.parse(extract.observedAt),
-      urls: extract.nixleUrl ? [extract.nixleUrl] : [],
+      urls: extract.sourceUrl ? [extract.sourceUrl] : [],
       accountMaterial: null,
       postMaterial: "",
     },
     new OfflineStubGeocoder(),
+    refForSource(sourceId),
   );
   const posts: RawPost[] = candidate
     ? [
         {
-          text: `${extract.summary} ${extract.nixleUrl ?? ""}`.trim(),
+          text: `${extract.summary} ${extract.sourceUrl ?? ""}`.trim(),
           createdAt: Date.parse(extract.observedAt),
-          urls: extract.nixleUrl ? [extract.nixleUrl] : [],
+          urls: extract.sourceUrl ? [extract.sourceUrl] : [],
           accountMaterial: null,
           postMaterial: "",
         },
       ]
     : [];
-  const published = await publish(kv, now, posts, "ok", snapshotTtl(input.env));
+  const published = await publish(
+    kv,
+    now,
+    posts,
+    "ok",
+    snapshotTtl(input.env),
+    refForSource(sourceId),
+  );
   if (!published) return { status: 200, body: { ok: true, stored: false } };
   return { status: 200, body: { ok: true, stored: true } };
+}
+
+async function recordReadSpend(
+  kv: RelayKv,
+  now: number,
+  readCount: number,
+  unit: number,
+  cap: number,
+): Promise<void> {
+  if (readCount <= 0) return;
+  const nextSpent = await kv.incrby(budgetKey(now), readCount);
+  await kv.expire(budgetKey(now), secondsUntilNextUtcMonth(now));
+  if (nextSpent * unit > cap + 1e-9) await pauseUntil(kv, now);
 }
 
 function shouldPublish(report: RecentSearchReport): boolean {
@@ -262,6 +295,7 @@ async function publish(
   posts: readonly RawPost[],
   status: Exclude<SnapshotStatus, "demo" | "error">,
   ttlSeconds: number,
+  extractRef: ReturnType<typeof refForSource>,
 ): Promise<boolean> {
   const board = new SignalBoard({
     ...LIVE_BOARD,
@@ -271,9 +305,10 @@ async function publish(
   const ledger = new ContributionLedger(DEFAULT_GLOW);
   const prior = parseStored(await kv.get(SNAPSHOT_KEY));
   if (prior) {
-    for (const item of prior.items) rehydrate(board, geocoder, item, now, ttlSeconds * 1000);
+    for (const item of prior.items)
+      rehydrate(board, geocoder, item, now, ttlSeconds * 1000, extractRef);
   }
-  for (const post of posts) acceptRelay(board, ledger, post, geocoder, now);
+  for (const post of posts) acceptRelay(board, ledger, post, geocoder, now, extractRef);
   board.prune(now);
   const items = board.signals(now).map(publicItem);
   let snapshot: PublicSnapshot;
@@ -301,18 +336,20 @@ function rehydrate(
   item: PublicItem,
   now: number,
   ttlMs: number,
+  extractRef: ReturnType<typeof refForSource>,
 ): void {
   const createdAt = Date.parse(item.lastSeen);
   if (!Number.isFinite(createdAt) || now - createdAt >= ttlMs) return;
   const candidate = parsePost(
     {
-      text: `${item.summary} ${item.nixleUrl ?? ""}`.trim(),
+      text: `${item.summary} ${item.sourceUrl ?? ""}`.trim(),
       createdAt,
-      urls: item.nixleUrl ? [item.nixleUrl] : [],
+      urls: item.sourceUrl ? [item.sourceUrl] : [],
       accountMaterial: null,
       postMaterial: "",
     },
     geocoder,
+    extractRef,
   );
   if (candidate) board.ingest(candidate, now);
 }

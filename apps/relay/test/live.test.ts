@@ -54,6 +54,7 @@ function liveEnv(extra: Record<string, string> = {}): Record<string, string> {
     X_BEARER_TOKEN: "read-token-test",
     RELAY_X_BUDGET_USD: "1",
     RELAY_SOURCE: "nixle",
+    RELAY_INGEST_SECRET: "ingest-test",
     ...extra,
   };
 }
@@ -299,9 +300,9 @@ describe("live poll", () => {
     expect(result.body.read).toBe(2);
     expect(result.body.status).toBe("ok");
     const stored = kv.values.get(SNAPSHOT_KEY) ?? "";
-    const parsed = JSON.parse(stored) as { items: { summary: string; nixleUrl: string }[] };
+    const parsed = JSON.parse(stored) as { items: { summary: string; sourceUrl: string }[] };
     expect(parsed.items).toHaveLength(1);
-    expect(parsed.items[0]?.nixleUrl).toBe(NIXLE);
+    expect(parsed.items[0]?.sourceUrl).toBe(NIXLE);
     expect(parsed.items[0]?.summary).not.toMatch(/555|Street/);
     expect(stored).not.toContain("author");
     expect(stored).not.toContain('"lat"');
@@ -331,6 +332,44 @@ describe("live poll", () => {
     expect(result.body.status).toBe("error");
     expect(result.body.skipped).toBe("budget");
     expect(JSON.stringify(result.body)).not.toMatch(/\$|USD/);
+  });
+
+  it("counts a read when the tick does not publish", async () => {
+    if (await skipsWhenUnapproved()) return;
+    const kv = memoryKv();
+    let calls = 0;
+    const result = await runRelayPoll({
+      env: liveEnv(),
+      authorization: "Bearer cron-test",
+      now: NOW,
+      kv,
+      timeoutMs: 20,
+      fetchImpl: (_url, init) => {
+        calls += 1;
+        if (calls === 1) {
+          return Promise.resolve(
+            jsonResponse(200, {
+              data: [
+                {
+                  id: TWEET_A,
+                  text: "Road work.",
+                  created_at: "2026-01-15T15:00:00.000Z",
+                  entities: { urls: [{ expanded_url: NIXLE }] },
+                },
+              ],
+              meta: { newest_id: TWEET_A, next_token: "more" },
+            }),
+          );
+        }
+        return new Promise((_resolve, reject) => {
+          const fail = () => reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+          if (init?.signal?.aborted) fail();
+          else init?.signal?.addEventListener("abort", fail, { once: true });
+        });
+      },
+    });
+    expect(result.body.status).toBe("error");
+    expect(kv.values.get("an-alq:relay:budget:2026-01")).toBe("1");
   });
 
   it("stops before another run would cross the budget", async () => {
@@ -374,7 +413,7 @@ describe("live poll", () => {
             jurisdiction: null,
             firstSeen: new Date(NOW - 50 * 60_000).toISOString(),
             lastSeen: new Date(NOW - 46 * 60_000).toISOString(),
-            nixleUrl: NIXLE,
+            sourceUrl: NIXLE,
             pulse: { periodMs: 1_000, opacity: 0.4 },
             receptions: 0,
             receptionMark: "none",
@@ -653,49 +692,75 @@ describe("ingest", () => {
       now: NOW,
     });
     expect(denied.status).toBe(401);
+    const unset = await handleIngest({
+      env: { ...liveEnv(), RELAY_INGEST_SECRET: "" },
+      authorization: "Bearer ingest-test",
+      body: {},
+      kv,
+      now: NOW,
+    });
+    expect(unset.status).toBe(401);
     const kvLive = memoryKv();
     const blocked = await handleIngest({
-      env: liveEnv(),
-      authorization: "Bearer cron-test",
+      env: { ...liveEnv(), RELAY_SOURCE: "other" },
+      authorization: "Bearer ingest-test",
       kv: kvLive,
       now: NOW,
       body: {
         summary: "Road work ahead",
         category: "traffic",
         observedAt: "2026-01-15T15:00:00.000Z",
-        nixleUrl: NIXLE,
+        sourceUrl: NIXLE,
       },
     });
-    if (!sourceIsApproved()) {
-      expect(blocked.body.skipped).toBe("source");
-      expect(blocked.body.stored).toBe(false);
-      expect(kvLive.values.has(SNAPSHOT_KEY)).toBe(false);
-    }
+    expect(blocked.body.skipped).toBe("source");
+    expect(blocked.body.stored).toBe(false);
+    expect(kvLive.values.has(SNAPSHOT_KEY)).toBe(false);
     const demoKv = memoryKv();
     const demo = await handleIngest({
       env: { ...liveEnv(), RELAY_MODE: "demo" },
-      authorization: "Bearer cron-test",
+      authorization: "Bearer ingest-test",
       kv: demoKv,
       now: NOW,
       body: {
         summary: "Road work ahead",
         category: "traffic",
         observedAt: "2026-01-15T15:00:00.000Z",
-        nixleUrl: NIXLE,
+        sourceUrl: NIXLE,
       },
     });
+    expect(demo.body.skipped).toBe("demo");
     expect(demo.body.stored).toBe(false);
     expect(demoKv.values.has(SNAPSHOT_KEY)).toBe(false);
+    for (const extra of [{ VERCEL_ENV: "preview" }, { RELAY_STREAM: "1" }]) {
+      const gated = memoryKv();
+      const held = await handleIngest({
+        env: { ...liveEnv(), ...extra },
+        authorization: "Bearer ingest-test",
+        kv: gated,
+        now: NOW,
+        body: {
+          summary: "Road work ahead",
+          category: "traffic",
+          observedAt: "2026-01-15T15:00:00.000Z",
+          sourceUrl: NIXLE,
+        },
+      });
+      expect(livePollingAllowed({ ...liveEnv(), ...extra })).toBe(false);
+      expect(held.body.skipped).toBe("demo");
+      expect(held.body.stored).toBe(false);
+      expect(gated.values.has(SNAPSHOT_KEY)).toBe(false);
+    }
     const rejected = await handleIngest({
       env: liveEnv(),
-      authorization: "Bearer cron-test",
+      authorization: "Bearer ingest-test",
       kv,
       now: NOW,
       body: {
         summary: "Authorization: Bearer abc",
         category: "traffic",
         observedAt: "2026-01-15T15:00:00.000Z",
-        nixleUrl: NIXLE,
+        sourceUrl: NIXLE,
       },
     });
     if (sourceIsApproved()) expect(rejected.status).toBe(400);
@@ -715,7 +780,7 @@ describe("ingest", () => {
       summary: attack,
       category: "traffic",
       observedAt: "2026-01-15T15:00:00.000Z",
-      nixleUrl: NIXLE,
+      sourceUrl: NIXLE,
     });
     expect(parsed.ok).toBe(false);
     expect(performance.now() - started).toBeLessThan(100);
@@ -723,8 +788,14 @@ describe("ingest", () => {
       summary: "Road work a@b.co",
       category: "traffic",
       observedAt: "2026-01-15T15:00:00.000Z",
-      nixleUrl: NIXLE,
+      sourceUrl: NIXLE,
     });
     expect(mailbox.ok).toBe(false);
+  });
+
+  it("strips a personal name and keeps an agency phrase", () => {
+    expect(tightenSummary("Road work for Jane Doe")).not.toMatch(/Jane|Doe/);
+    expect(tightenSummary("Fire Department notice")).toMatch(/Fire Department/);
+    expect(tightenSummary("South Brunswick traffic advisory")).toMatch(/South Brunswick/);
   });
 });

@@ -78,7 +78,45 @@ input {
 .shell {
   min-height: 100dvh;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.site-footer {
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.site-footer a:hover {
+  color: var(--text);
+}
+
+.privacy {
+  max-width: 42rem;
+}
+
+.privacy h1 {
+  margin-bottom: 8px;
+}
+
+.privacy h2 {
+  margin: 28px 0 8px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.privacy p,
+.privacy li {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.privacy ul {
+  margin: 0;
+  padding-left: 1.1rem;
 }
 
 .nav {

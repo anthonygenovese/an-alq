@@ -29,10 +29,12 @@ Read-only [Model Context Protocol](https://modelcontextprotocol.io) server and a
 | T1 range trainer   | `apps/sim`                                   | Shipped. Waterfall and skill map.                                                                                                                                                     |
 | Skill map          | `apps/sim/src/engine/skill-map.ts`           | Shipped. T1 nodes can light. Barrage, FHSS, and TDOA can light from definitions. One T2 node is a fictional grid. One T5 node is a board label. Spot, RGPO, VGPO, and T4 stay locked. |
 | Trainer engine     | `apps/sim/src/engine`                        | Shared by the UI. Not a network service.                                                                                                                                              |
-| Nixle signal relay | `apps/relay`                                 | In progress. Reads public alerts. Does not post. See the threat model.                                                                                                                |
+| Public alert relay | `apps/relay`                                 | No live source. A `SignalSource` adapter is present and off. Does not post. See the threat model.                                                                                     |
 | `mcp.an-alq.com`   | Vercel project `an-alq-mcp`, root `apps/mcp` | Live. Not deployed by CI. Same stateless endpoint.                                                                                                                                    |
 
-A verified receipt counts the five newest Nixle emails, not the five newest messages in the inbox. The browser lists `INBOX` with `q=from:(nixle.com OR nixle.us)` and `maxResults=5`, so other mail is not fetched and does not use a slot. The copy when the alert is older than that is "no longer in your latest 5 Nixle alerts". The server still requires the DKIM-signed `Date` to fall inside the freshness window (default 60 minutes). `gmail.readonly` can read the whole mailbox; the cap is this client's list call, not Google's scope.
+`RELAY_SOURCE` is blank by default. `APPROVED_RELAY_SOURCES` is empty, so no env value selects a live source. The daily cron stays scheduled and does not read until an owner-approved source is named. A former Nixle adapter remains in the tree and is not selectable.
+
+The mailbox receipt path is paused. It is not the live source. It was written for a former Nixle mail feed: the browser lists `INBOX` with `q=from:(nixle.com OR nixle.us)` and `maxResults=5`, so other mail is not fetched and does not use a slot. The copy when the alert is older than that window still says "no longer in your latest 5 Nixle alerts". The server still requires the DKIM-signed `Date` to fall inside the freshness window (default 60 minutes). `gmail.readonly` can read the whole mailbox; the cap is this client's list call, not Google's scope.
 
 ## Architecture
 
@@ -229,16 +231,16 @@ Signed tags are an owner control. The private key does not live in CI. See [docs
 
 ## Roadmap
 
-| Item                                       | State                                                                                                                                                             |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MCP server v0.1 and T1 trainer             | On `main`.                                                                                                                                                        |
-| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR.                                                                                      |
-| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                                                                                                             |
-| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                                                                                            |
-| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                                                                                        |
-| T2–T5 playable tiers                       | Grid, TDOA definition, FHSS definition, and a collateral board label can light. Spot, RGPO, VGPO, AOA, DSSS, selectivity, T4, and the other T5 nodes stay locked. |
-| Nixle-to-X relay                           | Public read on a daily cron (once a day). The page shows a Redis snapshot, or demo fixtures. Nothing is posted.                                                   |
-| Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.                                                                                 |
+| Item                                       | State                                                                                                                                                                                                                  |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP server v0.1 and T1 trainer             | On `main`.                                                                                                                                                                                                             |
+| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR.                                                                                                                                           |
+| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                                                                                                                                                                  |
+| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                                                                                                                                                 |
+| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                                                                                                                                             |
+| T2–T5 playable tiers                       | Grid, TDOA definition, FHSS definition, and a collateral board label can light. Spot, RGPO, VGPO, AOA, DSSS, selectivity, T4, and the other T5 nodes stay locked.                                                      |
+| Public alert relay                         | Daily cron stays once a day (`0 13 * * *`) and is a no-op. `RELAY_SOURCE` is blank. `APPROVED_RELAY_SOURCES` is empty. The live source is TBD pending owner approval. The page shows demo fixtures. Nothing is posted. |
+| Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.                                                                                                                                      |
 
 ## Development
 

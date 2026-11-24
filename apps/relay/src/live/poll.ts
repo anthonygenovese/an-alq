@@ -21,6 +21,7 @@ import {
   secondsUntilNextUtcMonth,
 } from "./budget.js";
 import { configuredRelaySource, livePollingAllowed, redisRest } from "./mode.js";
+import { searchQueryForSource } from "./sources.js";
 
 export { configuredRelaySource };
 import {
@@ -97,7 +98,9 @@ export async function runRelayPoll(input: {
   if (!cronAuthorized(input.authorization, input.env.CRON_SECRET)) {
     return { status: 401, body: { ok: false } };
   }
-  if (!configuredRelaySource(input.env)) {
+  const sourceId = configuredRelaySource(input.env);
+  const query = sourceId ? searchQueryForSource(sourceId) : null;
+  if (!query) {
     return { status: 200, body: { ok: true, skipped: "source" } };
   }
   if (!livePollingAllowed(input.env)) {
@@ -133,7 +136,7 @@ export async function runRelayPoll(input: {
   });
   const source = new XSource(reader);
   const run = (sinceId?: string, startTime?: string) =>
-    source.pullContract({
+    source.pullContract(query, {
       sinceId,
       startTime,
       maxResults: affordable,
@@ -189,6 +192,13 @@ export async function handleIngest(input: {
 }): Promise<PollResult> {
   if (!cronAuthorized(input.authorization, input.env.CRON_SECRET)) {
     return { status: 401, body: { ok: false } };
+  }
+  const sourceId = configuredRelaySource(input.env);
+  if (!sourceId || !searchQueryForSource(sourceId)) {
+    return { status: 200, body: { ok: true, stored: false, skipped: "source" } };
+  }
+  if (input.env.RELAY_MODE !== "live") {
+    return { status: 200, body: { ok: true, stored: false, skipped: "demo" } };
   }
   const parsed = parseIngestBody(input.body);
   if (!parsed.ok) return { status: 400, body: { ok: false } };

@@ -1,4 +1,4 @@
-import type { SignalSource } from "../source.js";
+import type { Signal, SignalSource } from "../source.js";
 import type { RawPost } from "../types.js";
 import { NIXLE_SEARCH_QUERY, XReader, type RecentSearchReport } from "./read.js";
 
@@ -18,6 +18,15 @@ export class XSource implements SignalSource {
     maxResults = 10,
   ) {
     this.#maxResults = maxResults;
+  }
+
+  fetch(signal?: AbortSignal): Promise<RawPost[]> {
+    return this.pull(signal);
+  }
+
+  normalize(post: RawPost): Signal | null {
+    void post;
+    return null;
   }
 
   async pull(signal?: AbortSignal): Promise<RawPost[]> {

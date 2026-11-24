@@ -30,8 +30,8 @@ describe("recorded Nixle email", () => {
     expect(scan.status).toBe("match");
     if (scan.status !== "match") return;
     expect(scan.dkimCoversDate).toBe(true);
-    expect(scan.extract.nixleKey).toBe(ALERT_KEY);
-    expect(scan.extract.nixleUrl).toBe(ALERT_URL);
+    expect(scan.extract.sourceKey).toBe(ALERT_KEY);
+    expect(scan.extract.sourceUrl).toBe(ALERT_URL);
     expect(scan.extract.agency).toBe("South Brunswick PD");
     expect(scan.extract.category).toBe("traffic");
     expect(scan.provenDate).toBe("2026-01-15T15:00:00.000Z");
@@ -43,7 +43,7 @@ describe("recorded Nixle email", () => {
     const candidate = parsePost(postFromExtract(scan.extract), geocoder);
     expect(candidate).not.toBeNull();
     if (!candidate) return;
-    expect(candidate.nixleKey).toBe(ALERT_KEY);
+    expect(candidate.sourceKey).toBe(ALERT_KEY);
     expect(candidate.location).toEqual({
       lat: 40.39,
       lon: -74.54,
@@ -57,7 +57,7 @@ describe("recorded Nixle email", () => {
     const opened = board.signals(observedMs);
     expect(opened).toHaveLength(1);
     const signal = opened[0];
-    expect(signal?.nixleKey).toBe(ALERT_KEY);
+    expect(signal?.sourceKey).toBe(ALERT_KEY);
     expect(signal?.pulse).toEqual(pulseFromActivity(1));
     expect(signal?.receptions).toBe(0);
     const published = JSON.stringify(opened);

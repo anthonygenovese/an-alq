@@ -8,8 +8,8 @@ export interface AlertExtract {
   agency: string | null;
   jurisdiction: string | null;
   observedAt: string;
-  nixleUrl: string | null;
-  nixleKey: string | null;
+  sourceUrl: string | null;
+  sourceKey: string | null;
   location: GeoPoint | null;
 }
 
@@ -35,19 +35,19 @@ export function extractFromPost(post: RawPost, geocoder: Geocoder): AlertExtract
     agency: parsed.agency,
     jurisdiction: parsed.jurisdiction,
     observedAt: new Date(parsed.createdAt).toISOString(),
-    nixleUrl: parsed.nixleUrl,
-    nixleKey: parsed.nixleKey,
+    sourceUrl: parsed.sourceUrl,
+    sourceKey: parsed.sourceKey,
     location: parsed.location,
   };
 }
 
 export function postFromExtract(extract: AlertExtract): RawPost {
-  const url = extract.nixleUrl ?? "";
+  const url = extract.sourceUrl ?? "";
   return {
     text: url ? `${extract.summary}\n${url}` : extract.summary,
     createdAt: Date.parse(extract.observedAt),
     urls: url ? [url] : [],
     accountMaterial: null,
-    postMaterial: `extract|${extract.nixleKey ?? extract.summary}|${extract.observedAt}`,
+    postMaterial: `extract|${extract.sourceKey ?? extract.summary}|${extract.observedAt}`,
   };
 }

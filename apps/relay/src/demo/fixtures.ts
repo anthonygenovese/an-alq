@@ -8,14 +8,14 @@ export interface FixturePost {
 }
 
 const TRAFFIC =
-  "South Brunswick PD: Traffic advisory. Route 1 southbound closed at Finnegans Lane due to a disabled vehicle. Expect delays.";
-const TRAFFIC_URL = "https://local.nixle.com/alert/1000001";
+  "Test data. South Brunswick PD: Traffic advisory. Route 1 southbound closed at Finnegans Lane due to a disabled vehicle. Expect delays.";
+const TRAFFIC_URL = "https://alerts.example.test/item/1000001";
 const WEATHER =
-  "South Brunswick OEM: Flash flood warning for the township until evening. Avoid low roads.";
-const WEATHER_URL = "https://nixle.us/SYNTH1002";
+  "Test data. South Brunswick OEM: Flash flood warning for the township until evening. Avoid low roads.";
+const WEATHER_URL = "https://alerts.example.test/item/1000002";
 
 /**
- * Synthetic posts. Handles are fake on purpose and must never reach the UI.
+ * Synthetic test data. Not a live source. Handles are fake and must never reach the UI.
  * Times are offsets from the demo epoch so the clock can run fast.
  */
 export const FIXTURES: readonly FixturePost[] = [
@@ -73,8 +73,8 @@ export const FIXTURES: readonly FixturePost[] = [
   {
     atMs: 20_000,
     token: "fixture-west",
-    text: "NYPD: Missing person exercise advisory. Synthetic fixture, not a real person, last marked near 42nd Street and 7th Avenue. https://local.nixle.com/alert/1000008",
-    urls: ["https://local.nixle.com/alert/1000008"],
+    text: "NYPD: Missing person exercise advisory. Synthetic fixture, not a real person, last marked near 42nd Street and 7th Avenue. https://alerts.example.test/item/1000008",
+    urls: ["https://alerts.example.test/item/1000008"],
   },
   {
     atMs: 22_000,
@@ -84,20 +84,20 @@ export const FIXTURES: readonly FixturePost[] = [
   {
     atMs: 28_000,
     token: "fixture-south",
-    text: "FDNY: Structure fire on 42nd Street and 7th Avenue. Avoid the block. Synthetic fixture. https://local.nixle.com/alert/1000009",
-    urls: ["https://local.nixle.com/alert/1000009"],
+    text: "FDNY: Structure fire on 42nd Street and 7th Avenue. Avoid the block. Synthetic fixture. https://alerts.example.test/item/1000009",
+    urls: ["https://alerts.example.test/item/1000009"],
   },
   {
     atMs: 36_000,
     token: "fixture-north",
-    text: "Edison PD: Traffic advisory. Route 1 delays near Oak Tree Road. Synthetic fixture. https://local.nixle.com/alert/1000020",
-    urls: ["https://local.nixle.com/alert/1000020"],
+    text: "Edison PD: Traffic advisory. Route 1 delays near Oak Tree Road. Synthetic fixture. https://alerts.example.test/item/1000020",
+    urls: ["https://alerts.example.test/item/1000020"],
   },
   {
     atMs: 48_000,
     token: "fixture-east",
-    text: "Newark PD: Police activity near Broad Street and Market Street. Avoid the area. Synthetic fixture. https://local.nixle.com/alert/1000011",
-    urls: ["https://local.nixle.com/alert/1000011"],
+    text: "Newark PD: Police activity near Broad Street and Market Street. Avoid the area. Synthetic fixture. https://alerts.example.test/item/1000011",
+    urls: ["https://alerts.example.test/item/1000011"],
   },
   {
     atMs: 45 * 60_000,

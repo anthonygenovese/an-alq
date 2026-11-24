@@ -16,7 +16,7 @@ interface LiveCard {
   category: Category;
   agency: string | null;
   pulse: Pulse;
-  nixleUrl: string | null;
+  sourceUrl: string | null;
 }
 
 export function RelayBoard() {
@@ -25,6 +25,7 @@ export function RelayBoard() {
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
   const [live, setLive] = useState<LiveCard[] | null>(null);
   const [liveNote, setLiveNote] = useState<string | null>(null);
+  const [allowedHosts, setAllowedHosts] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,10 +39,12 @@ export function RelayBoard() {
           stale?: boolean;
           source?: string;
           notice?: string | null;
+          allowedHosts?: string[];
           disclaimer?: string;
           items?: LiveCard[];
         };
         if (cancelled) return;
+        setAllowedHosts(Array.isArray(body.allowedHosts) ? body.allowedHosts : []);
         if (body.source === "none" || body.notice === "No live source configured") {
           setLive(null);
           setLiveNote("No live source configured");
@@ -195,7 +198,7 @@ export function RelayBoard() {
             <li className="empty-signals">No signals in the window yet.</li>
           ) : null}
           {live?.map((signal) => (
-            <li key={`${signal.nixleUrl ?? signal.summary}`}>
+            <li key={`${signal.sourceUrl ?? signal.summary}`}>
               <div className="signal-kicker">
                 <span>{CATEGORY_LABEL[signal.category]}</span>
                 <span>
@@ -206,9 +209,11 @@ export function RelayBoard() {
                   />
                 </span>
               </div>
-              {nixleLink(signal.nixleUrl) ? (
+              {allowedLink(signal.sourceUrl, allowedHosts) ? (
                 <p>
-                  <a href={nixleLink(signal.nixleUrl) ?? undefined}>{signal.summary}</a>
+                  <a href={allowedLink(signal.sourceUrl, allowedHosts) ?? undefined}>
+                    {signal.summary}
+                  </a>
                 </p>
               ) : (
                 <p>{signal.summary}</p>
@@ -248,21 +253,16 @@ export function RelayBoard() {
   );
 }
 
-function nixleLink(url: string | null): string | null {
-  if (!url) return null;
+function allowedLink(url: string | null, hosts: readonly string[]): string | null {
+  if (!url || hosts.length === 0) return null;
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== "https:") return null;
     const host = parsed.hostname.toLowerCase();
-    if (
-      host !== "nixle.us" &&
-      host !== "nixle.com" &&
-      !host.endsWith(".nixle.us") &&
-      !host.endsWith(".nixle.com")
-    ) {
-      return null;
-    }
-    return parsed.toString();
+    const listed = hosts.some(
+      (allowed) => host === allowed || host.endsWith(`.${allowed.toLowerCase()}`),
+    );
+    return listed ? parsed.toString() : null;
   } catch {
     return null;
   }

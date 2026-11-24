@@ -17,7 +17,7 @@ export function parsePost(post: RawPost, geocoder: Geocoder): Candidate | null {
   const alert = nixle !== null || (agency !== null && category !== "other");
   if (!alert) return null;
   let summary = displaySummary(text);
-  if (!summary && nixle) summary = "Nixle alert";
+  if (!summary && nixle) summary = "Public alert";
   if (!summary) return null;
   const intersection = parseIntersection(normalizedText);
   const location = locateAgency(agency, intersection, geocoder);
@@ -25,8 +25,8 @@ export function parsePost(post: RawPost, geocoder: Geocoder): Candidate | null {
     normalizedText,
     summary,
     category,
-    nixleKey: nixle?.key ?? null,
-    nixleUrl: nixle?.url ?? null,
+    sourceKey: nixle?.key ?? null,
+    sourceUrl: nixle?.url ?? null,
     agency: agency?.name ?? null,
     jurisdiction: agency?.jurisdiction ?? null,
     location,

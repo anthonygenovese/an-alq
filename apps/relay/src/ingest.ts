@@ -1,3 +1,4 @@
+import { hostAllowed, NIXLE_HOSTS } from "./sources/allow.js";
 import { CATEGORIES, type Category, type GeoPoint, type Precision } from "./types.js";
 import type { AlertExtract } from "./extract.js";
 
@@ -7,8 +8,8 @@ const ALLOWED = new Set([
   "agency",
   "jurisdiction",
   "observedAt",
-  "nixleUrl",
-  "nixleKey",
+  "sourceUrl",
+  "sourceKey",
   "location",
 ]);
 
@@ -24,7 +25,7 @@ export const MAX_EMAIL_SCAN = 4_096;
 export type IngestResult = { ok: true; extract: AlertExtract } | { ok: false; reason: "rejected" };
 
 /** Strict anonymous body. Any identity, header, or token field is rejected. */
-export function parseIngestBody(value: unknown): IngestResult {
+export function parseIngestBody(value: unknown, hosts: readonly string[] = []): IngestResult {
   if (!isRecord(value)) return { ok: false, reason: "rejected" };
   for (const key of Object.keys(value)) {
     if (!ALLOWED.has(key)) return { ok: false, reason: "rejected" };
@@ -39,17 +40,17 @@ export function parseIngestBody(value: unknown): IngestResult {
   if (hasSecret(summary) || containsEmail(summary)) return { ok: false, reason: "rejected" };
   const agency = optionalString(value.agency, 80);
   const jurisdiction = optionalString(value.jurisdiction, 80);
-  const nixleUrl = optionalString(value.nixleUrl, 200);
-  const nixleKey = optionalString(value.nixleKey, 80);
+  const sourceUrl = optionalString(value.sourceUrl, 200);
+  const sourceKey = optionalString(value.sourceKey, 80);
   if (
     agency === undefined ||
     jurisdiction === undefined ||
-    nixleUrl === undefined ||
-    nixleKey === undefined
+    sourceUrl === undefined ||
+    sourceKey === undefined
   ) {
     return { ok: false, reason: "rejected" };
   }
-  if (nixleUrl && !/^https:\/\/([a-z0-9.-]+\.)?nixle\.(us|com)\//i.test(nixleUrl)) {
+  if (sourceUrl && !hostAllowed(sourceUrl, hosts)) {
     return { ok: false, reason: "rejected" };
   }
   const location = readLocation(value.location);
@@ -60,8 +61,8 @@ export function parseIngestBody(value: unknown): IngestResult {
     agency,
     jurisdiction,
     observedAt: new Date(Date.parse(observedAt)).toISOString(),
-    nixleUrl,
-    nixleKey,
+    sourceUrl,
+    sourceKey,
     location,
   };
   if (containsSecret(extract)) return { ok: false, reason: "rejected" };
@@ -74,7 +75,7 @@ export function ingestRequest(extract: AlertExtract): {
   headers: { "content-type": "application/json" };
   body: string;
 } {
-  const clean = parseIngestBody(extract);
+  const clean = parseIngestBody(extract, NIXLE_HOSTS);
   if (!clean.ok) throw new Error("ingest rejected");
   return {
     url: "/api/ingest",

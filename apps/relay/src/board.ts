@@ -23,8 +23,8 @@ interface Live {
   shingles: string[];
   summary: string;
   category: Category;
-  nixleKey: string | null;
-  nixleUrl: string | null;
+  sourceKey: string | null;
+  sourceUrl: string | null;
   agency: string | null;
   jurisdiction: string | null;
   location: GeoPoint | null;
@@ -132,7 +132,7 @@ export class SignalBoard {
   }
 
   #key(candidate: Candidate, now: number): string | null {
-    const identity = candidate.nixleKey ?? candidate.normalizedText;
+    const identity = candidate.sourceKey ?? candidate.normalizedText;
     if (candidate.accountMaterial) {
       return this.#salt.hash(`${candidate.accountMaterial}|${identity}`, now);
     }
@@ -144,8 +144,9 @@ export class SignalBoard {
     const matches = this.#signals.filter((signal) => this.#canMerge(signal, candidate));
     if (matches.length === 0) return null;
     matches.sort((left, right) => {
-      const leftExact = left.nixleKey !== null && left.nixleKey === candidate.nixleKey ? 1 : 0;
-      const rightExact = right.nixleKey !== null && right.nixleKey === candidate.nixleKey ? 1 : 0;
+      const leftExact = left.sourceKey !== null && left.sourceKey === candidate.sourceKey ? 1 : 0;
+      const rightExact =
+        right.sourceKey !== null && right.sourceKey === candidate.sourceKey ? 1 : 0;
       if (leftExact !== rightExact) return rightExact - leftExact;
       const leftScore = jaccard(left.shingles, shingles(candidate.normalizedText));
       const rightScore = jaccard(right.shingles, shingles(candidate.normalizedText));
@@ -162,9 +163,9 @@ export class SignalBoard {
     const start = Math.min(signal.firstSeen, candidate.createdAt);
     const end = Math.max(signal.lastSeen, candidate.createdAt);
     if (end - start > this.config.timeWindowMs) return false;
-    if (signal.nixleKey && candidate.nixleKey && signal.nixleKey !== candidate.nixleKey)
+    if (signal.sourceKey && candidate.sourceKey && signal.sourceKey !== candidate.sourceKey)
       return false;
-    const sameNixle = signal.nixleKey !== null && signal.nixleKey === candidate.nixleKey;
+    const sameNixle = signal.sourceKey !== null && signal.sourceKey === candidate.sourceKey;
     const similar =
       sameNixle ||
       textSimilar(signal.normalizedText, candidate.normalizedText, this.config.similarity);
@@ -184,8 +185,8 @@ export class SignalBoard {
     signal.firstSeen = Math.min(signal.firstSeen, candidate.createdAt);
     signal.lastSeen = Math.max(signal.lastSeen, candidate.createdAt);
     signal.category = preferCategory(signal.category, candidate.category);
-    if (!signal.nixleKey && candidate.nixleKey) signal.nixleKey = candidate.nixleKey;
-    if (!signal.nixleUrl && candidate.nixleUrl) signal.nixleUrl = candidate.nixleUrl;
+    if (!signal.sourceKey && candidate.sourceKey) signal.sourceKey = candidate.sourceKey;
+    if (!signal.sourceUrl && candidate.sourceUrl) signal.sourceUrl = candidate.sourceUrl;
     if (!signal.agency && candidate.agency) signal.agency = candidate.agency;
     if (!signal.jurisdiction && candidate.jurisdiction)
       signal.jurisdiction = candidate.jurisdiction;
@@ -215,8 +216,8 @@ export class SignalBoard {
       shingles: shingles(candidate.normalizedText),
       summary: candidate.summary,
       category: candidate.category,
-      nixleKey: candidate.nixleKey,
-      nixleUrl: candidate.nixleUrl,
+      sourceKey: candidate.sourceKey,
+      sourceUrl: candidate.sourceUrl,
       agency: candidate.agency,
       jurisdiction: candidate.jurisdiction,
       location: candidate.location,
@@ -241,8 +242,8 @@ export class SignalBoard {
       jurisdiction: signal.jurisdiction,
       firstSeen: new Date(signal.firstSeen).toISOString(),
       lastSeen: new Date(signal.lastSeen).toISOString(),
-      nixleUrl: signal.nixleUrl,
-      nixleKey: signal.nixleKey,
+      sourceUrl: signal.sourceUrl,
+      sourceKey: signal.sourceKey,
       location: signal.location,
       pulse: pulseFromActivity(score, this.config.pulse),
       receptions: signal.nullifiers.size,
@@ -251,7 +252,7 @@ export class SignalBoard {
   }
 
   findAlert(alertKey: string): { id: string; firstSeen: number } | null {
-    const signal = this.#signals.find((item) => item.nixleKey === alertKey);
+    const signal = this.#signals.find((item) => item.sourceKey === alertKey);
     if (!signal) return null;
     return { id: signal.id, firstSeen: signal.firstSeen };
   }

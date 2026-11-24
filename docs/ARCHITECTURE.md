@@ -2,11 +2,11 @@
 
 AN-ALQ in this repository is a pnpm workspace. The web shell, the MCP server, and the relay demo share the emitter catalog. The relay reads public alerts and does not post.
 
-| Piece              | Runs as                                                | Talks to                                                           |
-| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| Web shell          | Next.js in `apps/web`. Vercel project `an-alq-web`.    | The trainer, the skill map, and the relay demo. No call to `/mcp`. |
-| MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.   |
-| Range trainer      | `apps/sim`, mounted by the web shell and by Vite       | The emitter package, bundled. No call to `/mcp`.                   |
+| Piece              | Runs as                                                | Talks to                                                                              |
+| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Web shell          | Next.js in `apps/web`. Vercel project `an-alq-web`.    | The trainer, the skill map, and the relay demo. No call to `/mcp`.                    |
+| MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.                      |
+| Range trainer      | `apps/sim`, mounted by the web shell and by Vite       | The emitter package, bundled. No call to `/mcp`.                                      |
 | Public alert relay | `apps/relay`, polled by `apps/web`                     | `SignalSource` adapter. No approved source, so the poll does not read. Does not post. |
 
 Capability figures and emitter-library numbers are illustrative. The trainer's waterfall is synthetic. Nothing in this tree is a receiver, recorder, jammer, spoofer, or geolocation system.

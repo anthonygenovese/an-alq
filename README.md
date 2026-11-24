@@ -231,16 +231,16 @@ Signed tags are an owner control. The private key does not live in CI. See [docs
 
 ## Roadmap
 
-| Item                                       | State                                                                                                                                                             |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MCP server v0.1 and T1 trainer             | On `main`.                                                                                                                                                        |
-| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR.                                                                                      |
-| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                                                                                                             |
-| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                                                                                            |
-| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                                                                                        |
-| T2–T5 playable tiers                       | Grid, TDOA definition, FHSS definition, and a collateral board label can light. Spot, RGPO, VGPO, AOA, DSSS, selectivity, T4, and the other T5 nodes stay locked. |
+| Item                                       | State                                                                                                                                                                                                                  |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP server v0.1 and T1 trainer             | On `main`.                                                                                                                                                                                                             |
+| Scorecard, CodeQL, audit, SBOM, provenance | This change. A release is cut by release-please after merge, not by this PR.                                                                                                                                           |
+| `mcp.an-alq.com`                           | Attached to the `an-alq-mcp` project. Not done by CI.                                                                                                                                                                  |
+| OAuth 2.1                                  | Only if a ZIP is ever stored. v0.1 does not store one.                                                                                                                                                                 |
+| Live content job                           | Contract is `content/FORMAT.md`. The server keeps reading.                                                                                                                                                             |
+| T2–T5 playable tiers                       | Grid, TDOA definition, FHSS definition, and a collateral board label can light. Spot, RGPO, VGPO, AOA, DSSS, selectivity, T4, and the other T5 nodes stay locked.                                                      |
 | Public alert relay                         | Daily cron stays once a day (`0 13 * * *`) and is a no-op. `RELAY_SOURCE` is blank. `APPROVED_RELAY_SOURCES` is empty. The live source is TBD pending owner approval. The page shows demo fixtures. Nothing is posted. |
-| Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.                                                                                 |
+| Move to `apps/` and `packages/`            | Done. Deployable apps live in `apps/`. `packages/emitters` is the shared library.                                                                                                                                      |
 
 ## Development
 

@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
   ...(staticExport
     ? {}
     : {
+        async redirects() {
+          return [
+            { source: "/lander", destination: "/", permanent: true },
+            { source: "/lander4", destination: "/", permanent: true },
+          ];
+        },
         async headers() {
           return [{ source: "/:path*", headers: [...securityHeaders] }];
         },

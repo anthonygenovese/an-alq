@@ -30,6 +30,16 @@ Development-window guardrails captured for ongoing reference. Apply before any f
 - Every bypass attempt is a patch opportunity — log it, review it, close it.
 - The model should never coach a user on how to defeat its own safeguards.
 
+## 6. X Posts and User objects leave only with the redistribution guardrails
+
+Any export or download of X Posts or User objects must ship with these guardrails, from the [X Developer Policy, Content redistribution](https://docs.x.com/developer-terms/policy):
+
+- Count a daily cap of 50,000 public Posts Objects and/or User Objects for each person who uses the service. The policy counts that allowance per person who uses the service, not as a shared pool.
+- Allow that object download only by non-automated means, such as a person downloading a spreadsheet or a PDF.
+- Before anyone receives such a download, require them to agree to the X Terms of Service, Privacy Policy, Developer Agreement, and Developer Policy.
+- Do not distribute more than 1,500,000 Post IDs to any entity, including multiple individuals associated with a single entity, within any 30 day period, unless X has given written permission. Keep a counter for that window.
+- If X Content goes to third parties, including a downloadable dataset or an API, distribute only Post IDs, Direct Message IDs, and/or User IDs, except for the non-automated public object allowance above.
+
 ## Core principle
 
 Safety is a baseline, not a differentiator. The moment it becomes a competitive liability instead of a floor, the product has already lost the argument — before any external review happens.

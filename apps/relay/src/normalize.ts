@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 const URL_PATTERN = /https?:\/\/\S+/gi;
 const WWW_PATTERN = /\bwww\.\S+/gi;
 const HANDLE_PATTERN = /@[\w_]+/g;

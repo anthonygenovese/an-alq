@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { drawsFromRound, sampleRow } from "../engine/signature.js";
 import type { SignatureDraw, TrainingRound } from "../engine/types.js";
 import { colorAt } from "../colormap.js";

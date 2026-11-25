@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { SignalBoard, type BoardConfig } from "./board.js";
 import { DEMO_DECAY, DEFAULT_DECAY } from "./decay.js";
 import { FIXTURES, type FixturePost } from "./demo/fixtures.js";

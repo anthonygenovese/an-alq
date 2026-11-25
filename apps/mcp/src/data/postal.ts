@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Public USPS first-digit areas. A note for a sample edition, not a location. */
 const PREFIX_REGION: Readonly<Record<string, string>> = {
   "0": "USPS prefix 0 (New England, New Jersey, Puerto Rico, and nearby)",

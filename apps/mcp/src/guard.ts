@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { MAX_ARGUMENT_KEYS, ZIP_CHECK_IN_PROMPT } from "./config.js";
 import { TOOL_INPUT_SCHEMAS, formatIssues, zipCheckInArgsSchema } from "./schemas.js";
 

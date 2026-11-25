@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { activityScore } from "./decay.js";
 import { clamp01, easeOutCubic, pulseFromActivity, type PulseConfig } from "./pulse.js";
 import type { ContributionNode } from "./types.js";

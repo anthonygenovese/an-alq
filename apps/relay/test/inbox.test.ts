@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { fnv1a64, hamming, simhash } from "../src/fingerprint.js";
 import { htmlToText } from "../src/gmail/parse.js";

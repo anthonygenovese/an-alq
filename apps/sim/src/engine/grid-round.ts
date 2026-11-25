@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { z } from "zod/v3";
 import { mulberry32 } from "./prng.js";
 

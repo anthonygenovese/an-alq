@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Category } from "./types.js";
 
 const RULES: ReadonlyArray<{ category: Category; pattern: RegExp }> = [

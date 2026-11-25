@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { handleIngest } from "@an-alq/relay/live";
 
 export async function POST(request: Request): Promise<Response> {

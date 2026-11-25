@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { nixleSearchQuery } from "../nixle/adapter.js";
 import { NIXLE_SOURCE_ID } from "../sources/allow.js";
 

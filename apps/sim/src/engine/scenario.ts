@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { ILLUSTRATIVE } from "@an-alq/emitters";
 import { z } from "zod/v3";
 import { generateRound, trainingRoundSchema } from "./generator.js";

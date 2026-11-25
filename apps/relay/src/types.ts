@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export const CATEGORIES = [
   "missing_person",
   "fire_ems",

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { ZodType } from "zod/v3";
 import frontierFile from "../../content/frontier-picks.json" with { type: "json" };
 import newsFile from "../../content/news-drops.json" with { type: "json" };

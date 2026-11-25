@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { SERVER_NAME, SERVER_VERSION } from "../src/config.js";
 import { allowedOriginsFromEnv, applyHttpGuards } from "../src/security.js";

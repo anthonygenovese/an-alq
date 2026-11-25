@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Category, RawPost, Sensitivity } from "./types.js";
 
 /** Common public alert. No account, post id, or location. */

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Stderr only. stdout belongs to the stdio MCP transport.
  * The payload is an allowlist. Callers cannot attach a body, a ZIP, an

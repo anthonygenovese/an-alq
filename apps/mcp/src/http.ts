@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { DEFAULT_PORT } from "./config.js";
 import { createApp } from "./app.js";
 import { logEvent } from "./log.js";

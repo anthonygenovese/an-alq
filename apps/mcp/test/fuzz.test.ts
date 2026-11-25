@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { guardRpcBody } from "../src/guard.js";

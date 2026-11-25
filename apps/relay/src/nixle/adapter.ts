@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Geocoder, RawPost } from "../types.js";
 import { extractNixle } from "../nixle.js";
 import { parsePost } from "../parse.js";

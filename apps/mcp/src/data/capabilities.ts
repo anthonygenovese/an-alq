@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { CAPABILITIES_URL, ILLUSTRATIVE, ILLUSTRATIVE_DISCLAIMER, PUBLIC_SITE } from "../config.js";
 
 export interface IllustrativeMetric {

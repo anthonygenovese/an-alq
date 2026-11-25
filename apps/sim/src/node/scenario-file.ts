@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { readFileSync } from "node:fs";
 import { loadScenario, type LoadedScenario } from "../engine/scenario.js";
 

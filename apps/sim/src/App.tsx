@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { useEffect, useState } from "react";
 import { TRAINING_DISCLAIMER } from "@an-alq/emitters";
 import { evaluateMap, suggestedDifficulty } from "./engine/skill-map.js";

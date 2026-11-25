@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 const THEME_STORAGE_KEY = "an-alq.theme";
 
 export type ThemeChoice = "light" | "dark";

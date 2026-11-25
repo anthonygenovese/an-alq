@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: MIT */
 /* Comparison routes only. Home and /lander do not use .lv. */
 
 body:has(.lv) {

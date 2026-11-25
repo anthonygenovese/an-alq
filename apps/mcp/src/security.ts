@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { NextFunction, Request, Response } from "express";
 import type { AppMode } from "./client-address.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { SENSOR_TOO_LATE } from "../copy.js";
 
 /** Shown when the alert is older than the five newest Nixle messages. */

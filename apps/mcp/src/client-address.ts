@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { IncomingMessage } from "node:http";
 
 export type AppMode = "local" | "vercel";

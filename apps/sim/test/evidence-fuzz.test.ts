@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { loadEvidence, type KeyValueStore } from "../src/engine/skill-map.js";

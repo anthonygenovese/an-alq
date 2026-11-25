@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Synchronous SHA-256. Same bytes as Node's createHash("sha256"), so the
  * relay can run in the browser demo and in the Node tests.

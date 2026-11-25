@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export { CAPABILITIES_URL, ILLUSTRATIVE, TRAINING_DISCLAIMER } from "./constants.js";
 export {
   GLOSSARY,

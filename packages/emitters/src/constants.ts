@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export const ILLUSTRATIVE = "illustrative" as const;
 
 export const CAPABILITIES_URL = "https://an-alq.com/capabilities";

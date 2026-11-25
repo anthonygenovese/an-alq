@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { z } from "zod/v3";
 import { CAPABILITIES_URL, ILLUSTRATIVE, TRAINING_DISCLAIMER } from "./constants.js";
 import { resolveGlossaryEntry } from "./glossary.js";

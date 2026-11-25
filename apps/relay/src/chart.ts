@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { ContributionNode } from "./types.js";
 
 export interface ChartPoint {

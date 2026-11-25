@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import type { IncomingMessage } from "node:http";
 import { clientAddress } from "../src/client-address.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { drawsFromRound } from "../engine/signature.js";
 import type { TrainingRound } from "../engine/types.js";

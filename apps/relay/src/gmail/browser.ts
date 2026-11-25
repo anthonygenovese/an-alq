@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Browser Gmail access goes through scanInboxForAlert.
  * That list is sender-filtered. This file stays so older imports fail closed

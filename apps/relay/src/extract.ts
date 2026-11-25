@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { nixleRef } from "./nixle/adapter.js";
 import { parsePost } from "./parse.js";
 import type { Category, Geocoder, GeoPoint, RawPost } from "./types.js";

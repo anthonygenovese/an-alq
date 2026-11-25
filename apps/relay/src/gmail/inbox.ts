@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { extractFromPost, stripAddresses } from "../extract.js";
 import type { AlertExtract } from "../extract.js";
 import { decodeBase64Url } from "./parse.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { capabilities } from "../src/data/capabilities.js";
 import { GLOSSARY_IDS } from "../src/data/glossary.js";

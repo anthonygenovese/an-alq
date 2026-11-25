@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { classify } from "./classify.js";
 import { locateAgency, parseIntersection } from "./geo.js";
 import { matchAgency } from "./gazetteer.js";

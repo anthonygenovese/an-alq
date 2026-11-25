@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { useEffect, useRef } from "react";
 import { emitterById } from "@an-alq/emitters";
 import { CLASSIFY_WINDOW_MS, type Difficulty } from "../engine/types.js";

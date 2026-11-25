@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export interface SignedDate {
   /** ISO time from the Date header. Null when the header is missing or unparseable. */
   iso: string | null;

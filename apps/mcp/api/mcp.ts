@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { RATE_LIMIT } from "../src/config.js";
 import { clientAddress } from "../src/client-address.js";

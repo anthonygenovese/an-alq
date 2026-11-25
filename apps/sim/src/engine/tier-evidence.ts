@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { z } from "zod/v3";
 import { CONCEPT_NODE_IDS, type ConceptNodeId } from "./concept-round.js";
 import { GRID_NODE_ID } from "./grid-round.js";

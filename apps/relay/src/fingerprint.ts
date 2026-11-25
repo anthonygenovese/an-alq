@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { wordTokens } from "./normalize.js";
 
 export interface SimilarityConfig {

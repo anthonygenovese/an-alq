@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export interface VoteProof {
   /** Public inputs. The recipient address is not one of them. */
   alertKey: string;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { TRAINING_DISCLAIMER, emitterLibrary, type EmitterArchetype } from "@an-alq/emitters";
 import { z } from "zod/v3";
 import { between, hashSeed, mulberry32, pick, shuffle } from "./prng.js";

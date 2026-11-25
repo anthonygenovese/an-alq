@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import packageJson from "../package.json" with { type: "json" };
 export { CAPABILITIES_URL, ILLUSTRATIVE, TRAINING_DISCLAIMER } from "@an-alq/emitters";
 

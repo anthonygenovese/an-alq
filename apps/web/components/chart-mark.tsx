@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Static chart frame for the landing page. Rings, ticks, and lit nodes. */
 export function ChartMark() {
   const rings = [46, 78, 112];

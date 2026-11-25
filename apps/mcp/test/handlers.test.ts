@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import http from "node:http";
 import { once } from "node:events";
 import type { AddressInfo } from "node:net";

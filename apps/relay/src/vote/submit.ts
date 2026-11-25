@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { SignalBoard } from "../board.js";
 import { isNullifier } from "./nullifier.js";
 import { freshAt } from "./date.js";

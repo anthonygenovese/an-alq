@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { useEffect, useMemo, useState } from "react";
 import {
   CATEGORY_LABELS,

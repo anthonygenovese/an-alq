@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export type Box = {
   x: number;
   y: number;

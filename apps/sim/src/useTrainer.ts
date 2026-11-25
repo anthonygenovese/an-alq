@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { emitterById } from "@an-alq/emitters";
 import { explainRound, type RoundFeedback } from "./engine/feedback.js";

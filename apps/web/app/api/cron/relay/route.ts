@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { runRelayPoll } from "@an-alq/relay/live";
 
 export async function GET(request: Request): Promise<Response> {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { EmitterCategory } from "@an-alq/emitters";
 import { meanReactionMs, type SessionStats } from "../engine/scoring.js";
 

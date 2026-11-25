@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export {
   CATALOG_BANDS,
   CATEGORY_LABELS,

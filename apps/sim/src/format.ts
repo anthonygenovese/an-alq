@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export function formatMhz(mhz: number | null): string {
   if (mhz === null || !Number.isFinite(mhz)) return "—";
   if (mhz >= 1000) {

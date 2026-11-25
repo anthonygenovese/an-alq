@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import { SiteNav } from "../components/site-nav";
+import { ThemeToggle } from "../components/theme-toggle";
 import { themeBootScript } from "../theme";
 import "./globals.css";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        <ThemeToggle />
         <div className="shell">
           <SiteNav />
           <div className="shell-main">{children}</div>

@@ -266,6 +266,8 @@ html[data-theme="light"] .nav-links a[aria-current="page"] {
   letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
+  transform: translate3d(0, 0, 0);
+  transition: transform 240ms ease;
 }
 
 .theme-toggle-label {
@@ -303,6 +305,12 @@ html[data-theme="light"] .lander-section p a:focus-visible {
 @media (max-width: 860px) {
   .theme-toggle {
     top: calc(env(safe-area-inset-top, 0px) + 118px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle {
+    transition: none;
   }
 }
 

@@ -432,6 +432,103 @@ html[data-theme="light"] .lv3-crawl {
   margin-top: auto;
 }
 
+.lv4-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-family: var(--lv-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.lv4-meter-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+
+.lv4-meter-bars span {
+  display: block;
+  width: 3px;
+  height: 100%;
+  transform-origin: center bottom;
+  background-image: linear-gradient(to top, #d92b2b 0%, #f0b45a 48%, #2fce62 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 14px;
+  background-position: center bottom;
+  animation-name: lv4-eq;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.lv4-meter-bars span:nth-child(1) {
+  animation-duration: 0.72s;
+  animation-delay: -0.1s;
+}
+
+.lv4-meter-bars span:nth-child(2) {
+  animation-duration: 1.05s;
+  animation-delay: -0.45s;
+}
+
+.lv4-meter-bars span:nth-child(3) {
+  animation-duration: 0.84s;
+  animation-delay: -0.8s;
+}
+
+.lv4-meter-bars span:nth-child(4) {
+  animation-duration: 1.2s;
+  animation-delay: -0.2s;
+}
+
+.lv4-meter-bars span:nth-child(5) {
+  animation-duration: 0.68s;
+  animation-delay: -0.6s;
+}
+
+.lv4-meter-bars span:nth-child(6) {
+  animation-duration: 1.15s;
+  animation-delay: -0.95s;
+}
+
+.lv4-meter-bars span:nth-child(7) {
+  animation-duration: 0.9s;
+  animation-delay: -0.3s;
+}
+
+.lv4-meter-bars span:nth-child(8) {
+  animation-duration: 1.28s;
+  animation-delay: -0.7s;
+}
+
+.lv4-meter-bars span:nth-child(9) {
+  animation-duration: 0.78s;
+  animation-delay: -0.15s;
+}
+
+.lv4-meter-bars span:nth-child(10) {
+  animation-duration: 1.08s;
+  animation-delay: -0.55s;
+}
+
+@keyframes lv4-eq {
+  0%,
+  100% {
+    height: 28%;
+    filter: brightness(1);
+    transform: scaleX(1);
+  }
+  50% {
+    height: 100%;
+    filter: brightness(1.45);
+    transform: scaleX(1.5);
+  }
+}
+
 .lv4-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) auto;
@@ -541,6 +638,50 @@ html[data-theme="light"] .lv3-crawl {
     transition: none;
     opacity: 1;
     transform: none;
+  }
+
+  .lv4-meter-bars span {
+    animation: none;
+  }
+
+  .lv4-meter-bars span:nth-child(1) {
+    height: 40%;
+  }
+
+  .lv4-meter-bars span:nth-child(2) {
+    height: 75%;
+  }
+
+  .lv4-meter-bars span:nth-child(3) {
+    height: 50%;
+  }
+
+  .lv4-meter-bars span:nth-child(4) {
+    height: 90%;
+  }
+
+  .lv4-meter-bars span:nth-child(5) {
+    height: 35%;
+  }
+
+  .lv4-meter-bars span:nth-child(6) {
+    height: 80%;
+  }
+
+  .lv4-meter-bars span:nth-child(7) {
+    height: 55%;
+  }
+
+  .lv4-meter-bars span:nth-child(8) {
+    height: 100%;
+  }
+
+  .lv4-meter-bars span:nth-child(9) {
+    height: 45%;
+  }
+
+  .lv4-meter-bars span:nth-child(10) {
+    height: 70%;
   }
 
   .lv4-cube {

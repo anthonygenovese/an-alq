@@ -155,7 +155,7 @@ h1 {
   padding: 8px 12px;
   border-left: 3px solid var(--amber);
   background: rgba(240, 180, 90, 0.08);
-  color: #f3e2c4;
+  color: var(--banner-ink, #f3e2c4);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -673,8 +673,8 @@ button:focus-visible {
 .chart {
   width: min(100%, 760px);
   height: auto;
-  color: #c8c2b6;
-  --accent: #e0b15a;
+  color: var(--chart-ink, #c8c2b6);
+  --accent: var(--chart-accent, #e0b15a);
 }
 
 .chart .tick {
@@ -952,6 +952,9 @@ html[data-theme="light"] {
   --green: #146c36;
   --red: #9d2c2c;
   --shadow: 0 18px 50px rgba(18, 34, 42, 0.12);
+  --chart-ink: #12222a;
+  --chart-accent: #7a4308;
+  --banner-ink: #7a4308;
 }
 
 html[data-theme="light"] .tiers li {
@@ -972,4 +975,33 @@ html[data-theme="light"] .search input {
 html[data-theme="light"] .scope-now,
 html[data-theme="light"] .scope-readout {
   background: rgba(244, 247, 248, 0.92);
+}
+
+html[data-theme="light"] .chart .tick:not(.major),
+html[data-theme="light"] .chart .edge:not(.is-lit) {
+  opacity: 0.58;
+}
+
+html[data-theme="light"] .bracket span {
+  color: #f4f7f8;
+}
+
+html[data-theme="light"] .ring-track {
+  stroke: rgba(18, 34, 42, 0.55);
+}
+
+html[data-theme="light"] .spark-empty {
+  fill: rgba(18, 34, 42, 0.55);
+}
+
+html[data-theme="light"] .dossier {
+  border-color: rgba(18, 34, 42, 0.55);
+}
+
+html[data-theme="light"] .dossier .enter {
+  border-color: #7a4308;
+}
+
+html[data-theme="light"] .card:hover:not(:disabled) {
+  border-color: #0f6e62;
 }

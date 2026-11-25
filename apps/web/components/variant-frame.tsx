@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { TRAINING_DISCLAIMER } from "@an-alq/emitters";
-import { ThemeToggle } from "./theme-toggle";
 import "./lander-variants.css";
 
 const SURFACES = [
@@ -22,14 +21,13 @@ export function VariantFrame({
 }) {
   return (
     <main className={`lv ${variant}`}>
-      <div className="lv-tools">
-        <ThemeToggle />
-        {enter ? (
+      {enter ? (
+        <div className="lv-tools">
           <Link className="lv-enter" href={enter.href}>
             {enter.label}
           </Link>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
       {children}
       <footer className="lv-foot">
         <p>{TRAINING_DISCLAIMER}</p>

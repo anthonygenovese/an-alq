@@ -21,13 +21,13 @@
   text-rendering: optimizeLegibility;
 }
 
-/* Light tokens apply on the home page only. Text is at least 4.5:1 on --bg.
+/* Light tokens apply on the home page and the /lander overview. Text is at least 4.5:1 on --bg.
    Control borders and the primary button edge are at least 3:1 on --bg. */
-html[data-theme="light"]:has(.home) {
+html[data-theme="light"]:has(.home, .lander) {
   color-scheme: light;
 }
 
-html[data-theme="light"] body:has(.home) {
+html[data-theme="light"] body:has(.home, .lander) {
   color-scheme: light;
   --bg: #f4f7f8;
   --bg-2: #ffffff;
@@ -171,11 +171,11 @@ input {
   border-color: var(--accent-edge);
 }
 
-body:has(.home) .nav-links a {
+body:has(.home, .lander) .nav-links a {
   border-color: var(--control-line);
 }
 
-body:has(.home) .nav-links a[aria-current="page"] {
+body:has(.home, .lander) .nav-links a[aria-current="page"] {
   border-color: var(--accent-edge);
 }
 
@@ -257,9 +257,10 @@ body:has(.home) .nav-links a[aria-current="page"] {
 }
 
 .theme-toggle:focus-visible,
-body:has(.home) .brand-link:focus-visible,
-body:has(.home) .nav-links a:focus-visible,
-body:has(.home) .actions a:focus-visible {
+body:has(.home, .lander) .brand-link:focus-visible,
+body:has(.home, .lander) .nav-links a:focus-visible,
+body:has(.home, .lander) .actions a:focus-visible,
+body:has(.lander) .lander-section p a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -314,6 +315,42 @@ html[data-theme="light"] .theme-label-to-light {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.facts.stack {
+  grid-template-columns: 1fr;
+}
+
+.lander {
+  display: grid;
+  gap: 36px;
+  padding: 36px 22px 48px;
+}
+
+.lander .landing {
+  padding: 0;
+}
+
+.lander-section h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.lander-section p {
+  max-width: 46rem;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.lander-section p a {
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 12px;
 }
 
 .chart-card {

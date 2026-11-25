@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import { SiteNav } from "../components/site-nav";
@@ -22,7 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="shell">
           <SiteNav />
           <div className="shell-main">{children}</div>
+          <footer className="site-footer">
+            <Link href="/privacy">Privacy</Link>
+          </footer>
         </div>
+        <Analytics />
       </body>
     </html>
   );

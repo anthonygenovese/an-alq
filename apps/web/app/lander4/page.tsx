@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 };
 
 const FACES = ["DRAWN", "LIT", "NODE", "DEMO", "RANGE", "MAP"] as const;
-const METER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 export default function LanderFourPage() {
   return (
@@ -20,15 +19,7 @@ export default function LanderFourPage() {
           <h1>Dominate the electromagnetic spectrum.</h1>
           <p className="lv-sub">
             A business card for the electromagnetic domain, where the jamming is practice and the
-            waterfall is drawn.{" "}
-            <span className="lv4-meter" aria-hidden="true">
-              <span className="lv4-meter-dot" />
-              <span className="lv4-meter-bars">
-                {METER.map((bar) => (
-                  <span key={bar} />
-                ))}
-              </span>
-            </span>
+            waterfall is drawn.
           </p>
         </div>
         <div className="lv4-stage" aria-hidden="true">

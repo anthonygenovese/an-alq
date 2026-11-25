@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import "./node-signal.css";
 
 const LINKS = [
   { href: "/range", label: "Range" },
@@ -10,27 +11,24 @@ const LINKS = [
   { href: "/relay", label: "Relay" },
 ] as const;
 
-const METER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+const NODE_SIGNAL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 export function SiteNav() {
   const pathname = usePathname();
-  const showMeter = pathname === "/";
   return (
     <header className="nav">
       <Link href="/" className="brand-link">
         <p className="brand-mark">AN-ALQ</p>
-        <p className={showMeter ? "brand-sub brand-sub-live" : "brand-sub"}>
+        <p className="brand-sub brand-sub-live">
           Nodes · synthetic spectrum
-          {showMeter ? (
-            <span className="lv4-meter" aria-hidden="true">
-              <span className="lv4-meter-dot" />
-              <span className="lv4-meter-bars">
-                {METER.map((bar) => (
-                  <span key={bar} />
-                ))}
-              </span>
+          <span className="node-signal" aria-hidden="true">
+            <span className="node-signal-dot" />
+            <span className="node-signal-bars">
+              {NODE_SIGNAL.map((bar) => (
+                <span key={bar} />
+              ))}
             </span>
-          ) : null}
+          </span>
         </p>
       </Link>
       <nav className="nav-links" aria-label="Surfaces">

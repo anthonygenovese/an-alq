@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { measureTogglePlacement } from "./toggle-placement-dom";
 import {
@@ -32,6 +33,7 @@ export function ThemeToggle() {
   const light = theme === "light";
   const mode = light ? "Light" : "Dark";
   const action = light ? "Switch to dark mode" : "Switch to light mode";
+  const pathname = usePathname();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const held = useRef({ hover: false, focus: false, press: false });
 
@@ -39,15 +41,23 @@ export function ThemeToggle() {
     const button = buttonRef.current;
     if (!button) return;
     let timer = 0;
+    let measuring = false;
     const heldDown = () => held.current.hover || held.current.focus || held.current.press;
     const place = () => {
       if (heldDown() || button.matches(":hover, :focus, :focus-visible, :active")) return;
+      measuring = true;
       const shift = measureTogglePlacement(button);
-      if (!shift) return;
       const raw = getComputedStyle(button).transform;
       const matrix = raw && raw !== "none" ? new DOMMatrix(raw) : new DOMMatrix();
-      if (Math.abs(shift.x - matrix.m41) < 0.5 && Math.abs(shift.y - matrix.m42) < 0.5) return;
-      button.style.transform = `translate3d(${shift.x}px, ${shift.y}px, 0)`;
+      if (
+        shift &&
+        (Math.abs(shift.x - matrix.m41) >= 0.5 || Math.abs(shift.y - matrix.m42) >= 0.5)
+      ) {
+        button.style.transform = `translate3d(${shift.x}px, ${shift.y}px, 0)`;
+      }
+      window.setTimeout(() => {
+        measuring = false;
+      }, 0);
     };
     const schedule = () => {
       window.clearTimeout(timer);
@@ -59,8 +69,18 @@ export function ThemeToggle() {
     const frame = window.requestAnimationFrame(place);
     const observer = new ResizeObserver(schedule);
     observer.observe(button);
-    window.addEventListener("scroll", schedule, { capture: true, passive: true });
+    observer.observe(document.documentElement);
+    const mutations = new MutationObserver(() => {
+      if (!measuring) schedule();
+    });
+    mutations.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("scroll", schedule, { capture: true, passive: true });
     window.addEventListener("resize", schedule);
+    window.addEventListener("orientationchange", schedule);
+    const narrow = window.matchMedia("(max-width: 860px)");
+    narrow.addEventListener("change", schedule);
+    window.visualViewport?.addEventListener("resize", schedule);
+    window.visualViewport?.addEventListener("scroll", schedule);
     const onEnter = () => {
       held.current.hover = true;
     };
@@ -93,8 +113,13 @@ export function ThemeToggle() {
       window.cancelAnimationFrame(frame);
       window.clearTimeout(timer);
       observer.disconnect();
-      window.removeEventListener("scroll", schedule, { capture: true });
+      mutations.disconnect();
+      document.removeEventListener("scroll", schedule, { capture: true });
       window.removeEventListener("resize", schedule);
+      window.removeEventListener("orientationchange", schedule);
+      narrow.removeEventListener("change", schedule);
+      window.visualViewport?.removeEventListener("resize", schedule);
+      window.visualViewport?.removeEventListener("scroll", schedule);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
       button.removeEventListener("pointerenter", onEnter);
@@ -103,7 +128,7 @@ export function ThemeToggle() {
       button.removeEventListener("focus", onFocus);
       button.removeEventListener("blur", onBlur);
     };
-  }, []);
+  }, [pathname]);
 
   return (
     <button

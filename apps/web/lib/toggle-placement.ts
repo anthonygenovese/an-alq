@@ -18,6 +18,8 @@ export type TogglePlacementScene = {
   headerBottom: number;
   /** Current origin. Kept when that spot is still clear. */
   current: Point | null;
+  /** CSS top-right slot. Used when every sampled spot is blocked. */
+  fallback?: Point | null;
   obstacles: readonly Box[];
 };
 
@@ -99,16 +101,16 @@ function nearer(candidate: Point, best: Point, origin: Point): boolean {
 
 /**
  * Keep the current spot when it is still clear. Otherwise take the nearest
- * clear edge candidate. When nothing is clear, stay put.
+ * clear edge candidate. When nothing is clear, use the default top-right slot.
  */
 export function chooseTogglePlacement(scene: TogglePlacementScene): Point | null {
   if (scene.current && !toggleBlocked(scene, scene.current)) return scene.current;
   const open = toggleCandidates(scene).filter((point) => !toggleBlocked(scene, point));
-  if (open.length === 0) return scene.current;
+  if (open.length === 0) return scene.fallback ?? scene.current;
   const area = bounds(scene);
-  const origin = scene.current ?? { x: area.right, y: area.top };
+  const origin = scene.current ?? scene.fallback ?? { x: area.right, y: area.top };
   let best = open[0];
-  if (!best) return scene.current;
+  if (!best) return scene.fallback ?? scene.current;
   for (const point of open.slice(1)) {
     if (nearer(point, best, origin)) best = point;
   }

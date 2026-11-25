@@ -75,6 +75,19 @@ test("uses the left edge when the right edge is blocked", () => {
   assert.equal(placed.x, 22);
 });
 
+test("falls back to the default top-right slot when every edge is blocked", () => {
+  const current = { x: 40, y: 400 };
+  const fallback = { x: 1150, y: 76 };
+  const placed = chooseTogglePlacement(
+    scene({
+      current,
+      fallback,
+      obstacles: [{ x: 0, y: 0, width: 1280, height: 800 }],
+    }),
+  );
+  assert.deepEqual(placed, fallback);
+});
+
 test("treats a gap smaller than 8px as overlap", () => {
   const current = { x: 400, y: 300 };
   const blocked = chooseTogglePlacement(

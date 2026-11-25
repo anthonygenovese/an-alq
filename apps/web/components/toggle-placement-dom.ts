@@ -6,7 +6,28 @@ import {
   type TogglePlacementScene,
 } from "../lib/toggle-placement";
 
-const CONTROL_SELECTOR = "a, button, input, textarea, select, canvas, nav, header, summary, label";
+const CONTROL_SELECTOR =
+  "a, button, input, textarea, select, canvas, svg, nav, header, summary, label";
+
+let insetProbe: HTMLDivElement | null = null;
+
+function insetProbeElement(): HTMLDivElement {
+  if (insetProbe?.isConnected) return insetProbe;
+  const probe = document.createElement("div");
+  probe.setAttribute("aria-hidden", "true");
+  probe.style.position = "fixed";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  probe.style.width = "0";
+  probe.style.height = "0";
+  probe.style.paddingTop = "env(safe-area-inset-top, 0px)";
+  probe.style.paddingRight = "env(safe-area-inset-right, 0px)";
+  probe.style.paddingBottom = "env(safe-area-inset-bottom, 0px)";
+  probe.style.paddingLeft = "env(safe-area-inset-left, 0px)";
+  document.body.append(probe);
+  insetProbe = probe;
+  return probe;
+}
 
 function readInset(style: CSSStyleDeclaration, edge: "top" | "right" | "bottom" | "left"): number {
   const value = Number.parseFloat(style.getPropertyValue(`padding-${edge}`));
@@ -14,24 +35,13 @@ function readInset(style: CSSStyleDeclaration, edge: "top" | "right" | "bottom" 
 }
 
 export function readSafeInsets(): TogglePlacementScene["inset"] {
-  const probe = document.createElement("div");
-  probe.style.position = "fixed";
-  probe.style.visibility = "hidden";
-  probe.style.pointerEvents = "none";
-  probe.style.paddingTop = "env(safe-area-inset-top, 0px)";
-  probe.style.paddingRight = "env(safe-area-inset-right, 0px)";
-  probe.style.paddingBottom = "env(safe-area-inset-bottom, 0px)";
-  probe.style.paddingLeft = "env(safe-area-inset-left, 0px)";
-  document.body.append(probe);
-  const style = getComputedStyle(probe);
-  const inset = {
+  const style = getComputedStyle(insetProbeElement());
+  return {
     top: readInset(style, "top"),
     right: readInset(style, "right"),
     bottom: readInset(style, "bottom"),
     left: readInset(style, "left"),
   };
-  probe.remove();
-  return inset;
 }
 
 function textBoxes(ignore: HTMLElement): Box[] {
@@ -105,6 +115,7 @@ export function measureTogglePlacement(button: HTMLElement): Point | null {
     inset: readSafeInsets(),
     headerBottom,
     current: { x: visual.x, y: visual.y },
+    fallback: { x: base.x, y: base.y },
     obstacles: [],
   };
   const samples = toggleCandidates(scene).map((point) => ({

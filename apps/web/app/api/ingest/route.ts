@@ -1,7 +1,7 @@
 import { handleIngest } from "@an-alq/relay/live";
 
 export async function POST(request: Request): Promise<Response> {
-  let body: unknown = null;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {

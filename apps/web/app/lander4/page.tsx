@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { VariantFrame } from "../../components/variant-frame";
 
 export const metadata: Metadata = {
   title: "Enter the node",
   description:
-    "A playful way into a synthetic practice. The trainer is the backbone. The signal is drawn.",
+    "A business card for the electromagnetic domain. The spectrum is synthetic, and the jamming is practice.",
   robots: { index: false, follow: false },
 };
 
 const FACES = ["DRAWN", "LIT", "NODE", "DEMO", "RANGE", "MAP"] as const;
-
-const STEPS = [
-  { href: "/range", label: "Range", line: "A two-second look at a fictional emitter." },
-  { href: "/map", label: "Map", line: "The node lights when the skill is yours." },
-  { href: "/tiers", label: "Tiers", line: "T4 stays locked. No spoofing in this build." },
-] as const;
 
 export default function LanderFourPage() {
   return (
@@ -23,10 +16,10 @@ export default function LanderFourPage() {
       <section className="lv4-hero">
         <div className="lv4-copy lv4-punch">
           <p className="lv-kicker">AN-ALQ</p>
-          <h1>A node you can enter.</h1>
+          <h1>Dominate the electromagnetic spectrum.</h1>
           <p className="lv-sub">
-            Playful on the way in. The practice is a synthetic spectrum, and the trainer is the
-            backbone.
+            A business card for the electromagnetic domain, where the jamming is practice and the
+            waterfall is drawn.
           </p>
         </div>
         <div className="lv4-stage" aria-hidden="true">
@@ -39,17 +32,6 @@ export default function LanderFourPage() {
           </div>
         </div>
       </section>
-      <p className="lv-note">The cube is a picture of a node. It does not sense a signal.</p>
-      <ul className="lv4-steps">
-        {STEPS.map((step) => (
-          <li key={step.href}>
-            <Link href={step.href}>
-              <strong>{step.label}</strong>
-              <span>{step.line}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
     </VariantFrame>
   );
 }

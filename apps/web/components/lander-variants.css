@@ -125,8 +125,7 @@ body:has(.lv) .site-footer {
 .lv-foot p,
 .lv-proof span,
 .lv2-steps p,
-.lv3-blocks p,
-.lv4-steps span {
+.lv3-blocks p {
   color: var(--muted);
   font-size: 16px;
   line-height: 1.5;
@@ -156,8 +155,7 @@ body:has(.lv) .site-footer {
 
 .lv-proof,
 .lv2-steps,
-.lv3-blocks,
-.lv4-steps {
+.lv3-blocks {
   display: grid;
   gap: 12px;
   margin: 0;
@@ -171,16 +169,14 @@ body:has(.lv) .site-footer {
 
 .lv-proof li,
 .lv2-steps li,
-.lv3-blocks li,
-.lv4-steps a {
+.lv3-blocks li {
   border: 1px solid var(--line);
   padding: 16px;
 }
 
 .lv-proof strong,
 .lv2-steps h2,
-.lv3-blocks h2,
-.lv4-steps strong {
+.lv3-blocks h2 {
   display: block;
   margin: 0 0 6px;
   color: var(--text);
@@ -219,8 +215,7 @@ body:has(.lv) .site-footer {
   text-transform: uppercase;
 }
 
-.lv-foot a:hover,
-.lv4-steps a:hover strong {
+.lv-foot a:hover {
   color: var(--accent);
 }
 
@@ -422,10 +417,25 @@ html[data-theme="light"] .lv3-crawl {
   font-size: 12px;
 }
 
+.lv4 {
+  align-content: start;
+  min-height: calc(100dvh - 140px);
+  padding-top: 12vh;
+  gap: 0;
+}
+
+.lv4 h1 {
+  max-width: 16ch;
+}
+
+.lv4 .lv-foot {
+  margin-top: auto;
+}
+
 .lv4-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) auto;
-  gap: 24px;
+  gap: 48px;
   align-items: center;
 }
 
@@ -506,21 +516,6 @@ html[data-theme="light"] .lv3-crawl {
   transform: rotateX(-90deg) translateZ(90px);
 }
 
-.lv4-steps {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.lv4-steps a {
-  display: grid;
-  gap: 6px;
-  min-height: 100%;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.lv4-steps a:hover {
-  transform: translateY(-3px);
-}
-
 .lv :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -541,8 +536,7 @@ html[data-theme="light"] .lv3-crawl {
   .lv2-scan span,
   .lv3-crawl p,
   .lv-index,
-  .lv-enter,
-  .lv4-steps a {
+  .lv-enter {
     animation: none;
     transition: none;
     opacity: 1;
@@ -562,8 +556,7 @@ html[data-theme="light"] .lv3-crawl {
   .lv1-hero,
   .lv4-hero,
   .lv-proof,
-  .lv3-blocks,
-  .lv4-steps {
+  .lv3-blocks {
     grid-template-columns: 1fr;
   }
 

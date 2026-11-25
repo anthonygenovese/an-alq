@@ -433,15 +433,33 @@ html[data-theme="light"] .lv3-crawl {
 }
 
 .lv4-meter {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  margin: 22px 0 0;
-  color: var(--muted);
-  font-family: var(--lv-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  line-height: 1;
+  gap: 8px;
+  margin-left: 0.55em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.lv4-meter-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #2fce62;
+  animation: lv4-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes lv4-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
 }
 
 .lv4-meter-bars {
@@ -633,7 +651,8 @@ html[data-theme="light"] .lv3-crawl {
   .lv2-scan span,
   .lv3-crawl p,
   .lv-index,
-  .lv-enter {
+  .lv-enter,
+  .lv4-meter-dot {
     animation: none;
     transition: none;
     opacity: 1;

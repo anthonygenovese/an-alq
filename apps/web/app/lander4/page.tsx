@@ -20,15 +20,15 @@ export default function LanderFourPage() {
           <h1>Dominate the electromagnetic spectrum.</h1>
           <p className="lv-sub">
             A business card for the electromagnetic domain, where the jamming is practice and the
-            waterfall is drawn.
-          </p>
-          <p className="lv4-meter">
-            <span className="lv4-meter-bars" aria-hidden="true">
-              {METER.map((bar) => (
-                <span key={bar} />
-              ))}
+            waterfall is drawn.{" "}
+            <span className="lv4-meter" aria-hidden="true">
+              <span className="lv4-meter-dot" />
+              <span className="lv4-meter-bars">
+                {METER.map((bar) => (
+                  <span key={bar} />
+                ))}
+              </span>
             </span>
-            EW countermeasures online
           </p>
         </div>
         <div className="lv4-stage" aria-hidden="true">

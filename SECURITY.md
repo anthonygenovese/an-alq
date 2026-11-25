@@ -50,6 +50,7 @@ This tree has no API keys. `.env.example` lists bind addresses and allowlists on
 - Dependabot covers the pnpm lockfile and GitHub Actions. Actions are pinned to commit SHAs.
 - `pnpm audit --audit-level=high`, `pnpm audit signatures`, and osv-scanner run on every pull request.
 - If a secret reaches git, rotate it first, then purge the history. A force-push does not un-leak a credential that was fetched.
+- If the X bearer token, the relay's Redis store, or any X Content is exposed or suspected exposed, rotate the affected secrets first, then notify X immediately, as required by the X Developer Agreement, section III.G (https://docs.x.com/developer-terms/agreement).
 
 ## Supply chain
 

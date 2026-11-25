@@ -21,13 +21,13 @@
   text-rendering: optimizeLegibility;
 }
 
-/* Light tokens apply on the home page and the /lander overview. Text is at least 4.5:1 on --bg.
+/* Light tokens apply on every route once a theme is chosen. Text is at least 4.5:1 on --bg.
    Control borders and the primary button edge are at least 3:1 on --bg. */
-html[data-theme="light"]:has(.home, .lander) {
+html[data-theme="light"] {
   color-scheme: light;
 }
 
-html[data-theme="light"] body:has(.home, .lander) {
+html[data-theme="light"] body {
   color-scheme: light;
   --bg: #f4f7f8;
   --bg-2: #ffffff;
@@ -171,11 +171,11 @@ input {
   border-color: var(--accent-edge);
 }
 
-body:has(.home, .lander) .nav-links a {
+html[data-theme="light"] .nav-links a {
   border-color: var(--control-line);
 }
 
-body:has(.home, .lander) .nav-links a[aria-current="page"] {
+html[data-theme="light"] .nav-links a[aria-current="page"] {
   border-color: var(--accent-edge);
 }
 
@@ -242,35 +242,52 @@ body:has(.home, .lander) .nav-links a[aria-current="page"] {
 }
 
 .theme-toggle {
-  position: relative;
-  appearance: none;
+  position: fixed;
+  z-index: 30;
+  top: calc(env(safe-area-inset-top, 0px) + 70px);
+  right: calc(env(safe-area-inset-right, 0px) + 22px);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
   margin: 0;
-  background: transparent;
+  padding: 0;
+  appearance: none;
+  background: var(--bg-2);
   color: var(--text);
   border: 1px solid var(--control-line);
-  padding: 7px 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 11px;
-  line-height: 1.2;
+  border-radius: 999px;
   cursor: pointer;
 }
 
+.theme-sun {
+  display: block;
+}
+
+.theme-sun-core {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+html[data-theme="light"] .theme-sun-core {
+  fill: currentColor;
+  stroke: none;
+}
+
 .theme-toggle:focus-visible,
-body:has(.home, .lander) .brand-link:focus-visible,
-body:has(.home, .lander) .nav-links a:focus-visible,
-body:has(.home, .lander) .actions a:focus-visible,
-body:has(.lander) .lander-section p a:focus-visible {
+html[data-theme="light"] .brand-link:focus-visible,
+html[data-theme="light"] .nav-links a:focus-visible,
+html[data-theme="light"] .actions a:focus-visible,
+html[data-theme="light"] .lander-section p a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-html:not([data-theme="light"]) .theme-label-to-dark {
-  display: none;
-}
-
-html[data-theme="light"] .theme-label-to-light {
-  display: none;
+@media (max-width: 860px) {
+  .theme-toggle {
+    top: calc(env(safe-area-inset-top, 0px) + 118px);
+  }
 }
 
 .sr-only {
@@ -447,7 +464,7 @@ html[data-theme="light"] .theme-label-to-light {
 }
 
 .relay-chart {
-  background: rgba(12, 18, 24, 0.72);
+  background: var(--chart-panel);
 }
 
 .relay-chart svg {

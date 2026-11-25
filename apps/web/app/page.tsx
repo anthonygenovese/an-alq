@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChartMark } from "../components/chart-mark";
-import { ThemeToggle } from "../components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "AN-ALQ",
@@ -14,7 +13,6 @@ export default function HomePage() {
       <section>
         <div className="landing-tools">
           <p className="eyebrow">AN-ALQ</p>
-          <ThemeToggle />
         </div>
         <h1>Range, map, relay.</h1>
         <p className="lede">

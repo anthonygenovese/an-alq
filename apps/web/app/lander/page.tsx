@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TRAINING_DISCLAIMER } from "@an-alq/emitters";
 import { ChartMark } from "../../components/chart-mark";
-import { ThemeToggle } from "../../components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -17,7 +16,6 @@ export default function LanderPage() {
         <section>
           <div className="landing-tools">
             <p className="eyebrow">AN-ALQ</p>
-            <ThemeToggle />
           </div>
           <h1>A trainer for a synthetic spectrum.</h1>
           <p className="lede">

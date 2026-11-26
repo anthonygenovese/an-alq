@@ -16,6 +16,7 @@ const NODE_SIGNAL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 export function SiteNav() {
   const pathname = usePathname();
+  const showSurfaceLinks = pathname !== "/";
   return (
     <header className="nav">
       <Link href="/" className="brand-link">
@@ -32,16 +33,18 @@ export function SiteNav() {
           </span>
         </p>
       </Link>
-      <nav className="nav-links" aria-label="Surfaces">
-        {LINKS.map((link) => {
-          const current = pathname === link.href;
-          return (
-            <Link key={link.href} href={link.href} aria-current={current ? "page" : undefined}>
-              {link.label}
-            </Link>
-          );
-        })}
-      </nav>
+      {showSurfaceLinks ? (
+        <nav className="nav-links" aria-label="Surfaces">
+          {LINKS.map((link) => {
+            const current = pathname === link.href;
+            return (
+              <Link key={link.href} href={link.href} aria-current={current ? "page" : undefined}>
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </header>
   );
 }

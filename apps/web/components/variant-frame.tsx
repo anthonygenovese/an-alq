@@ -14,10 +14,12 @@ const SURFACES = [
 export function VariantFrame({
   variant,
   enter,
+  surfaces = true,
   children,
 }: {
   variant: "lv1" | "lv2" | "lv3" | "lv4";
   enter?: { href: string; label: string };
+  surfaces?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -32,12 +34,14 @@ export function VariantFrame({
       {children}
       <footer className="lv-foot">
         <p>{TRAINING_DISCLAIMER}</p>
-        <nav aria-label="Surfaces and privacy">
-          {SURFACES.map((link) => (
-            <Link key={link.href} href={link.href}>
-              {link.label}
-            </Link>
-          ))}
+        <nav aria-label={surfaces ? "Surfaces and privacy" : "Privacy"}>
+          {surfaces
+            ? SURFACES.map((link) => (
+                <Link key={link.href} href={link.href}>
+                  {link.label}
+                </Link>
+              ))
+            : null}
           <Link href="/privacy">Privacy</Link>
         </nav>
       </footer>

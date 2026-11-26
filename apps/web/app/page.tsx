@@ -12,7 +12,7 @@ const FACES = ["DRAWN", "LIT", "NODE", "DEMO", "RANGE", "MAP"] as const;
 
 export default function HomePage() {
   return (
-    <VariantFrame variant="lv4" enter={{ href: "/map", label: "Enter the node" }}>
+    <VariantFrame variant="lv4" surfaces={false} enter={{ href: "/map", label: "Enter the node" }}>
       <section className="lv4-hero">
         <div className="lv4-copy lv4-punch">
           <p className="lv-kicker">AN-ALQ</p>

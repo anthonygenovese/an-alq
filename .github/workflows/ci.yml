@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 name: CI
 
 on:
@@ -27,6 +28,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: SPDX license tags
+        run: .github/scripts/check-spdx.sh
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck

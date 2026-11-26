@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { isNixleHost } from "../src/nixle.js";
 import { hostAllowed, hostListed, NIXLE_HOSTS } from "../src/sources/allow.js";

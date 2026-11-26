@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { sha256Hex, utf8 } from "../src/sha256.js";

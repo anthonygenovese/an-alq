@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { vi } from "vitest";
 
 export function captureConsole() {

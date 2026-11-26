@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export const TRAINER_TIERS = [
   {
     id: "T1",

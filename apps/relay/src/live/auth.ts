@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { timingSafeEqual } from "node:crypto";
 
 /** True only for the exact bearer secret. The header is never logged. */

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createAnAlqServer } from "./server.js";
 

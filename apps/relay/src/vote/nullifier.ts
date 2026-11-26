@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { sha256Hex, utf8 } from "../sha256.js";
 
 const DOMAIN = "an-alq.relay.nullifier.v1";

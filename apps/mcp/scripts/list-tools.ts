@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { once } from "node:events";
 import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";

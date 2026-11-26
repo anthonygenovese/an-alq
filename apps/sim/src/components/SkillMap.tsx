@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { useState } from "react";
 import { resolveGlossaryEntry } from "@an-alq/emitters";
 import {

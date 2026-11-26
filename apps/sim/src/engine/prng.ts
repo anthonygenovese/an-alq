@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Mulberry32. Same seed, same sequence, in every runtime. */
 export function mulberry32(seed: number): () => number {
   let state = seed >>> 0;

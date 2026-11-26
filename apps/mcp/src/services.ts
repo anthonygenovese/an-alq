@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { CAPABILITIES_RESOURCE_URI, ILLUSTRATIVE_DISCLAIMER, SAMPLE_DISCLAIMER } from "./config.js";
 import {
   capabilities,

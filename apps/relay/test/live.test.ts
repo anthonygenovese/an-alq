@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { containsEmail, parseIngestBody } from "../src/ingest.js";

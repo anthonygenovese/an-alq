@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { SignatureKind } from "@an-alq/emitters";
 
 export const CLASSIFY_WINDOW_MS = 2000;

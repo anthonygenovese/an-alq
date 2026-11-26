@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import eslint from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import reactHooks from "eslint-plugin-react-hooks";

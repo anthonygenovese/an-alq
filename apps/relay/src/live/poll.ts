@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Redis } from "@upstash/redis";
 import { SignalBoard } from "../board.js";
 import { DEFAULT_DECAY } from "../decay.js";

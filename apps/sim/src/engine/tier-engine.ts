@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { TrainerTierId } from "./tiers.js";
 import { generateRound, type GenerateRoundOptions } from "./generator.js";
 import { generateGridRound } from "./grid-round.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export interface HeaderBag {
   get(name: string): string | null;
 }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import {
   hostHeaderValidation,

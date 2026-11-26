@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RangeScreen } from "../../components/range-screen";

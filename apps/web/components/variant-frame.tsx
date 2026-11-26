@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { TRAINING_DISCLAIMER } from "@an-alq/emitters";

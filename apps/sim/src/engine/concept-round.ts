@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { resolveGlossaryEntry } from "@an-alq/emitters";
 import { z } from "zod/v3";
 import { mulberry32, shuffle } from "./prng.js";

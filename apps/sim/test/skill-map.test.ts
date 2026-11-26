@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { EMITTER_CATEGORIES, emitterLibrary, resolveGlossaryEntry } from "@an-alq/emitters";
 import {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { RawPost } from "../types.js";
 
 export interface GmailHeader {

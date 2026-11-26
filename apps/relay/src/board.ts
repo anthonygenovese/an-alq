@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { preferCategory } from "./classify.js";
 import { isExpired, type DecayConfig } from "./decay.js";
 import { distanceMeters } from "./geo.js";

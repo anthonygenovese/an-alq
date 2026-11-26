@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 "use client";
 
 import { TRAINING_DISCLAIMER } from "@an-alq/emitters";

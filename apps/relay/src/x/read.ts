@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { XRateLimiter, type HeaderBag } from "./limit.js";
 
 /** The only X endpoints this module calls. Both are reads. */

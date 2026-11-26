@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { SignatureKind } from "@an-alq/emitters";
 import type { RoundEmitter, SignatureDraw, TrainingRound } from "./types.js";
 import { mulberry32 } from "./prng.js";

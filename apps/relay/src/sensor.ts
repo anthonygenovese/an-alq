@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { AlertExtract } from "./extract.js";
 import { ingestRequest } from "./ingest.js";
 

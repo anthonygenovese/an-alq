@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { emitterById, resolveGlossaryEntry } from "@an-alq/emitters";
 import { explainRound } from "../src/engine/feedback.js";

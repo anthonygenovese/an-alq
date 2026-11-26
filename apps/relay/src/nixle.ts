@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 const HOSTS = new Set(["nixle.us", "local.nixle.com", "nixle.com", "www.nixle.com"]);
 
 export interface NixleRef {

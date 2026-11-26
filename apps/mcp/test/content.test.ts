@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { frontierPicks, newsDrops } from "../src/data/content.js";
 

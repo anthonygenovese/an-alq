@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 export {
   GLOSSARY,
   GLOSSARY_IDS,

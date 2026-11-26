@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Hosts for the Nixle adapter. The default source has an empty list. */
 export const NIXLE_SOURCE_ID = "nixle";
 

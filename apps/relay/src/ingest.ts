@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { nixleAllowlist } from "./nixle/adapter.js";
 import { hostAllowed } from "./sources/allow.js";
 import { CATEGORIES, type Category, type GeoPoint, type Precision } from "./types.js";

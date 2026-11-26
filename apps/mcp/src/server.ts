@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ErrorCode, GetPromptRequestSchema, McpError } from "@modelcontextprotocol/sdk/types.js";
 import {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { INTERSECTIONS, type AgencyRecord } from "./gazetteer.js";
 import type { GeoPoint, GeocodeQuery, Geocoder } from "./types.js";
 

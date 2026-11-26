@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 const STOPS: ReadonlyArray<readonly [number, number, number, number]> = [
   [0, 4, 7, 12],
   [0.14, 12, 32, 84],

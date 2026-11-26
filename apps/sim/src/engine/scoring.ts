@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { EMITTER_CATEGORIES, type EmitterCategory } from "@an-alq/emitters";
 import { CLASSIFY_WINDOW_MS } from "./types.js";
 

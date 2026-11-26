@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { DEFAULT_DECAY } from "../decay.js";
 import { displaySummary } from "../normalize.js";
 import { findBannedKey } from "../privacy.js";

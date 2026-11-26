@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { APPROVED_RELAY_SOURCES } from "./sources.js";
 
 /** A source id is live only when it is on the approved list. Anything else is none. */

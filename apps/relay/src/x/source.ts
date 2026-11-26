@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Signal, SignalSource } from "../source.js";
 import type { RawPost } from "../types.js";
 import { XReader, type RecentSearchReport } from "./read.js";

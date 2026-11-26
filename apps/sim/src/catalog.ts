@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Read surface for the web shell. Engine files stay unchanged.
  * Lit nodes come from evaluateMap and the on-device evidence hook.

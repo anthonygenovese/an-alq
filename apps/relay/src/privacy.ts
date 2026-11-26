@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { randomBytes, sha256Hex, utf8 } from "./sha256.js";
 
 export const BANNED_PUBLIC_KEYS: readonly string[] = [

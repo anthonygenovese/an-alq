@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createRequire } from "node:module";

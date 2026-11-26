@@ -187,8 +187,8 @@ importers:
         specifier: ^21.2.4
         version: 21.2.4
       '@cyclonedx/cdxgen':
-        specifier: ^12.7.1
-        version: 12.9.2(supports-color@7.2.0)
+        specifier: ^12.9.3
+        version: 12.9.3(supports-color@7.2.0)
       '@eslint/js':
         specifier: ^9.39.5
         version: 9.39.5
@@ -692,8 +692,8 @@ packages:
     resolution: {integrity: sha512-mHyyEL0eIEqJ6+aF24+AdZRo4bu4W5GdUiCiCx5X7kfDY51ye8GQJ264uOINObrRSKxtSRCOWPpl9hbOy4UzxQ==}
     engines: {node: '>=22'}
 
-  '@cyclonedx/cdxgen@12.9.2':
-    resolution: {integrity: sha512-EWpr4kyQHkh1S71cZvViO0vDo9h5unKilopK5gWIlTYpSmem1Ez+zC8QNzSVlteiES9o8QHcsb+Q4Bu4njA5pA==}
+  '@cyclonedx/cdxgen@12.9.3':
+    resolution: {integrity: sha512-kKJ0EnP4kdGjRXfX105jmkTYVidwdIomUPyNtKkLpyqfDruU56/iKzG+Mn203jwjkrCrg0KsVEgvdzrQouSNwg==}
     engines: {node: ^20 || ^22 || ^24 || ^25 || ^26, pnpm: '>=10'}
     hasBin: true
 
@@ -3764,7 +3764,7 @@ snapshots:
 
   '@conventional-changelog/template@1.4.1': {}
 
-  '@cyclonedx/cdxgen@12.9.2(supports-color@7.2.0)':
+  '@cyclonedx/cdxgen@12.9.3(supports-color@7.2.0)':
     dependencies:
       '@babel/parser': 7.29.9
       '@babel/traverse': 7.29.8(supports-color@7.2.0)

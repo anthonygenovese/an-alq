@@ -1,6 +1,6 @@
 {
   "name": "an-alq",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "AN-ALQ workspace. Web shell, read-only MCP server, range trainer, and relay.",
   "type": "module",

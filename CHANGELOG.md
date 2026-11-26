@@ -2,6 +2,21 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.8.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.7.0...an-alq-v0.8.0) (2026-11-26)
+
+
+### Features
+
+* **web:** add a /lander overview page ([#44](https://github.com/anthonygenovese/an-alq/issues/44)) ([b7bbfcc](https://github.com/anthonygenovese/an-alq/commit/b7bbfcc8fd95ed6f8e3636fcd2e3eb52389f8eba))
+* **web:** make the lander4 business card the homepage ([#48](https://github.com/anthonygenovese/an-alq/issues/48)) ([c3caf0e](https://github.com/anthonygenovese/an-alq/commit/c3caf0e4e358f45f3b08bc85637394a33b3181b4))
+* **web:** prototype an adaptive theme toggle position ([#50](https://github.com/anthonygenovese/an-alq/issues/50)) ([38920d1](https://github.com/anthonygenovese/an-alq/commit/38920d1d06c2274eafb0d763b61a1c0fbc4f217b))
+* **web:** show the node signal on every route ([#51](https://github.com/anthonygenovese/an-alq/issues/51)) ([a9b7faf](https://github.com/anthonygenovese/an-alq/commit/a9b7faf7c29b471127c9a3f516997f90f8abf78d))
+
+
+### Bug Fixes
+
+* **web:** keep the chosen theme on every route ([#49](https://github.com/anthonygenovese/an-alq/issues/49)) ([9c2837d](https://github.com/anthonygenovese/an-alq/commit/9c2837dab691f5c0a36ad697108098e5761e2eca))
+
 ## [0.7.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.6.0...an-alq-v0.7.0) (2026-11-25)
 
 

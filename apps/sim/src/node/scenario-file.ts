@@ -7,7 +7,9 @@ export function loadScenarioFile(filePath: string): LoadedScenario {
   try {
     value = JSON.parse(readFileSync(filePath, "utf8")) as unknown;
   } catch (error) {
-    if (error instanceof SyntaxError) throw new Error("Scenario file is not JSON");
+    if (error instanceof SyntaxError) {
+      throw new Error("Scenario file is not JSON", { cause: error });
+    }
     throw error;
   }
   return loadScenario(value);

@@ -52,7 +52,7 @@ describe("Nixle-only recency window", () => {
     const scan = await scanInboxForAlert("token-stays-here", ALERT, geocoder, { fetchImpl });
     expect(scan.status).toBe("match");
     if (scan.status === "match") {
-      expect(scan.extract.nixleKey).toBe(ALERT);
+      expect(scan.extract.sourceKey).toBe(ALERT);
       expect(scan.dkimCoversDate).toBe(true);
       expect(scan.provenDate).toBe("2026-01-15T15:00:00.000Z");
       expect(JSON.stringify(scan)).not.toContain("hidden@example.com");

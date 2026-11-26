@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { buildContributionChart } from "@an-alq/relay/chart";
-import { DemoClock, DemoSimulator, SPEED_STEPS, isSpeedStep } from "@an-alq/relay";
+import { DemoClock, DemoSimulator, SPEED_STEPS, hostListed, isSpeedStep } from "@an-alq/relay";
 import {
   CATEGORY_LABEL,
   DISCLAIMER,
@@ -16,7 +16,7 @@ interface LiveCard {
   category: Category;
   agency: string | null;
   pulse: Pulse;
-  nixleUrl: string | null;
+  sourceUrl: string | null;
 }
 
 export function RelayBoard() {
@@ -25,6 +25,7 @@ export function RelayBoard() {
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
   const [live, setLive] = useState<LiveCard[] | null>(null);
   const [liveNote, setLiveNote] = useState<string | null>(null);
+  const [allowedHosts, setAllowedHosts] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,10 +37,19 @@ export function RelayBoard() {
           mode?: string;
           demo?: boolean;
           stale?: boolean;
+          source?: string;
+          notice?: string | null;
+          allowedHosts?: string[];
           disclaimer?: string;
           items?: LiveCard[];
         };
         if (cancelled) return;
+        setAllowedHosts(Array.isArray(body.allowedHosts) ? body.allowedHosts : []);
+        if (body.source === "none" || body.notice === "No live source configured") {
+          setLive(null);
+          setLiveNote("No live source configured");
+          return;
+        }
         const items = Array.isArray(body.items) ? body.items : [];
         if (
           body.mode === "live" &&
@@ -114,7 +124,7 @@ export function RelayBoard() {
           <p className="eyebrow">Public alerts</p>
           <h1>Relay</h1>
         </div>
-        <p className="demo-flag">{live ? "Live, public X reads" : "Demo · fixtures only"}</p>
+        <p className="demo-flag">{live ? "Live public alerts" : "Demo · fixtures only"}</p>
       </div>
       <p className="relay-note" role="note">
         {DISCLAIMER} It does not read a mailbox and it does not post.
@@ -140,7 +150,7 @@ export function RelayBoard() {
       <div className="relay-layout">
         <div className="relay-chart">
           {live ? (
-            <p className="page-fallback">Public Nixle alerts from the latest read.</p>
+            <p className="page-fallback">Public alerts from the latest read.</p>
           ) : chart ? (
             <svg viewBox="-160 -160 320 320" role="img" aria-label="Contribution chart">
               <circle className="stroke" r={chart.tickRing} />
@@ -188,7 +198,7 @@ export function RelayBoard() {
             <li className="empty-signals">No signals in the window yet.</li>
           ) : null}
           {live?.map((signal) => (
-            <li key={`${signal.nixleUrl ?? signal.summary}`}>
+            <li key={`${signal.sourceUrl ?? signal.summary}`}>
               <div className="signal-kicker">
                 <span>{CATEGORY_LABEL[signal.category]}</span>
                 <span>
@@ -199,9 +209,11 @@ export function RelayBoard() {
                   />
                 </span>
               </div>
-              {nixleLink(signal.nixleUrl) ? (
+              {allowedLink(signal.sourceUrl, allowedHosts) ? (
                 <p>
-                  <a href={nixleLink(signal.nixleUrl) ?? undefined}>{signal.summary}</a>
+                  <a href={allowedLink(signal.sourceUrl, allowedHosts) ?? undefined}>
+                    {signal.summary}
+                  </a>
                 </p>
               ) : (
                 <p>{signal.summary}</p>
@@ -241,21 +253,12 @@ export function RelayBoard() {
   );
 }
 
-function nixleLink(url: string | null): string | null {
-  if (!url) return null;
+function allowedLink(url: string | null, hosts: readonly string[]): string | null {
+  if (!url || hosts.length === 0) return null;
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== "https:") return null;
-    const host = parsed.hostname.toLowerCase();
-    if (
-      host !== "nixle.us" &&
-      host !== "nixle.com" &&
-      !host.endsWith(".nixle.us") &&
-      !host.endsWith(".nixle.com")
-    ) {
-      return null;
-    }
-    return parsed.toString();
+    return hostListed(parsed.hostname, hosts) ? parsed.toString() : null;
   } catch {
     return null;
   }

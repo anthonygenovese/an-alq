@@ -1,51 +1,36 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChartMark } from "../components/chart-mark";
-import { ThemeToggle } from "../components/theme-toggle";
+import { VariantFrame } from "../components/variant-frame";
 
 export const metadata: Metadata = {
-  title: "AN-ALQ",
-  description: "Range trainer, skill map, and a relay board in demo mode.",
+  title: { absolute: "AN-ALQ" },
+  description:
+    "A business card for the electromagnetic domain. The spectrum is synthetic, and the jamming is practice.",
 };
+
+const FACES = ["DRAWN", "LIT", "NODE", "DEMO", "RANGE", "MAP"] as const;
 
 export default function HomePage() {
   return (
-    <main className="landing home">
-      <section>
-        <div className="landing-tools">
-          <p className="eyebrow">AN-ALQ</p>
-          <ThemeToggle />
+    <VariantFrame variant="lv4" enter={{ href: "/map", label: "Enter the node" }}>
+      <section className="lv4-hero">
+        <div className="lv4-copy lv4-punch">
+          <p className="lv-kicker">AN-ALQ</p>
+          <h1>Dominate the electromagnetic spectrum.</h1>
+          <p className="lv-sub">
+            A business card for the electromagnetic domain, where the jamming is practice and the
+            waterfall is drawn.
+          </p>
         </div>
-        <h1>Range, map, relay.</h1>
-        <p className="lede">
-          A console for the Tier 1 trainer, the skill map, and the signal relay. The waterfall is
-          synthetic. Every quantitative figure is illustrative. A node you have mastered is a lit
-          node. Scores stay in local storage on this device.
-        </p>
-        <div className="actions">
-          <Link href="/range">Open the range</Link>
-          <Link href="/map">Skill map</Link>
-          <Link href="/relay">Relay demo</Link>
+        <div className="lv4-stage" aria-hidden="true">
+          <div className="lv4-cube">
+            {FACES.map((face) => (
+              <span key={face} className={`lv4-face face-${face.toLowerCase()}`}>
+                {face}
+              </span>
+            ))}
+          </div>
         </div>
-        <ul className="facts">
-          <li>
-            <strong>Range</strong>
-            <span>Name a fictional emitter on a time-compressed waterfall.</span>
-          </li>
-          <li>
-            <strong>Map</strong>
-            <span>
-              Six sectors. T1 nodes can light. After T1, definition nodes and the fictional grid can
-              become lit nodes. Spot, RGPO, VGPO, and T4 stay locked.
-            </span>
-          </li>
-          <li>
-            <strong>Relay</strong>
-            <span>Demo fixtures only. Nothing is posted and no mailbox is read.</span>
-          </li>
-        </ul>
       </section>
-      <ChartMark />
-    </main>
+    </VariantFrame>
   );
 }

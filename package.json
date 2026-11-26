@@ -1,6 +1,6 @@
 {
   "name": "an-alq",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "description": "AN-ALQ workspace. Web shell, read-only MCP server, range trainer, and relay.",
   "type": "module",
@@ -36,7 +36,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
-    "@cyclonedx/cdxgen": "^12.7.1",
+    "@cyclonedx/cdxgen": "^12.9.3",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",

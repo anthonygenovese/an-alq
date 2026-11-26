@@ -75,7 +75,7 @@ async function matchAmong(
     if (!raw) continue;
     const signed = readSignedDate(raw);
     const extract = extractFromRfc822(raw, geocoder, signed.iso);
-    if (!extract || extract.nixleKey !== alertKey) continue;
+    if (!extract || extract.sourceKey !== alertKey) continue;
     if (!signed.iso || !signed.dkimCoversDate) return { status: "too_late" };
     return {
       status: "match",

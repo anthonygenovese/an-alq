@@ -30,8 +30,8 @@ export const securityHeaders = [
       "img-src 'self' data:",
       "font-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+      "connect-src 'self' https://vitals.vercel-insights.com",
       "upgrade-insecure-requests",
     ].join("; "),
   },
@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
   ...(staticExport
     ? {}
     : {
+        async redirects() {
+          return [
+            { source: "/lander", destination: "/", permanent: true },
+            { source: "/lander4", destination: "/", permanent: true },
+          ];
+        },
         async headers() {
           return [{ source: "/:path*", headers: [...securityHeaders] }];
         },

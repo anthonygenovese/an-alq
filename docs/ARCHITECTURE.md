@@ -2,12 +2,12 @@
 
 AN-ALQ in this repository is a pnpm workspace. The web shell, the MCP server, and the relay demo share the emitter catalog. The relay reads public alerts and does not post.
 
-| Piece              | Runs as                                                | Talks to                                                           |
-| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| Web shell          | Next.js in `apps/web`. Vercel project `an-alq-web`.    | The trainer, the skill map, and the relay demo. No call to `/mcp`. |
-| MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.   |
-| Range trainer      | `apps/sim`, mounted by the web shell and by Vite       | The emitter package, bundled. No call to `/mcp`.                   |
-| Nixle signal relay | `apps/relay`, polled by `apps/web`                     | Reads public posts. Writes a public Redis snapshot. Does not post. |
+| Piece              | Runs as                                                | Talks to                                                                              |
+| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Web shell          | Next.js in `apps/web`. Vercel project `an-alq-web`.    | The trainer, the skill map, and the relay demo. No call to `/mcp`.                    |
+| MCP server         | Node, Express locally, a Vercel function in production | The content files and the in-process catalog. No outbound fetch.                      |
+| Range trainer      | `apps/sim`, mounted by the web shell and by Vite       | The emitter package, bundled. No call to `/mcp`.                                      |
+| Public alert relay | `apps/relay`, polled by `apps/web`                     | `SignalSource` adapter. No approved source, so the poll does not read. Does not post. |
 
 Capability figures and emitter-library numbers are illustrative. The trainer's waterfall is synthetic. Nothing in this tree is a receiver, recorder, jammer, spoofer, or geolocation system.
 
@@ -19,7 +19,7 @@ apps/mcp/                 MCP server, api/, content/, tests
 apps/sim/                 T1 waterfall, skill map, and the trainer engine
 apps/sim/scenarios/       Synthetic T1 scenarios. A seed and scripted answers.
 apps/sim/src/node/        Node-only reader for those scenario files.
-apps/relay/               Nixle signal relay. `/relay` reads a same-origin snapshot, or demo fixtures
+apps/relay/               Public alert relay. `/relay` reads a same-origin snapshot, or demo fixtures
 packages/emitters/        Fictional emitter library and glossary
 pnpm-workspace.yaml       Workspace root
 ```
@@ -86,7 +86,7 @@ Defined in `apps/sim/src/engine/tiers.ts`.
 
 [`apps/mcp/.env.example`](../apps/mcp/.env.example) is the full list for the server. No secret is required to boot. `apps/mcp/vercel.json` rewrites `/mcp`, `/health`, and `/healthz`, sets edge headers, and caps the MCP function at 10 seconds. CSP on the edge is scoped to the API paths. `apps/web/next.config.ts` sets the shell's headers, and `apps/web/vercel.json` repeats them.
 
-The web shell polls X only from `GET /api/cron/relay`. The schedule in `apps/web/vercel.json` is `0 13 * * *` (once a day). The linked project rejects a faster cron because it is on the Hobby plan, which allows one run per day. A Pro project can use `*/2 * * * *`. The handler reads `X_BEARER_TOKEN` from the environment and stores `an-alq:relay:snapshot` in Upstash Redis. `GET /api/relay/snapshot` is same-origin. `connect-src` stays `'self'`. Preview deploys stay on demo fixtures unless `RELAY_ALLOW_PREVIEW=1`. The filtered stream stays closed.
+The web shell polls only from `GET /api/cron/relay`. The schedule in `apps/web/vercel.json` is `0 13 * * *` (once a day). `RELAY_SOURCE` is blank. `APPROVED_RELAY_SOURCES` is empty, so the cron does not read. A read also requires `livePollingAllowed`: live mode, the filtered stream closed, and production unless `RELAY_ALLOW_PREVIEW=1`. The handler would read `X_BEARER_TOKEN` from the environment and store `an-alq:relay:snapshot` in Upstash Redis only after an owner-approved source is named. The live source is TBD. A former Nixle adapter is in the tree and is not on the approved list. `GET /api/relay/snapshot` is same-origin and says no live source is configured. `connect-src` stays `'self'`. Preview deploys stay on demo fixtures unless `RELAY_ALLOW_PREVIEW=1`. The filtered stream stays closed.
 
 ## What is intentionally absent
 

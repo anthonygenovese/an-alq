@@ -1,3 +1,12 @@
+import { APPROVED_RELAY_SOURCES } from "./sources.js";
+
+/** A source id is live only when it is on the approved list. Anything else is none. */
+export function configuredRelaySource(env: Record<string, string | undefined>): string | null {
+  const raw = env.RELAY_SOURCE?.trim().toLowerCase() ?? "";
+  if (raw === "" || raw === "none") return null;
+  return APPROVED_RELAY_SOURCES.includes(raw) ? raw : null;
+}
+
 /** Live reads require live mode and production, unless preview is explicitly allowed. */
 export function livePollingAllowed(env: Record<string, string | undefined>): boolean {
   if (env.RELAY_MODE !== "live") return false;

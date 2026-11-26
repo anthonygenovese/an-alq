@@ -7,7 +7,10 @@ import { ContributionLedger, DEFAULT_GLOW, type GlowConfig } from "./participati
 import { DEFAULT_PULSE } from "./pulse.js";
 import { DEFAULT_SIMILARITY } from "./fingerprint.js";
 import { sourceStatus } from "./source.js";
+import type { SourceRefExtractor } from "./parse.js";
 import { DISCLAIMER, type Geocoder, type LiveSnapshot, type RawPost } from "./types.js";
+
+export { hostListed } from "./sources/allow.js";
 
 export const DEMO_EPOCH = Date.UTC(2026, 0, 15, 15, 0, 0);
 
@@ -40,8 +43,9 @@ export function acceptRelay(
   post: RawPost,
   geocoder: Geocoder,
   now: number,
+  extractRef?: SourceRefExtractor,
 ): boolean {
-  const candidate = parsePost(post, geocoder);
+  const candidate = parsePost(post, geocoder, extractRef);
   if (!candidate) return false;
   const result = board.ingest(candidate, now);
   if (result.accepted && result.ephemeralKey)

@@ -7,8 +7,7 @@ export interface NixleRef {
 
 export function isNixleHost(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/\.$/, "");
-  if (HOSTS.has(host)) return true;
-  return host.endsWith(".nixle.us") || host.endsWith(".nixle.com");
+  return HOSTS.has(host);
 }
 
 function cleanUrlToken(raw: string): string {

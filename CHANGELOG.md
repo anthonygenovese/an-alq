@@ -2,6 +2,14 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.7.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.6.0...an-alq-v0.7.0) (2026-11-25)
+
+
+### Features
+
+* **relay:** source switch, off by default ([#36](https://github.com/anthonygenovese/an-alq/issues/36)) ([19a884a](https://github.com/anthonygenovese/an-alq/commit/19a884ab93ff864f64560b04ad065b3f5db7d08c))
+* **web:** add cookieless analytics and a privacy page ([#42](https://github.com/anthonygenovese/an-alq/issues/42)) ([1b46080](https://github.com/anthonygenovese/an-alq/commit/1b460805766752b348975deb3a3ae189e163d539))
+
 ## [0.6.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.5.0...an-alq-v0.6.0) (2026-11-22)
 
 

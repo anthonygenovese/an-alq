@@ -80,3 +80,24 @@ export function deltaChip(
   }
   return { text, tone, arrow };
 }
+
+/** Sweep metric ids match the v1 contract fields on each sweep row. */
+export type SweepMetric = "psl_db" | "islr_db" | "peak_loss_db" | "mainlobe_width_3db_us";
+
+/**
+ * Labels and units for the sweep y-axis title. Units come from the contract: `_db` fields are
+ * dB (`units.level`), `_us` fields are printed as µs (the wire unit is `us`). The UI never
+ * parses `units` display strings.
+ */
+export const SWEEP_METRICS: { id: SweepMetric; label: string; unit: string }[] = [
+  { id: "psl_db", label: "PSL", unit: "dB" },
+  { id: "islr_db", label: "ISLR", unit: "dB" },
+  { id: "peak_loss_db", label: "Peak loss", unit: "dB" },
+  { id: "mainlobe_width_3db_us", label: "Width", unit: "\u00b5s" },
+];
+
+/** Y-axis title for a sweep chart, e.g. "PSL (dB)". Updates when the metric toggle changes. */
+export function sweepAxisTitle(metric: SweepMetric): string {
+  const item = SWEEP_METRICS.find((entry) => entry.id === metric);
+  return item ? `${item.label} (${item.unit})` : metric;
+}

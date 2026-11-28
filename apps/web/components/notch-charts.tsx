@@ -15,7 +15,14 @@ import {
   type Box,
   type Domain,
 } from "../lib/spectral-notch/chart";
-import { MINUS, formatDb, formatNumber } from "../lib/spectral-notch/format";
+import {
+  MINUS,
+  formatDb,
+  formatNumber,
+  sweepAxisTitle,
+  SWEEP_METRICS,
+  type SweepMetric,
+} from "../lib/spectral-notch/format";
 import type { SpectralNotchLfmParsed } from "../lib/spectral-notch/schema";
 
 type Doc = SpectralNotchLfmParsed;
@@ -524,14 +531,7 @@ export function CompressedChart({
 /* R5c Sweeps                                                                                 */
 /* ----------------------------------------------------------------------------------------- */
 
-export type SweepMetric = "psl_db" | "islr_db" | "peak_loss_db" | "mainlobe_width_3db_us";
-
-export const SWEEP_METRICS: { id: SweepMetric; label: string }[] = [
-  { id: "psl_db", label: "PSL" },
-  { id: "islr_db", label: "ISLR" },
-  { id: "peak_loss_db", label: "Peak loss" },
-  { id: "mainlobe_width_3db_us", label: "Width" },
-];
+export { SWEEP_METRICS, type SweepMetric };
 
 const SWEEP_Y: Record<Exclude<SweepMetric, "mainlobe_width_3db_us">, Domain> = {
   psl_db: [-16, -4],
@@ -640,6 +640,13 @@ export function SweepChart({
                 );
               })}
             </g>
+            <text
+              className="notch-axis-title"
+              transform={`translate(13 ${box.y + box.h / 2}) rotate(-90)`}
+              textAnchor="middle"
+            >
+              {sweepAxisTitle(metric)}
+            </text>
             <XGrid box={box} domain={xDomain} marks={xs} title={xLabel} />
             {onGrid ? (
               <line

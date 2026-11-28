@@ -22,6 +22,7 @@ import {
   formatRatio,
   formatUs,
   notchDepthMagnitude,
+  sweepAxisTitle,
 } from "../lib/spectral-notch/format.ts";
 import { parseNotchPayload } from "../lib/spectral-notch/schema.ts";
 
@@ -182,4 +183,11 @@ test("the default payload axes line up with the spec's point counts", () => {
   assert.equal(d.length, 961);
   assert.ok(Math.abs((d[0] ?? 0) + 3) < 1e-9);
   assert.equal(result.doc.compressed_zoom?.delay_us.count, 321);
+});
+
+test("sweep y-axis titles use the contract unit and follow the metric toggle", () => {
+  assert.equal(sweepAxisTitle("psl_db"), "PSL (dB)");
+  assert.equal(sweepAxisTitle("islr_db"), "ISLR (dB)");
+  assert.equal(sweepAxisTitle("peak_loss_db"), "Peak loss (dB)");
+  assert.equal(sweepAxisTitle("mainlobe_width_3db_us"), "Width (\u00b5s)");
 });

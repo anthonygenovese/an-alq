@@ -2,6 +2,18 @@
 
 Release pull requests are opened by release-please from conventional commits on `main`. See [docs/RELEASE.md](docs/RELEASE.md).
 
+## [0.9.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.8.0...an-alq-v0.9.0) (2026-11-28)
+
+
+### Features
+
+* **web:** enter the home page through the node button ([#53](https://github.com/anthonygenovese/an-alq/issues/53)) ([4bf8a99](https://github.com/anthonygenovese/an-alq/commit/4bf8a99d69b3d8e3d75ae28746532ff7228ad5e8))
+
+
+### Bug Fixes
+
+* **web:** keep light mode working in Instagram's browser ([#55](https://github.com/anthonygenovese/an-alq/issues/55)) ([a0e8248](https://github.com/anthonygenovese/an-alq/commit/a0e82486b7f443dd820b782d27218a15d027fb04))
+
 ## [0.8.0](https://github.com/anthonygenovese/an-alq/compare/an-alq-v0.7.0...an-alq-v0.8.0) (2026-11-26)
 
 

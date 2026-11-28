@@ -8,3 +8,6 @@ sbom.cdx.json
 .vercel
 .gitleaks.toml
 CHANGELOG.md
+prototypes/spectral-notch-lfm/examples/*.json
+prototypes/spectral-notch-lfm/tests/golden/**/*.json
+prototypes/spectral-notch-lfm/contract/*.json

@@ -2,7 +2,7 @@
 """Core NumPy routines: LFM chirp, spectral notch, matched filter, metrics.
 
 Units are illustrative: frequency in "MHz", time in "us". They are a
-normalised scale for teaching, not a description of any real system.
+normalized scale for teaching, not a description of any real system.
 
 Every function takes plain arrays and returns plain arrays so the same code
 path can be ported to ``torch`` by swapping ``np`` for ``torch`` and
@@ -11,13 +11,22 @@ path can be ported to ``torch`` by swapping ``np`` for ``torch`` and
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 import numpy as np
 
 ILLUSTRATIVE_LABEL = (
-    "Illustrative. Synthetic data and normalised units. Not a measurement of any real system."
+    "Illustrative. Synthetic data and normalized units. Not a measurement of any real system."
 )
+
+SCHEMA = "an-alq.spectral-notch-lfm.v1"
+SCHEMA_VERSION = "1.0.0"
+MODEL_VERSION = "numpy-proto-0"
+LEVEL_FLOOR_DB = -120.0
+DELAY_WINDOW_US = 3.0
+SPECTRUM_POINTS = 400  # budget over +-fs/2 before the crop to +-B
+ZOOM_HALF_US = 0.25
+ZOOM_UPSAMPLE = 4
 
 ReplicaMode = str  # "original" or "notched"
 REPLICA_MODES = ("original", "notched")
@@ -217,84 +226,58 @@ def _compress(wave: WaveformSpec, notch: NotchSpec, mode: ReplicaMode):
     _, y0 = matched_filter(x, x)
     return x, xn, mask, lags, y0, y
 
-
-def _db(v: np.ndarray, ref: float) -> np.ndarray:
-    return 20.0 * np.log10(np.maximum(np.abs(v), 1e-12 * ref) / ref)
-
-
-def _r(a: np.ndarray, nd: int = 3) -> list[float]:
-    return [round(float(v), nd) for v in a]
+def _axis(start: float, step: float, count: int, unit: str) -> dict:
+    return {"start": round(float(start), 6), "step": round(float(step), 8), "count": int(count), "unit": unit}
 
 
-def run_experiment(
-    wave: WaveformSpec | None = None,
-    notch: NotchSpec | None = None,
-    *,
-    delay_window_us: float = 3.0,
-    spectrum_points: int = 400,
-    sweeps: bool = True,
-) -> dict:
-    """Run the full demo and return the provisional JSON-ready document."""
-    wave = wave or WaveformSpec()
-    notch = notch or NotchSpec()
-    x = lfm_chirp(wave)[1]
-    xn, mask = apply_notch(x, wave.sample_rate, notch)
-    f = np.fft.fftshift(np.fft.fftfreq(x.size, d=1.0 / wave.sample_rate))
-    spec0 = np.fft.fftshift(np.abs(np.fft.fft(x)))
-    spec1 = np.fft.fftshift(np.abs(np.fft.fft(xn)))
-    ref = float(spec0.max())
-    keep = np.abs(f) <= wave.sample_rate / 2
-    stride = max(1, int(np.ceil(keep.sum() / spectrum_points)))
-    sl = np.flatnonzero(keep)[::stride]
+def _clamp_db(values, nd: int = 1) -> list[float]:
+    return [round(max(float(v), LEVEL_FLOOR_DB), nd) for v in values]
 
-    compressed: dict[str, list[float]] = {}
-    metrics: dict[str, dict] = {}
-    delay_axis = None
-    for mode in REPLICA_MODES:
-        _, _, _, lags, y0, y = _compress(wave, notch, mode)
-        peak0 = float(np.abs(y0).max())
-        t = lags / wave.sample_rate
-        sel = np.abs(t) <= delay_window_us
-        delay_axis = t[sel]
-        compressed["baseline_db"] = _r(_db(y0[sel], peak0), 2)
-        compressed[f"{MODE_KEY[mode]}_db"] = _r(_db(y[sel], peak0), 2)
-        metrics[MODE_KEY[mode]] = compression_metrics(y, wave.sample_rate, reference_peak=peak0)
-    metrics["baseline"] = compression_metrics(y0, wave.sample_rate)
-    metrics["notch"] = measure_notch(x, xn, wave.sample_rate, wave.bandwidth, notch)
-    metrics = {k: {m: round(v, 3) for m, v in d.items()} for k, d in metrics.items()}
 
-    doc = {
-        "schema": "an-alq.spectral-notch-lfm.v0-provisional",
-        "status": "provisional",
-        "status_note": (
-            "Field names and shapes are a placeholder until Design Lead's UI spec lands."
-        ),
-        "illustrative": True,
-        "label": ILLUSTRATIVE_LABEL,
-        "units": {"frequency": "illustrative MHz", "time": "illustrative us", "level": "dB"},
-        "params": {
-            "waveform": {
-                **asdict(wave),
-                "n_samples": wave.n_samples,
-                "time_bandwidth_product": round(wave.time_bandwidth_product, 3),
-            },
-            "notch": asdict(notch),
-        },
-        "axes": {
-            "frequency": _r(f[sl], 3),
-            "delay": _r(delay_axis, 4),
-        },
-        "spectrum": {
-            "original_db": _r(_db(spec0[sl], ref), 2),
-            "notched_db": _r(_db(spec1[sl], ref), 2),
-            "mask_db": _r(_db(np.fft.fftshift(mask)[sl], 1.0), 2),
-        },
-        "compressed": compressed,
-        "metrics": metrics,
+def _db(values: np.ndarray, ref: float) -> np.ndarray:
+    return 20.0 * np.log10(np.maximum(np.abs(values), 1e-12 * ref) / ref)
+
+
+def _round_metric(key: str, value: float) -> float:
+    return round(float(value), 4 if key.endswith("_us") else 3)
+
+
+def _round_metrics(m: dict) -> dict:
+    return {k: _round_metric(k, v) for k, v in m.items()}
+
+
+def _compressed_zoom(wave: WaveformSpec, notch: NotchSpec) -> dict:
+    """Zero-padded (x4) compressed pulse near the mainlobe. Optional in the v1 contract."""
+    _, x = lfm_chirp(wave)
+    xn, _ = apply_notch(x, wave.sample_rate, notch)
+
+    def comp(rx: np.ndarray, rep: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        n = rx.size + rep.size - 1
+        n_fft = 1 << (n - 1).bit_length()
+        spectrum = np.fft.fft(rx, n_fft) * np.conj(np.fft.fft(rep, n_fft))
+        shifted = np.fft.fftshift(spectrum)
+        pad = n_fft * (ZOOM_UPSAMPLE - 1) // 2
+        y = np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(np.pad(shifted, (pad, pad)))) * ZOOM_UPSAMPLE)
+        lags = (np.arange(y.size) - y.size // 2) / (wave.sample_rate * ZOOM_UPSAMPLE)
+        return lags, y
+
+    lags, y0 = comp(x, x)
+    peak = float(np.abs(y0).max())
+    sel = np.abs(lags) <= ZOOM_HALF_US
+    delay = lags[sel]
+
+    def curve(y: np.ndarray) -> list[float]:
+        return _clamp_db(_db(y[sel], peak), 1)
+
+    _, yo = comp(xn, x)
+    _, yn = comp(xn, xn)
+    step = 1.0 / (wave.sample_rate * ZOOM_UPSAMPLE)
+    return {
+        "delay_us": _axis(delay[0], step, int(sel.sum()), "us"),
+        "baseline_db": curve(y0),
+        "replica_original_db": curve(yo),
+        "replica_notched_db": curve(yn),
     }
-    if sweeps:
-        doc["sweeps"] = _sweeps(wave, notch)
-    return doc
 
 
 def _sweeps(wave: WaveformSpec, notch: NotchSpec) -> dict:
@@ -303,20 +286,140 @@ def _sweeps(wave: WaveformSpec, notch: NotchSpec) -> dict:
         for mode in REPLICA_MODES:
             _, _, _, _, y0, y = _compress(wave, n, mode)
             m = compression_metrics(y, wave.sample_rate, float(np.abs(y0).max()))
-            row[MODE_KEY[mode]] = {k: round(m[k], 3) for k in ("psl_db", "islr_db", "peak_loss_db", "mainlobe_width_3db_us")}
+            row[MODE_KEY[mode]] = {
+                k: _round_metric(k, m[k])
+                for k in ("psl_db", "islr_db", "peak_loss_db", "mainlobe_width_3db_us")
+            }
         return row
 
-    depths = [0.0, 10.0, 20.0, 30.0, 40.0, 60.0]
-    widths = [1.0, 2.0, 4.0, 8.0, 12.0]
     return {
         "depth_db": [
-            {"depth_db": d, **point(NotchSpec(notch.center, notch.width, d, notch.taper))} for d in depths
+            {"depth_db": d, **point(NotchSpec(notch.center, notch.width, d, notch.taper))}
+            for d in (0.0, 10.0, 20.0, 30.0, 40.0, 60.0)
         ],
-        "width": [
-            {"width": w, **point(NotchSpec(notch.center, w, notch.depth_db, notch.taper))} for w in widths
+        "width_mhz": [
+            {"width_mhz": w, **point(NotchSpec(notch.center, w, notch.depth_db, notch.taper))}
+            for w in (1.0, 2.0, 4.0, 8.0, 12.0)
         ],
-        "taper": [
-            {"taper": tp, **point(NotchSpec(notch.center, notch.width, notch.depth_db, tp))}
-            for tp in (0.0, 1.0, 2.0, 4.0)
+        "taper_mhz": [
+            {"taper_mhz": t, **point(NotchSpec(notch.center, notch.width, notch.depth_db, t))}
+            for t in (0.0, 1.0, 2.0, 4.0)
         ],
     }
+
+
+def run_experiment(
+    wave: WaveformSpec | None = None,
+    notch: NotchSpec | None = None,
+    *,
+    delay_window_us: float = DELAY_WINDOW_US,
+    spectrum_points: int = SPECTRUM_POINTS,
+    sweeps: bool = True,
+    compressed_zoom: bool = True,
+    backend: str = "numpy",
+    model_version: str = MODEL_VERSION,
+    compute_ms: float | None = None,
+) -> dict:
+    """Run the demo and return a v1 contract document (an-alq.spectral-notch-lfm.v1)."""
+    wave = wave or WaveformSpec()
+    notch = notch or NotchSpec()
+    fs = wave.sample_rate
+    _, x = lfm_chirp(wave)
+    xn, mask = apply_notch(x, fs, notch)
+
+    f = np.fft.fftshift(np.fft.fftfreq(x.size, d=1.0 / fs))
+    spec0 = np.fft.fftshift(np.abs(np.fft.fft(x)))
+    spec1 = np.fft.fftshift(np.abs(np.fft.fft(xn)))
+    mask_s = np.fft.fftshift(mask)
+    ref = float(spec0.max())
+
+    nyq = np.abs(f) <= fs / 2
+    stride = max(1, int(np.ceil(nyq.sum() / spectrum_points)))
+    sl = np.flatnonzero(nyq)[::stride]
+    f0 = f[sl]
+    keep = np.abs(f0) <= wave.bandwidth + 1e-9
+    idx = np.flatnonzero(keep)
+    fstep = float(f0[1] - f0[0])
+
+    compressed: dict[str, list[float]] = {}
+    metrics: dict[str, dict] = {}
+    delay_start = None
+    delay_count = 0
+    y0 = None
+    for mode in REPLICA_MODES:
+        _, _, _, lags, y0, y = _compress(wave, notch, mode)
+        peak0 = float(np.abs(y0).max())
+        t = lags / fs
+        sel = np.abs(t) <= delay_window_us
+        delay_start = float(t[sel][0])
+        delay_count = int(sel.sum())
+        compressed["baseline_db"] = _clamp_db(_db(y0[sel], peak0), 1)
+        compressed[f"{MODE_KEY[mode]}_db"] = _clamp_db(_db(y[sel], peak0), 1)
+        metrics[MODE_KEY[mode]] = _round_metrics(
+            compression_metrics(y, fs, reference_peak=peak0)
+        )
+    metrics["baseline"] = _round_metrics(compression_metrics(y0, fs))
+    # inband_depth_db can be slightly > 0 when depth_db = 0 because of in-band
+    # spectrum ripple (about +0.078 at the defaults). The v1 contract leaves
+    # the wire value unclamped; the UI clamps the displayed magnitude.
+    metrics["notch"] = _round_metrics(measure_notch(x, xn, fs, wave.bandwidth, notch))
+
+    doc = {
+        "schema": SCHEMA,
+        "schema_version": SCHEMA_VERSION,
+        "illustrative": True,
+        "operational": False,
+        "label": ILLUSTRATIVE_LABEL,
+        "meta": {
+            "backend": backend,
+            "model_version": model_version,
+            "deterministic": True,
+            "compute_ms": compute_ms,
+            "level_floor_db": LEVEL_FLOOR_DB,
+        },
+        "units": {"frequency": "illustrative MHz", "time": "illustrative us", "level": "dB"},
+        "params": {
+            "waveform": {
+                "bandwidth_mhz": wave.bandwidth,
+                "pulse_width_us": wave.pulse_width,
+                "sample_rate_mhz": fs,
+                "amplitude_window": wave.amplitude_window,
+                "n_samples": wave.n_samples,
+                "time_bandwidth_product": round(wave.time_bandwidth_product, 3),
+            },
+            "notch": {
+                "center_mhz": notch.center,
+                "width_mhz": notch.width,
+                "depth_db": notch.depth_db,
+                "taper_mhz": notch.taper,
+            },
+        },
+        "axes": {
+            "frequency_mhz": _axis(float(f0[idx[0]]), fstep, int(idx.size), "MHz"),
+            "delay_us": _axis(delay_start, 1.0 / fs, delay_count, "us"),
+        },
+        "spectrum": {
+            "original_db": _clamp_db(_db(spec0[sl][idx], ref), 1),
+            "notched_db": _clamp_db(_db(spec1[sl][idx], ref), 1),
+            "mask_db": _clamp_db(_db(mask_s[sl][idx], 1.0), 1),
+        },
+        "compressed": compressed,
+    }
+    if compressed_zoom:
+        doc["compressed_zoom"] = _compressed_zoom(wave, notch)
+    doc["metrics"] = metrics
+    if sweeps:
+        doc["sweeps"] = _sweeps(wave, notch)
+    return doc
+
+
+# Static v1 presets. All sit on the sweep grid. See docs/spectral-notch-lfm.md.
+PRESETS: dict[str, tuple[WaveformSpec, NotchSpec]] = {
+    "default": (WaveformSpec(), NotchSpec(8.0, 4.0, 30.0, 2.0)),
+    "no-notch": (WaveformSpec(), NotchSpec(8.0, 4.0, 0.0, 2.0)),
+    "narrow-deep": (WaveformSpec(), NotchSpec(8.0, 1.0, 40.0, 2.0)),
+    "wide-shallow": (WaveformSpec(), NotchSpec(8.0, 12.0, 10.0, 2.0)),
+    "hard-edge": (WaveformSpec(), NotchSpec(8.0, 4.0, 30.0, 0.0)),
+    "soft-edge": (WaveformSpec(), NotchSpec(8.0, 4.0, 30.0, 4.0)),
+    "hann-window": (WaveformSpec(amplitude_window="hann"), NotchSpec(8.0, 4.0, 30.0, 2.0)),
+}

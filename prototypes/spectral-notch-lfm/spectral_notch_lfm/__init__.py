@@ -1,13 +1,18 @@
 # SPDX-License-Identifier: MIT
 """Spectral-notching LFM teaching prototype (NumPy).
 
-Synthetic, normalised, illustrative signal processing only. Nothing here
+Synthetic, normalized, illustrative signal processing only. Nothing here
 receives, records, transmits, jams, spoofs, or locates anything.
 """
 
 from .core import (
     ILLUSTRATIVE_LABEL,
+    LEVEL_FLOOR_DB,
     MODE_KEY,
+    MODEL_VERSION,
+    PRESETS,
+    SCHEMA,
+    SCHEMA_VERSION,
     NotchSpec,
     WaveformSpec,
     apply_notch,
@@ -21,7 +26,12 @@ from .core import (
 
 __all__ = [
     "ILLUSTRATIVE_LABEL",
+    "LEVEL_FLOOR_DB",
     "MODE_KEY",
+    "MODEL_VERSION",
+    "PRESETS",
+    "SCHEMA",
+    "SCHEMA_VERSION",
     "NotchSpec",
     "WaveformSpec",
     "apply_notch",

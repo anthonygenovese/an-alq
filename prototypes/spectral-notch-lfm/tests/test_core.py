@@ -11,6 +11,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from spectral_notch_lfm import (  # noqa: E402
     ILLUSTRATIVE_LABEL,
+    LEVEL_FLOOR_DB,
+    PRESETS,
+    SCHEMA,
+    SCHEMA_VERSION,
     NotchSpec,
     WaveformSpec,
     apply_notch,
@@ -201,25 +205,78 @@ def test_notching_does_not_improve_sidelobes_and_keeps_the_mainlobe():
 def test_document_is_json_safe_labelled_and_consistent():
     doc = run_experiment(sweeps=True)
     text = json.dumps(doc, allow_nan=False)  # no NaN / inf
-    assert json.loads(text)["schema"].endswith("v0-provisional")
-    assert doc["illustrative"] is True and doc["label"] == ILLUSTRATIVE_LABEL
-    assert doc["status"] == "provisional"
-    n_f, n_d = len(doc["axes"]["frequency"]), len(doc["axes"]["delay"])
-    assert all(len(v) == n_f for v in doc["spectrum"].values())
-    assert all(len(v) == n_d for v in doc["compressed"].values())
+    assert json.loads(text)["schema"] == SCHEMA == "an-alq.spectral-notch-lfm.v1"
+    assert doc["schema_version"] == SCHEMA_VERSION
+    assert doc["illustrative"] is True and doc["operational"] is False
+    assert doc["label"] == ILLUSTRATIVE_LABEL
+    assert "normalised" not in doc["label"]
+    assert "status" not in doc and "status_note" not in doc
+    f, dly = doc["axes"]["frequency_mhz"], doc["axes"]["delay_us"]
+    assert f["count"] == 201 and f["start"] == -40.0 and f["step"] == 0.4 and f["unit"] == "MHz"
+    assert dly["count"] == 961 and dly["start"] == -3.0 and dly["step"] == 0.00625 and dly["unit"] == "us"
+    assert all(len(v) == f["count"] for v in doc["spectrum"].values())
+    assert all(len(v) == dly["count"] for v in doc["compressed"].values())
+    z = doc["compressed_zoom"]["delay_us"]
+    assert z["count"] == 321 and z["start"] == -0.25 and z["step"] == 0.0015625
+    assert all(len(doc["compressed_zoom"][k]) == 321 for k in ("baseline_db", "replica_original_db", "replica_notched_db"))
     assert set(doc["metrics"]) == {"baseline", "replica_original", "replica_notched", "notch"}
-    assert set(doc["sweeps"]) == {"depth_db", "width", "taper"}
+    assert set(doc["sweeps"]) == {"depth_db", "width_mhz", "taper_mhz"}
     assert max(doc["compressed"]["baseline_db"]) == pytest.approx(0.0, abs=0.01)
+    assert doc["meta"]["level_floor_db"] == LEVEL_FLOOR_DB
+    assert doc["meta"]["backend"] == "numpy" and doc["meta"]["compute_ms"] is None
+    # params use unit suffixes
+    assert set(doc["params"]["waveform"]) >= {"bandwidth_mhz", "pulse_width_us", "sample_rate_mhz"}
+    assert set(doc["params"]["notch"]) == {"center_mhz", "width_mhz", "depth_db", "taper_mhz"}
+
+
+def test_us_metrics_are_rounded_to_4_decimals():
+    doc = run_experiment()
+    width = doc["metrics"]["baseline"]["mainlobe_width_3db_us"]
+    notched = doc["metrics"]["replica_original"]["mainlobe_width_3db_us"]
+    assert width == 0.0217 and notched == 0.0209
+    for block in ("baseline", "replica_original", "replica_notched"):
+        for key, value in doc["metrics"][block].items():
+            text = f"{value:.10f}".rstrip("0")
+            decimals = len(text.split(".")[1]) if "." in text else 0
+            if key.endswith("_us"):
+                assert decimals <= 4
+            else:
+                assert decimals <= 3
+    # a 3 dp round would have collapsed both widths
+    assert round(width, 3) != round(notched, 3) or width != notched
+
+
+def test_db_arrays_are_clamped_to_the_floor():
+    doc = run_experiment()
+    arrays = list(doc["spectrum"].values()) + list(doc["compressed"].values())
+    arrays += [doc["compressed_zoom"][k] for k in ("baseline_db", "replica_original_db", "replica_notched_db")]
+    floor = doc["meta"]["level_floor_db"]
+    assert floor == -120.0
+    for arr in arrays:
+        assert min(arr) >= floor
+        assert all(len(str(v).split(".")[-1]) <= 1 or float(v) == int(v) or str(v).endswith(".0") for v in arr)
+    # unweighted LFM baseline has exact nulls that would be -240 dB unclamped
+    assert doc["compressed"]["baseline_db"].count(-120.0) == 12
+
+
+def test_inband_depth_is_left_unclamped_when_slightly_positive():
+    wave, notch = PRESETS["no-notch"]
+    depth = run_experiment(wave, notch)["metrics"]["notch"]["inband_depth_db"]
+    assert depth == 0.078  # in-band ripple; the contract allows a small positive
+    assert depth > 0
 
 
 def test_document_is_deterministic():
     assert run_experiment() == run_experiment()
 
 
-def test_sweeps_can_be_skipped():
-    assert "sweeps" not in run_experiment(sweeps=False)
+def test_sweeps_and_zoom_can_be_skipped():
+    doc = run_experiment(sweeps=False, compressed_zoom=False)
+    assert "sweeps" not in doc and "compressed_zoom" not in doc
 
 
-def test_committed_example_matches_the_code():
-    path = Path(__file__).resolve().parents[1] / "examples" / "default.json"
-    assert json.loads(path.read_text()) == json.loads(json.dumps(run_experiment()))
+def test_committed_examples_match_the_code():
+    root = Path(__file__).resolve().parents[1] / "examples"
+    for name, (wave, notch) in PRESETS.items():
+        path = root / f"{name}.v1.json"
+        assert json.loads(path.read_text()) == json.loads(json.dumps(run_experiment(wave, notch)))

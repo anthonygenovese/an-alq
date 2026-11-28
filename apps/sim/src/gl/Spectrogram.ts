@@ -2,6 +2,7 @@
 import { drawsFromRound, sampleRow } from "../engine/signature.js";
 import type { SignatureDraw, TrainingRound } from "../engine/types.js";
 import { colorAt } from "../colormap.js";
+import { bindCanvasResize, canvasPixelSize } from "./canvas-size.js";
 
 const ROWS = 256;
 
@@ -57,31 +58,22 @@ export class Spectrogram {
   private reduced = false;
   private running = false;
   private destroyed = false;
-  private observer: ResizeObserver | null = null;
+  private unbindResize: (() => void) | null = null;
   private motion: MediaQueryList | null = null;
+  private motionLegacy = false;
+  private themeObserver: MutationObserver | null = null;
+  private retryTimer = 0;
+  private retries = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    const gl = canvas.getContext("webgl2", {
-      alpha: false,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      powerPreference: "high-performance",
-      desynchronized: true,
-      preserveDrawingBuffer: false,
-    });
-    if (gl && this.initGl(gl)) {
-      this.gl = gl;
-    } else {
-      this.ctx2d = canvas.getContext("2d", { alpha: false });
-    }
-    this.observer = new ResizeObserver(() => this.resize());
-    this.observer.observe(canvas);
-    this.motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    this.reduced = this.motion.matches;
     this.onMotion = this.onMotion.bind(this);
-    this.motion.addEventListener("change", this.onMotion);
+    this.onContextLost = this.onContextLost.bind(this);
+    this.resize = this.resize.bind(this);
+    this.attachContext();
+    this.attachResize();
+    this.attachMotion();
+    this.attachTheme();
     this.resize();
   }
 
@@ -147,14 +139,139 @@ export class Spectrogram {
     this.destroyed = true;
     this.running = false;
     cancelAnimationFrame(this.raf);
-    this.observer?.disconnect();
-    this.motion?.removeEventListener("change", this.onMotion);
+    window.clearTimeout(this.retryTimer);
+    this.unbindResize?.();
+    this.unbindResize = null;
+    this.detachMotion();
+    this.themeObserver?.disconnect();
+    this.themeObserver = null;
+    this.canvas.removeEventListener("webglcontextlost", this.onContextLost);
+    this.releaseGl();
+  }
+
+  private attachContext(): void {
+    try {
+      const gl = this.canvas.getContext("webgl2", {
+        alpha: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "high-performance",
+        desynchronized: true,
+        preserveDrawingBuffer: false,
+      });
+      if (gl && this.initGl(gl)) {
+        this.gl = gl;
+        this.canvas.addEventListener("webglcontextlost", this.onContextLost);
+        return;
+      }
+    } catch {
+      this.gl = null;
+    }
+    this.attach2d();
+  }
+
+  private attach2d(): void {
+    if (this.ctx2d) return;
+    try {
+      this.ctx2d = this.canvas.getContext("2d", { alpha: false });
+    } catch {
+      this.ctx2d = null;
+    }
+    if (!this.ctx2d || this.bins < 1) return;
+    this.offscreen = document.createElement("canvas");
+    this.offscreen.width = this.bins;
+    this.offscreen.height = ROWS;
+    this.offctx = this.offscreen.getContext("2d", { alpha: false });
+    this.image = this.offctx?.createImageData(this.bins, ROWS) ?? null;
+  }
+
+  private onContextLost(event: Event): void {
+    event.preventDefault();
+    this.canvas.removeEventListener("webglcontextlost", this.onContextLost);
+    this.releaseGl();
+    this.attach2d();
+    this.draw();
+  }
+
+  private releaseGl(): void {
     const gl = this.gl;
+    this.gl = null;
     if (!gl) return;
     if (this.texture) gl.deleteTexture(this.texture);
     if (this.buffer) gl.deleteBuffer(this.buffer);
     if (this.program) gl.deleteProgram(this.program);
-    this.gl = null;
+    this.texture = null;
+    this.buffer = null;
+    this.program = null;
+  }
+
+  private attachResize(): void {
+    const visual =
+      typeof window !== "undefined" &&
+      window.visualViewport &&
+      typeof window.visualViewport.addEventListener === "function"
+        ? window.visualViewport
+        : null;
+    this.unbindResize = bindCanvasResize(this.canvas, () => this.resize(), {
+      ResizeObserver:
+        typeof ResizeObserver === "function"
+          ? (ResizeObserver as unknown as new (callback: () => void) => {
+              observe: (target: unknown) => void;
+              disconnect: () => void;
+            })
+          : undefined,
+      windowTarget: typeof window === "undefined" ? null : window,
+      visualViewport: visual,
+    });
+  }
+
+  private attachMotion(): void {
+    try {
+      if (typeof window.matchMedia !== "function") return;
+      this.motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      this.reduced = this.motion.matches;
+      if (typeof this.motion.addEventListener === "function") {
+        this.motion.addEventListener("change", this.onMotion);
+        return;
+      }
+      const legacy = this.motion as MediaQueryList & {
+        addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+      };
+      if (typeof legacy.addListener === "function") {
+        this.motionLegacy = true;
+        legacy.addListener(this.onMotion);
+      }
+    } catch {
+      this.reduced = false;
+      this.motion = null;
+    }
+  }
+
+  private detachMotion(): void {
+    if (!this.motion) return;
+    if (this.motionLegacy) {
+      const legacy = this.motion as MediaQueryList & {
+        removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+      };
+      legacy.removeListener?.(this.onMotion);
+    } else {
+      this.motion.removeEventListener("change", this.onMotion);
+    }
+    this.motion = null;
+  }
+
+  private attachTheme(): void {
+    if (typeof MutationObserver !== "function" || typeof document === "undefined") return;
+    this.themeObserver = new MutationObserver(() => {
+      this.retries = 0;
+      this.resize();
+      this.draw();
+    });
+    this.themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
   }
 
   private onMotion(event: MediaQueryListEvent): void {
@@ -249,15 +366,31 @@ export class Spectrogram {
   }
 
   private resize(): void {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const width = Math.max(1, Math.floor(this.canvas.clientWidth * dpr));
-    const height = Math.max(1, Math.floor(this.canvas.clientHeight * dpr));
-    if (this.canvas.width !== width || this.canvas.height !== height) {
-      this.canvas.width = width;
-      this.canvas.height = height;
+    const size = canvasPixelSize(
+      this.canvas.clientWidth,
+      this.canvas.clientHeight,
+      typeof window === "undefined" ? undefined : window.devicePixelRatio,
+    );
+    if (!size) {
+      this.armRetry();
+      return;
     }
-    if (this.gl) this.gl.viewport(0, 0, width, height);
+    this.retries = 0;
+    if (this.canvas.width !== size.width || this.canvas.height !== size.height) {
+      this.canvas.width = size.width;
+      this.canvas.height = size.height;
+    }
+    if (this.gl) this.gl.viewport(0, 0, size.width, size.height);
     this.draw();
+  }
+
+  private armRetry(): void {
+    if (this.retryTimer || this.destroyed || this.retries > 120) return;
+    this.retries += 1;
+    this.retryTimer = window.setTimeout(() => {
+      this.retryTimer = 0;
+      if (!this.destroyed) this.resize();
+    }, 50);
   }
 }
 

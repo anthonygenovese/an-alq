@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
+import { isInstagramWebView } from "../lib/webview";
 import {
   chooseTogglePlacement,
+  resolvePlacementViewport,
   toggleCandidates,
   type Box,
   type Point,
@@ -107,11 +109,18 @@ export function measureTogglePlacement(button: HTMLElement): Point | null {
 
   const header = document.querySelector("header.nav");
   const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+  const layout = {
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight,
+  };
+  const instagram =
+    typeof navigator !== "undefined" && isInstagramWebView(navigator.userAgent || "");
+  const visible = instagram ? window.visualViewport : null;
   const scene: TogglePlacementScene = {
-    viewport: {
-      width: document.documentElement.clientWidth,
-      height: document.documentElement.clientHeight,
-    },
+    viewport: resolvePlacementViewport(
+      layout,
+      visible ? { width: visible.width, height: visible.height } : null,
+    ),
     button: { width: base.width, height: base.height },
     inset: readSafeInsets(),
     headerBottom,

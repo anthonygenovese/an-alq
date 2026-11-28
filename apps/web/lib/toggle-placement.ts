@@ -24,6 +24,29 @@ export type TogglePlacementScene = {
   obstacles: readonly Box[];
 };
 
+/**
+ * Layout viewport, unless a shorter visual viewport is supplied.
+ * Equal sizes return the layout size unchanged.
+ */
+export function resolvePlacementViewport(
+  layout: { width: number; height: number },
+  visual: { width: number; height: number } | null | undefined,
+): { width: number; height: number } {
+  if (
+    !visual ||
+    !Number.isFinite(visual.width) ||
+    !Number.isFinite(visual.height) ||
+    visual.width <= 0 ||
+    visual.height <= 0
+  ) {
+    return { width: layout.width, height: layout.height };
+  }
+  return {
+    width: Math.min(layout.width, visual.width),
+    height: Math.min(layout.height, visual.height),
+  };
+}
+
 export const TOGGLE_EDGE_MARGIN = 22;
 export const TOGGLE_HEADER_GAP = 12;
 export const TOGGLE_OBSTACLE_GAP = 8;

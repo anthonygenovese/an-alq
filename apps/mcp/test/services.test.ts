@@ -23,11 +23,29 @@ describe("getCapabilities", () => {
       expect(metric.label).toBe("illustrative");
     }
     const serialized = JSON.stringify(document);
-    for (const figure of ["<12 ms", "<50 ms", "99.3%", "40,000+", "up to 64", "0.5–18 GHz"]) {
+    for (const figure of [
+      "targeting <12 ms",
+      "<50 ms",
+      "targeting 99.3%",
+      "targeting 40,000+",
+      "up to 64",
+      "0.5–18 GHz",
+    ]) {
       expect(serialized).toContain(figure);
     }
     expect(document.figures_are).toBe("illustrative");
     expect(document.disclaimer.toLowerCase()).toContain("illustrative");
+    const targeted = metrics.filter((metric) =>
+      ["autonomous_threat_response_latency", "emitter_library", "classification_accuracy"].includes(
+        metric.name,
+      ),
+    );
+    expect(targeted).toHaveLength(3);
+    for (const metric of targeted) {
+      expect(metric.value.startsWith("targeting ")).toBe(true);
+      expect(metric.source).toBe("target");
+      expect(metric.source).not.toContain("an-alq.com");
+    }
     for (const division of document.divisions) {
       for (const entry of division.bands ?? []) {
         expect(entry.label).toBe("illustrative");

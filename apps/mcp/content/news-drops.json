@@ -14,7 +14,7 @@
       "items": [
         {
           "title": "Illustrative figures stay labeled",
-          "dek": "Example item. The public AN-ALQ pages mark latency, library size, and accuracy as illustrative. This server repeats that label on every figure.",
+          "dek": "Example item. Latency, library size, and accuracy are illustrative targets, not measured results. This server repeats that label on every figure.",
           "tag": "example"
         },
         {
@@ -40,7 +40,7 @@
       "items": [
         {
           "title": "Placeholder booth conversation",
-          "dek": "Example item. Someone asks what '<12 ms' means. The right answer on this server is: an illustrative figure from an-alq.com, not a measured result.",
+          "dek": "Example item. Someone asks what '<12 ms' means. The right answer on this server is: an illustrative target, not a measured result.",
           "tag": "example"
         },
         {

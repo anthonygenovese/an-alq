@@ -182,15 +182,21 @@ Goal: the same demo as a differentiable, batched model, so notch parameters can 
 
 Points to watch: `torch.fft` on real input returns complex, so build the chirp as complex from the start; use `torch.hann_window(n, periodic=False)` to match `np.hanning`; `fftshift` is `torch.fft.fftshift`; autograd through `abs` at zero has an undefined gradient, so add an epsilon inside the square root; set `torch.manual_seed` for any random init; pin `torch` as an optional extra (`requirements-torch.txt`) so the NumPy path stays dependency-light.
 
-## Still open (not blocked for this prototype)
+## Web page (`/notch`)
 
-Design Lead's draft answers the field names, the dB convention, the charts, the axis ranges, the payload budget, the seven presets, and the illustrative label. These remain for Geno, and this PR does not decide them:
+`apps/web` has a standalone page at `/notch`, built from Design Lead's UI spec. It is not linked from the nav or any other page until QA passes it.
 
-1. Route `/notch`, and when a nav link appears.
+- Static presets only. The seven v1 payloads in `apps/web/lib/spectral-notch/presets/` are byte copies of `prototypes/spectral-notch-lfm/examples/*.v1.json` (a test checks that). There is no live compute and no TypeScript port of `core.py`.
+- Validation uses `zod` (Geno's decision). The schema in `apps/web/lib/spectral-notch/schema.ts` is Design Lead's consumer schema. The page refuses to render unless `illustrative === true` and `operational === false`.
+- Charts are hand-written SVG. The measured notch depth is shown as a magnitude clamped at 0.0 dB. No echo marker is drawn.
+- Changing a field the page reads means changing the spec first, then the exporter, then the page.
+
+## Still open
+
+These remain for Geno, and are marked as TODOs in the code where they touch the page:
+
+1. When the nav link appears (after QA).
 2. Whether to port `core.py` to TypeScript for live sliders.
-3. Whether `apps/web` gains a `zod` dependency or a hand validator.
-4. The page-note sentence that reuses "Names are fictional."
-5. Five glossary entries (PSL, ISLR, matched filter, pulse compression, spectral notch).
-6. The optional `envelope` block (a 1.1.0 candidate) for the time-domain gap.
-
-Until those are decided, no change to `apps/web`, `apps/mcp`, `apps/sim`, env vars, or Vercel settings.
+3. The page-note sentences after `TRAINING_DISCLAIMER`, including "Names are fictional."
+4. Glossary entries (PSL, ISLR, matched filter, pulse compression, spectral notch). Not added to the site glossary.
+5. The optional `envelope` block (a 1.1.0 candidate) for the time-domain gap.

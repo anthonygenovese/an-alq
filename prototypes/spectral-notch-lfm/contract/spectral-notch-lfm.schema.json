@@ -62,8 +62,7 @@
         "deterministic",
         "compute_ms",
         "level_floor_db"
-      ],
-      "additionalProperties": false
+      ]
     },
     "units": {
       "type": "object",
@@ -82,8 +81,7 @@
         "frequency",
         "time",
         "level"
-      ],
-      "additionalProperties": false
+      ]
     },
     "params": {
       "type": "object",
@@ -128,8 +126,7 @@
             "amplitude_window",
             "n_samples",
             "time_bandwidth_product"
-          ],
-          "additionalProperties": false
+          ]
         },
         "notch": {
           "type": "object",
@@ -155,15 +152,13 @@
             "width_mhz",
             "depth_db",
             "taper_mhz"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "required": [
         "waveform",
         "notch"
-      ],
-      "additionalProperties": false
+      ]
     },
     "axes": {
       "type": "object",
@@ -196,8 +191,7 @@
             "step",
             "count",
             "unit"
-          ],
-          "additionalProperties": false
+          ]
         },
         "delay_us": {
           "type": "object",
@@ -227,15 +221,13 @@
             "step",
             "count",
             "unit"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "required": [
         "frequency_mhz",
         "delay_us"
-      ],
-      "additionalProperties": false
+      ]
     },
     "spectrum": {
       "type": "object",
@@ -266,8 +258,7 @@
         "original_db",
         "notched_db",
         "mask_db"
-      ],
-      "additionalProperties": false
+      ]
     },
     "compressed": {
       "type": "object",
@@ -298,8 +289,7 @@
         "baseline_db",
         "replica_original_db",
         "replica_notched_db"
-      ],
-      "additionalProperties": false
+      ]
     },
     "compressed_zoom": {
       "type": "object",
@@ -332,8 +322,7 @@
             "step",
             "count",
             "unit"
-          ],
-          "additionalProperties": false
+          ]
         },
         "baseline_db": {
           "type": "array",
@@ -362,8 +351,7 @@
         "baseline_db",
         "replica_original_db",
         "replica_notched_db"
-      ],
-      "additionalProperties": false
+      ]
     },
     "metrics": {
       "type": "object",
@@ -402,8 +390,7 @@
             "psl_db",
             "islr_db",
             "peak_loss_db"
-          ],
-          "additionalProperties": false
+          ]
         },
         "replica_original": {
           "type": "object",
@@ -439,8 +426,7 @@
             "psl_db",
             "islr_db",
             "peak_loss_db"
-          ],
-          "additionalProperties": false
+          ]
         },
         "replica_notched": {
           "type": "object",
@@ -476,8 +462,7 @@
             "psl_db",
             "islr_db",
             "peak_loss_db"
-          ],
-          "additionalProperties": false
+          ]
         },
         "notch": {
           "type": "object",
@@ -499,8 +484,7 @@
             "core_attenuation_db",
             "inband_depth_db",
             "bandwidth_removed_pct"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "required": [
@@ -508,8 +492,7 @@
         "replica_original",
         "replica_notched",
         "notch"
-      ],
-      "additionalProperties": false
+      ]
     },
     "sweeps": {
       "type": "object",
@@ -548,8 +531,7 @@
                   "islr_db",
                   "peak_loss_db",
                   "mainlobe_width_3db_us"
-                ],
-                "additionalProperties": false
+                ]
               },
               "replica_notched": {
                 "type": "object",
@@ -576,16 +558,14 @@
                   "islr_db",
                   "peak_loss_db",
                   "mainlobe_width_3db_us"
-                ],
-                "additionalProperties": false
+                ]
               }
             },
             "required": [
               "depth_db",
               "replica_original",
               "replica_notched"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "width_mhz": {
@@ -622,8 +602,7 @@
                   "islr_db",
                   "peak_loss_db",
                   "mainlobe_width_3db_us"
-                ],
-                "additionalProperties": false
+                ]
               },
               "replica_notched": {
                 "type": "object",
@@ -650,16 +629,14 @@
                   "islr_db",
                   "peak_loss_db",
                   "mainlobe_width_3db_us"
-                ],
-                "additionalProperties": false
+                ]
               }
             },
             "required": [
               "width_mhz",
               "replica_original",
               "replica_notched"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "taper_mhz": {
@@ -696,8 +673,7 @@
                   "islr_db",
                   "peak_loss_db",
                   "mainlobe_width_3db_us"
-                ],
-                "additionalProperties": false
+                ]
               },
               "replica_notched": {
                 "type": "object",
@@ -724,16 +700,14 @@
                   "islr_db",
                   "peak_loss_db",
                   "mainlobe_width_3db_us"
-                ],
-                "additionalProperties": false
+                ]
               }
             },
             "required": [
               "taper_mhz",
               "replica_original",
               "replica_notched"
-            ],
-            "additionalProperties": false
+            ]
           }
         }
       },
@@ -741,8 +715,7 @@
         "depth_db",
         "width_mhz",
         "taper_mhz"
-      ],
-      "additionalProperties": false
+      ]
     }
   },
   "required": [
@@ -758,6 +731,5 @@
     "spectrum",
     "compressed",
     "metrics"
-  ],
-  "additionalProperties": false
+  ]
 }

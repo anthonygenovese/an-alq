@@ -1,0 +1,763 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "an-alq.spectral-notch-lfm.v1"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$"
+    },
+    "illustrative": {
+      "type": "boolean",
+      "const": true
+    },
+    "operational": {
+      "type": "boolean",
+      "const": false
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "type": "string",
+          "enum": [
+            "numpy",
+            "torch"
+          ]
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deterministic": {
+          "type": "boolean",
+          "const": true
+        },
+        "compute_ms": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "level_floor_db": {
+          "type": "number",
+          "maximum": -40
+        }
+      },
+      "required": [
+        "backend",
+        "model_version",
+        "deterministic",
+        "compute_ms",
+        "level_floor_db"
+      ],
+      "additionalProperties": false
+    },
+    "units": {
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "frequency",
+        "time",
+        "level"
+      ],
+      "additionalProperties": false
+    },
+    "params": {
+      "type": "object",
+      "properties": {
+        "waveform": {
+          "type": "object",
+          "properties": {
+            "bandwidth_mhz": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "pulse_width_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "sample_rate_mhz": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "amplitude_window": {
+              "type": "string",
+              "enum": [
+                "none",
+                "hann",
+                "hamming"
+              ]
+            },
+            "n_samples": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "time_bandwidth_product": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "bandwidth_mhz",
+            "pulse_width_us",
+            "sample_rate_mhz",
+            "amplitude_window",
+            "n_samples",
+            "time_bandwidth_product"
+          ],
+          "additionalProperties": false
+        },
+        "notch": {
+          "type": "object",
+          "properties": {
+            "center_mhz": {
+              "type": "number"
+            },
+            "width_mhz": {
+              "type": "number",
+              "minimum": 0
+            },
+            "depth_db": {
+              "type": "number",
+              "minimum": 0
+            },
+            "taper_mhz": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "center_mhz",
+            "width_mhz",
+            "depth_db",
+            "taper_mhz"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "waveform",
+        "notch"
+      ],
+      "additionalProperties": false
+    },
+    "axes": {
+      "type": "object",
+      "properties": {
+        "frequency_mhz": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "count": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "MHz",
+                "us"
+              ]
+            }
+          },
+          "required": [
+            "start",
+            "step",
+            "count",
+            "unit"
+          ],
+          "additionalProperties": false
+        },
+        "delay_us": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "count": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "MHz",
+                "us"
+              ]
+            }
+          },
+          "required": [
+            "start",
+            "step",
+            "count",
+            "unit"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "frequency_mhz",
+        "delay_us"
+      ],
+      "additionalProperties": false
+    },
+    "spectrum": {
+      "type": "object",
+      "properties": {
+        "original_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        },
+        "notched_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        },
+        "mask_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        }
+      },
+      "required": [
+        "original_db",
+        "notched_db",
+        "mask_db"
+      ],
+      "additionalProperties": false
+    },
+    "compressed": {
+      "type": "object",
+      "properties": {
+        "baseline_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        },
+        "replica_original_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        },
+        "replica_notched_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        }
+      },
+      "required": [
+        "baseline_db",
+        "replica_original_db",
+        "replica_notched_db"
+      ],
+      "additionalProperties": false
+    },
+    "compressed_zoom": {
+      "type": "object",
+      "properties": {
+        "delay_us": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "count": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "MHz",
+                "us"
+              ]
+            }
+          },
+          "required": [
+            "start",
+            "step",
+            "count",
+            "unit"
+          ],
+          "additionalProperties": false
+        },
+        "baseline_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        },
+        "replica_original_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        },
+        "replica_notched_db": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -120
+          }
+        }
+      },
+      "required": [
+        "delay_us",
+        "baseline_db",
+        "replica_original_db",
+        "replica_notched_db"
+      ],
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "baseline": {
+          "type": "object",
+          "properties": {
+            "peak_delay_us": {
+              "type": "number"
+            },
+            "mainlobe_width_3db_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mainlobe_null_to_null_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "psl_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "islr_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "peak_loss_db": {
+              "type": "number",
+              "maximum": 0
+            }
+          },
+          "required": [
+            "peak_delay_us",
+            "mainlobe_width_3db_us",
+            "mainlobe_null_to_null_us",
+            "psl_db",
+            "islr_db",
+            "peak_loss_db"
+          ],
+          "additionalProperties": false
+        },
+        "replica_original": {
+          "type": "object",
+          "properties": {
+            "peak_delay_us": {
+              "type": "number"
+            },
+            "mainlobe_width_3db_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mainlobe_null_to_null_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "psl_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "islr_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "peak_loss_db": {
+              "type": "number",
+              "maximum": 0
+            }
+          },
+          "required": [
+            "peak_delay_us",
+            "mainlobe_width_3db_us",
+            "mainlobe_null_to_null_us",
+            "psl_db",
+            "islr_db",
+            "peak_loss_db"
+          ],
+          "additionalProperties": false
+        },
+        "replica_notched": {
+          "type": "object",
+          "properties": {
+            "peak_delay_us": {
+              "type": "number"
+            },
+            "mainlobe_width_3db_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mainlobe_null_to_null_us": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "psl_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "islr_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "peak_loss_db": {
+              "type": "number",
+              "maximum": 0
+            }
+          },
+          "required": [
+            "peak_delay_us",
+            "mainlobe_width_3db_us",
+            "mainlobe_null_to_null_us",
+            "psl_db",
+            "islr_db",
+            "peak_loss_db"
+          ],
+          "additionalProperties": false
+        },
+        "notch": {
+          "type": "object",
+          "properties": {
+            "core_attenuation_db": {
+              "type": "number",
+              "maximum": 0
+            },
+            "inband_depth_db": {
+              "type": "number"
+            },
+            "bandwidth_removed_pct": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "core_attenuation_db",
+            "inband_depth_db",
+            "bandwidth_removed_pct"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "baseline",
+        "replica_original",
+        "replica_notched",
+        "notch"
+      ],
+      "additionalProperties": false
+    },
+    "sweeps": {
+      "type": "object",
+      "properties": {
+        "depth_db": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "depth_db": {
+                "type": "number",
+                "minimum": 0
+              },
+              "replica_original": {
+                "type": "object",
+                "properties": {
+                  "psl_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "islr_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "peak_loss_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "mainlobe_width_3db_us": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "psl_db",
+                  "islr_db",
+                  "peak_loss_db",
+                  "mainlobe_width_3db_us"
+                ],
+                "additionalProperties": false
+              },
+              "replica_notched": {
+                "type": "object",
+                "properties": {
+                  "psl_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "islr_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "peak_loss_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "mainlobe_width_3db_us": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "psl_db",
+                  "islr_db",
+                  "peak_loss_db",
+                  "mainlobe_width_3db_us"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "depth_db",
+              "replica_original",
+              "replica_notched"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "width_mhz": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "width_mhz": {
+                "type": "number",
+                "minimum": 0
+              },
+              "replica_original": {
+                "type": "object",
+                "properties": {
+                  "psl_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "islr_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "peak_loss_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "mainlobe_width_3db_us": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "psl_db",
+                  "islr_db",
+                  "peak_loss_db",
+                  "mainlobe_width_3db_us"
+                ],
+                "additionalProperties": false
+              },
+              "replica_notched": {
+                "type": "object",
+                "properties": {
+                  "psl_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "islr_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "peak_loss_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "mainlobe_width_3db_us": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "psl_db",
+                  "islr_db",
+                  "peak_loss_db",
+                  "mainlobe_width_3db_us"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "width_mhz",
+              "replica_original",
+              "replica_notched"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "taper_mhz": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "taper_mhz": {
+                "type": "number",
+                "minimum": 0
+              },
+              "replica_original": {
+                "type": "object",
+                "properties": {
+                  "psl_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "islr_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "peak_loss_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "mainlobe_width_3db_us": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "psl_db",
+                  "islr_db",
+                  "peak_loss_db",
+                  "mainlobe_width_3db_us"
+                ],
+                "additionalProperties": false
+              },
+              "replica_notched": {
+                "type": "object",
+                "properties": {
+                  "psl_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "islr_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "peak_loss_db": {
+                    "type": "number",
+                    "maximum": 0
+                  },
+                  "mainlobe_width_3db_us": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "psl_db",
+                  "islr_db",
+                  "peak_loss_db",
+                  "mainlobe_width_3db_us"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "taper_mhz",
+              "replica_original",
+              "replica_notched"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "depth_db",
+        "width_mhz",
+        "taper_mhz"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema",
+    "schema_version",
+    "illustrative",
+    "operational",
+    "label",
+    "meta",
+    "units",
+    "params",
+    "axes",
+    "spectrum",
+    "compressed",
+    "metrics"
+  ],
+  "additionalProperties": false
+}

@@ -55,6 +55,9 @@ const nextConfig: NextConfig = {
         async redirects() {
           return [
             { source: "/lander", destination: "/", permanent: true },
+            { source: "/lander1", destination: "/", permanent: true },
+            { source: "/lander2", destination: "/", permanent: true },
+            { source: "/lander3", destination: "/", permanent: true },
             { source: "/lander4", destination: "/", permanent: true },
           ];
         },

@@ -420,6 +420,7 @@ html[data-theme="light"] .lv3-crawl {
 
 .lv4 {
   align-content: start;
+  min-height: calc(100vh - 140px);
   min-height: calc(100dvh - 140px);
   padding-top: 12vh;
   gap: 0;
@@ -598,4 +599,39 @@ html[data-theme="light"] .lv3-crawl {
   .lv4-face.face-map {
     transform: rotateX(-90deg) translateZ(70px);
   }
+}
+
+/* Instagram's WKWebView flattens preserve-3d and clips the cube off the left.
+   Safari does not set data-webview, so this block does not apply there. */
+html[data-webview="instagram"] .lv4 {
+  min-height: 0;
+  padding-top: 16px;
+}
+
+html[data-webview="instagram"] .lv4-stage {
+  width: min(200px, calc(100vw - 44px));
+  height: 132px;
+  margin: 8px auto 0;
+  perspective: none;
+}
+
+html[data-webview="instagram"] .lv4-cube,
+html[data-webview="instagram"] .lv4-face {
+  animation: none;
+  transform: none;
+}
+
+html[data-webview="instagram"] .lv4-face {
+  position: relative;
+  inset: auto;
+  display: none;
+  width: 100%;
+  height: 100%;
+  border-color: var(--accent);
+  background: var(--bg-2);
+  color: var(--accent);
+}
+
+html[data-webview="instagram"] .lv4-face.face-drawn {
+  display: grid;
 }

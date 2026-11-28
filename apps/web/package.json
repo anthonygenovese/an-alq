@@ -13,7 +13,7 @@
     "build": "pnpm --filter @an-alq/emitters --filter @an-alq/relay --filter @an-alq/sim build && next build",
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "typecheck": "mkdir -p .next/types && touch .next/types/routes.d.ts .next/types/root-params.d.ts && tsc --noEmit",
-    "test": "node --experimental-strip-types --test test/toggle-placement.test.ts"
+    "test": "node --experimental-strip-types --test test/*.test.ts"
   },
   "dependencies": {
     "@an-alq/emitters": "workspace:*",

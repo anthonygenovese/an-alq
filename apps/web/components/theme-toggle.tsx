@@ -4,11 +4,14 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { measureTogglePlacement } from "./toggle-placement-dom";
+import { isInstagramWebView } from "../lib/webview";
 import {
   applyTheme,
+  flippedTheme,
   persistTheme,
   readStoredTheme,
   resolveTheme,
+  themeChoice,
   type ThemeChoice,
 } from "../theme";
 
@@ -22,13 +25,29 @@ export function ThemeToggle() {
       setTheme(next);
     };
     sync();
-    const media = window.matchMedia("(prefers-color-scheme: light)");
+    let media: MediaQueryList | null = null;
+    try {
+      if (typeof window.matchMedia === "function") {
+        media = window.matchMedia("(prefers-color-scheme: light)");
+      }
+    } catch {
+      media = null;
+    }
+    if (!media) return;
     const onChange = () => {
       if (readStoredTheme()) return;
       sync();
     };
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+    const legacy = media as MediaQueryList & {
+      addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+      removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+    };
+    legacy.addListener?.(onChange);
+    return () => legacy.removeListener?.(onChange);
   }, []);
 
   const light = theme === "light";
@@ -44,17 +63,29 @@ export function ThemeToggle() {
     let timer = 0;
     let measuring = false;
     const heldDown = () => held.current.hover || held.current.focus || held.current.press;
+    const embedded =
+      typeof navigator !== "undefined" && isInstagramWebView(navigator.userAgent || "");
     const place = () => {
       if (heldDown() || button.matches(":hover, :focus, :focus-visible, :active")) return;
       measuring = true;
       const shift = measureTogglePlacement(button);
-      const raw = getComputedStyle(button).transform;
-      const matrix = raw && raw !== "none" ? new DOMMatrix(raw) : new DOMMatrix();
-      if (
-        shift &&
-        (Math.abs(shift.x - matrix.m41) >= 0.5 || Math.abs(shift.y - matrix.m42) >= 0.5)
-      ) {
-        button.style.transform = `translate3d(${shift.x}px, ${shift.y}px, 0)`;
+      if (embedded) {
+        if (shift && (Math.abs(shift.x) >= 0.5 || Math.abs(shift.y) >= 0.5)) {
+          const visual = button.getBoundingClientRect();
+          button.style.right = "auto";
+          button.style.transform = "none";
+          button.style.left = `${Math.round(visual.left + shift.x)}px`;
+          button.style.top = `${Math.round(visual.top + shift.y)}px`;
+        }
+      } else {
+        const raw = getComputedStyle(button).transform;
+        const matrix = raw && raw !== "none" ? new DOMMatrix(raw) : new DOMMatrix();
+        if (
+          shift &&
+          (Math.abs(shift.x - matrix.m41) >= 0.5 || Math.abs(shift.y - matrix.m42) >= 0.5)
+        ) {
+          button.style.transform = `translate3d(${shift.x}px, ${shift.y}px, 0)`;
+        }
       }
       window.setTimeout(() => {
         measuring = false;
@@ -138,7 +169,8 @@ export function ThemeToggle() {
       className="theme-toggle"
       aria-pressed={light}
       onClick={() => {
-        const next = light ? "dark" : "light";
+        const applied = themeChoice(document.documentElement.dataset.theme) ?? theme;
+        const next = flippedTheme(applied);
         persistTheme(next);
         setTheme(next);
       }}

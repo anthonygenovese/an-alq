@@ -39,7 +39,7 @@ The site runs on Vercel with no Python runtime in the web app. Design Lead's pla
 
 ## v1 output shape
 
-Schema id: `an-alq.spectral-notch-lfm.v1`, `schema_version` `"1.0.0"`. Wire names are snake_case with unit suffixes (`_db`, `_mhz`, `_us`, `_pct`). All levels are dB: `20 log10` for amplitude (spectrum, compressed pulse, PSL, peak loss) and `10 log10` for energy or power ratios (ISLR, `core_attenuation_db`, `inband_depth_db`). No linear magnitude arrays. A real example is `prototypes/spectral-notch-lfm/examples/default.v1.json`. The JSON Schema is `prototypes/spectral-notch-lfm/contract/spectral-notch-lfm.schema.json`.
+Schema id: `an-alq.spectral-notch-lfm.v1`, `schema_version` `"1.0.0"`. Wire names are snake_case with unit suffixes (`_db`, `_mhz`, `_us`, `_pct`). All levels are dB: `20 log10` for amplitude (spectrum, compressed pulse, PSL, peak loss) and `10 log10` for energy or power ratios (ISLR, `core_attenuation_db`, `inband_depth_db`). No linear magnitude arrays. A real example is `prototypes/spectral-notch-lfm/examples/default.v1.json`. There are two JSON Schemas in `prototypes/spectral-notch-lfm/contract/`: `spectral-notch-lfm.schema.json` (consumer; unknown keys tolerated) and `spectral-notch-lfm.strict.schema.json` (producer; `additionalProperties: false` on every object). CI and the prototype tests validate exporter output against the strict schema.
 
 ```jsonc
 {
@@ -50,7 +50,7 @@ Schema id: `an-alq.spectral-notch-lfm.v1`, `schema_version` `"1.0.0"`. Wire name
   "label": "Illustrative. Synthetic data and normalized units. Not a measurement of any real system.",
   "meta": {
     "backend": "numpy", // or "torch"
-    "model_version": "numpy-proto-0",
+    "model_version": "numpy-proto-1",
     "deterministic": true,
     "compute_ms": null, // null for committed fixtures
     "level_floor_db": -120,
@@ -148,6 +148,22 @@ All use B = 40, T = 10, fs = 160, centre 8, and sit on the sweep grid. `scripts/
 ### Payload size (minified, with zoom and sweeps)
 
 The hard cap is 64 KB per payload; the target is 40 KB. All seven presets are about 31.2 KB minified (the Hann window file is 32.4 KB). That is under both.
+
+### Versioning
+
+`schema` carries the MAJOR (`an-alq.spectral-notch-lfm.v1`). `schema_version` is full semver, `1.0.0` today. The rule is Design Lead's section 10:
+
+| Change                                                                                         | Bump                    | Examples                                        |
+| ---------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------- |
+| Doc, a comment, or a clamp already named in the spec                                           | PATCH                   | typo in a tooltip                               |
+| New optional field or block (additive)                                                         | MINOR                   | `envelope` (a 1.1.0 candidate), `spectrum_zoom` |
+| Rename, removal, type, unit, shape, reference level, sign convention, or an enum value removed | MAJOR (new `schema` id) | `psl_db` to `psl_dbc`                           |
+
+Consumer schemas (the relaxed JSON Schema and Zod) must keep working across a MINOR bump: unknown keys are allowed or stripped, not rejected. The producer's CI uses the strict schema so a typo or an unpublished field fails the build. When a MINOR field is acked in the spec, it is added to both schemas and `schema_version` is bumped.
+
+Order of work: spec first, then exporter, then frontend. Notify Design Lead before merging any change to the exporter's output.
+
+`meta.model_version` is `numpy-proto-1`. That bump marks the v1 wire rounding (4 dp on `_us` fields, −120 dB array floor) and matches Design Lead's regenerated fixtures.
 
 ## Path to PyTorch
 

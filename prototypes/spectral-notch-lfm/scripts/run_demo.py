@@ -37,7 +37,7 @@ def axis_values(axis: dict) -> list[float]:
 
 def write_json(doc: dict, path: Path) -> str:
     text = json.dumps(doc, separators=(",", ":"), allow_nan=False)
-    path.write_text(text + "\n")
+    path.write_text(text)
     return text
 
 

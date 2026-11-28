@@ -21,7 +21,7 @@ ILLUSTRATIVE_LABEL = (
 
 SCHEMA = "an-alq.spectral-notch-lfm.v1"
 SCHEMA_VERSION = "1.0.0"
-MODEL_VERSION = "numpy-proto-0"
+MODEL_VERSION = "numpy-proto-1"
 LEVEL_FLOOR_DB = -120.0
 DELAY_WINDOW_US = 3.0
 SPECTRUM_POINTS = 400  # budget over +-fs/2 before the crop to +-B
